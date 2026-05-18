@@ -41,7 +41,10 @@ impl ParserTestBuilder {
         let result = parser.parse(&self.input);
 
         if self.should_fail {
-            assert!(!result.is_success(), "Expected parsing to fail but it succeeded");
+            assert!(
+                !result.is_success(),
+                "Expected parsing to fail but it succeeded"
+            );
             TestParseResult::Failed
         } else {
             assert!(result.is_success(), "Parsing should succeed");

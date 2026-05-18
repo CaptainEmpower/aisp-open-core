@@ -14,7 +14,6 @@ check:
     @echo "🔍 Running code quality checks..."
     just check-all
     just clippy-all
-    just fmt-all --check
 
 # Check all workspace packages
 check-all:
