@@ -486,11 +486,12 @@ mod tests {
         assert_eq!(summary.total_streams, 2);
         assert_eq!(summary.active_resources.len(), 2);
 
-        // Should find high correlation
+        // Should find high correlation (try both possible key orders)
         let correlation = summary
             .resource_correlations
-            .get(&(ResourceType::Memory, ResourceType::CPU));
-        assert!(correlation.is_some());
+            .get(&(ResourceType::Memory, ResourceType::CPU))
+            .or_else(|| summary.resource_correlations.get(&(ResourceType::CPU, ResourceType::Memory)));
+        assert!(correlation.is_some(), "No correlation found between Memory and CPU resources");
         let corr_value = *correlation.unwrap();
         assert!(
             corr_value > 0.8,
