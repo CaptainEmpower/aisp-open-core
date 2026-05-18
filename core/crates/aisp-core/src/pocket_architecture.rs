@@ -90,7 +90,7 @@ pub type ContentHash = [u8; 32];
 /// Helper functions for creating ContentHash values
 pub mod content_hash {
     use super::ContentHash;
-    
+
     /// Create a ContentHash from a u64 for testing purposes
     /// This is a convenience function to help with test data creation
     pub fn from_u64(value: u64) -> ContentHash {
@@ -98,7 +98,7 @@ pub mod content_hash {
         hash[..8].copy_from_slice(&value.to_be_bytes());
         hash
     }
-    
+
     /// Create a zero ContentHash
     pub fn zero() -> ContentHash {
         [0u8; 32]
@@ -824,7 +824,6 @@ impl SignalVector {
         self.semantic.len() + self.structural.len() + self.safety.len()
     }
 }
-
 
 impl FeatureFlags {
     /// Create new feature flags

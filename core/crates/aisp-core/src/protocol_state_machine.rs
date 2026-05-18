@@ -926,83 +926,83 @@ impl Default for ProtocolStateMachine {
     }
 }
 
-    #[test]
-    fn test_state_machine_analyzer_creation() {
-        let analyzer = ProtocolStateMachineAnalyzer::new();
-        assert!(analyzer.config.enable_reachability);
-        assert!(analyzer.config.enable_deadlock_detection);
-        assert!(analyzer.config.enable_liveness_verification);
-    }
+#[test]
+fn test_state_machine_analyzer_creation() {
+    let analyzer = ProtocolStateMachineAnalyzer::new();
+    assert!(analyzer.config.enable_reachability);
+    assert!(analyzer.config.enable_deadlock_detection);
+    assert!(analyzer.config.enable_liveness_verification);
+}
 
-    #[test]
-    fn test_state_machine_analysis() {
-        let mut analyzer = ProtocolStateMachineAnalyzer::new();
-        
-        // Create a minimal test document inline
-        let document = AispDocument {
-            header: DocumentHeader {
-                version: "5.1".to_string(),
-                name: "TestStateMachine".to_string(),
-                date: "2026-01-26".to_string(),
-                metadata: None,
-            },
-            metadata: DocumentMetadata {
-                domain: Some("protocol".to_string()),
-                protocol: Some("state-machine".to_string()),
-            },
-            blocks: vec![],
-            span: Some(Span::new(0, 0, 1, 1)),
-        };
+#[test]
+fn test_state_machine_analysis() {
+    let mut analyzer = ProtocolStateMachineAnalyzer::new();
 
-        let result = analyzer.analyze_document(&document);
-        assert!(result.is_ok());
+    // Create a minimal test document inline
+    let document = AispDocument {
+        header: DocumentHeader {
+            version: "5.1".to_string(),
+            name: "TestStateMachine".to_string(),
+            date: "2026-01-26".to_string(),
+            metadata: None,
+        },
+        metadata: DocumentMetadata {
+            domain: Some("protocol".to_string()),
+            protocol: Some("state-machine".to_string()),
+        },
+        blocks: vec![],
+        span: Some(Span::new(0, 0, 1, 1)),
+    };
 
-        let analysis = result.unwrap();
-        // Analysis should complete even with minimal input
-        assert!(analysis.performance_metrics.analysis_time >= Duration::from_nanos(0));
-    }
+    let result = analyzer.analyze_document(&document);
+    assert!(result.is_ok());
 
-    #[test]
-    fn test_reachability_analysis_empty() {
-        let analysis = ReachabilityAnalysis::empty();
-        assert!(analysis.reachable_states.is_empty());
-        assert!(analysis.unreachable_states.is_empty());
-        assert!(analysis.cycles.is_empty());
-    }
+    let analysis = result.unwrap();
+    // Analysis should complete even with minimal input
+    assert!(analysis.performance_metrics.analysis_time >= Duration::from_nanos(0));
+}
 
-    #[test]
-    fn test_state_transition_creation() {
-        let transition = StateTransition {
-            from_state: "A".to_string(),
-            to_state: "B".to_string(),
-            trigger: TransitionTrigger::Event("test".to_string()),
-            guard: None,
-            action: Some("action".to_string()),
-            priority: 1,
-            timing: None,
-        };
+#[test]
+fn test_reachability_analysis_empty() {
+    let analysis = ReachabilityAnalysis::empty();
+    assert!(analysis.reachable_states.is_empty());
+    assert!(analysis.unreachable_states.is_empty());
+    assert!(analysis.cycles.is_empty());
+}
 
-        assert_eq!(transition.from_state, "A");
-        assert_eq!(transition.to_state, "B");
-        assert_eq!(transition.priority, 1);
-    }
+#[test]
+fn test_state_transition_creation() {
+    let transition = StateTransition {
+        from_state: "A".to_string(),
+        to_state: "B".to_string(),
+        trigger: TransitionTrigger::Event("test".to_string()),
+        guard: None,
+        action: Some("action".to_string()),
+        priority: 1,
+        timing: None,
+    };
 
-    #[test]
-    fn test_timing_constraints() {
-        let timing = TimingConstraint {
-            min_delay: Some(Duration::from_millis(100)),
-            max_delay: Some(Duration::from_secs(1)),
-            deadline: Some(Duration::from_secs(5)),
-        };
+    assert_eq!(transition.from_state, "A");
+    assert_eq!(transition.to_state, "B");
+    assert_eq!(transition.priority, 1);
+}
 
-        assert_eq!(timing.min_delay, Some(Duration::from_millis(100)));
-        assert_eq!(timing.max_delay, Some(Duration::from_secs(1)));
-        assert_eq!(timing.deadline, Some(Duration::from_secs(5)));
-    }
+#[test]
+fn test_timing_constraints() {
+    let timing = TimingConstraint {
+        min_delay: Some(Duration::from_millis(100)),
+        max_delay: Some(Duration::from_secs(1)),
+        deadline: Some(Duration::from_secs(5)),
+    };
 
-    #[test]
-    fn test_violation_severity_ordering() {
-        assert!(ViolationSeverity::Critical > ViolationSeverity::High);
-        assert!(ViolationSeverity::High > ViolationSeverity::Medium);
-        assert!(ViolationSeverity::Medium > ViolationSeverity::Low);
-    }
+    assert_eq!(timing.min_delay, Some(Duration::from_millis(100)));
+    assert_eq!(timing.max_delay, Some(Duration::from_secs(1)));
+    assert_eq!(timing.deadline, Some(Duration::from_secs(5)));
+}
+
+#[test]
+fn test_violation_severity_ordering() {
+    assert!(ViolationSeverity::Critical > ViolationSeverity::High);
+    assert!(ViolationSeverity::High > ViolationSeverity::Medium);
+    assert!(ViolationSeverity::Medium > ViolationSeverity::Low);
+}

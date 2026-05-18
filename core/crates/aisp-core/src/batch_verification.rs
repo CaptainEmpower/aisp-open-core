@@ -9,9 +9,7 @@ use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     parser::robust_parser::RobustAispParser,
-    semantic::verification_pipeline::{
-        ComprehensiveVerificationResult,
-    },
+    semantic::verification_pipeline::ComprehensiveVerificationResult,
 };
 use serde::{Deserialize, Serialize};
 use std::{
