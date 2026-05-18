@@ -257,8 +257,10 @@ mod tests {
 ⟦Ε⟧⟨δ≜0.8⟩"#;
 
         // Parse the document
-        let mut parser = AispParser::new(aisp_text.to_string());
-        let document = parser.parse().unwrap();
+        let parser = AispParser::new(aisp_text.to_string());
+        let parse_result = parser.parse(aisp_text);
+        assert!(parse_result.is_success(), "Parsing should succeed");
+        let document = parse_result.document.unwrap();
 
         // Discover invariants
         let mut discovery = InvariantDiscovery::new();

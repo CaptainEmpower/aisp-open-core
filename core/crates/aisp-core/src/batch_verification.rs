@@ -10,9 +10,7 @@ use crate::{
     error::{AispError, AispResult},
     parser::robust_parser::RobustAispParser,
     semantic::verification_pipeline::{
-        AdversarialTestResults, AuditSummary, CertificationEligibility, ComplianceStatus,
-        ComprehensiveVerificationResult, EnterpriseSecurityAssessment, PerformanceAnalysis,
-        ProductionRecommendation,
+        ComprehensiveVerificationResult,
     },
 };
 use serde::{Deserialize, Serialize};

@@ -6,7 +6,7 @@
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
 };
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashSet;
 
 /// Structural validation configuration
@@ -250,9 +250,14 @@ mod tests {
                 version: "5.1".to_string(),
                 name: "test".to_string(),
                 date: "2026-01-30".to_string(),
+                metadata: None,
             },
-            metadata: DocumentMetadata { entries: vec![] },
+            metadata: DocumentMetadata {
+                domain: None,
+                protocol: None,
+            },
             blocks,
+            span: None,
         }
     }
 
