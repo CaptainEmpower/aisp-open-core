@@ -10,7 +10,7 @@
 
 use aisp_core::{
     ast::*,
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     semantic::{QualityTier, SemanticAnalyzer},
 };
 use proptest::prelude::*;

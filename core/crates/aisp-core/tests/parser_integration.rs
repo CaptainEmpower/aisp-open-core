@@ -5,7 +5,7 @@
 
 use aisp_core::{
     ast::canonical::{CanonicalAispDocument as AispDocument, *},
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     semantic::QualityTier,
     validator::{AispValidator, ValidationConfig},
 };
@@ -36,15 +36,16 @@ impl ParserTestBuilder {
         self
     }
 
-    pub fn test_parse(self) -> ParseResult {
-        let mut parser = AispParser::new(self.input.clone());
-        let result = parser.parse();
+    pub fn test_parse(self) -> TestParseResult {
+        let parser = AispParser::new(self.input.clone());
+        let result = parser.parse(&self.input);
 
         if self.should_fail {
-            assert!(result.is_err(), "Expected parsing to fail but it succeeded");
-            ParseResult::Failed
+            assert!(!result.is_success(), "Expected parsing to fail but it succeeded");
+            TestParseResult::Failed
         } else {
-            let document = result.expect("Parsing should succeed");
+            assert!(result.is_success(), "Parsing should succeed");
+            let document = result.document.expect("Parsing should succeed");
             assert_eq!(
                 document.blocks.len(),
                 self.expected_blocks,
@@ -52,12 +53,12 @@ impl ParserTestBuilder {
                 self.expected_blocks,
                 document.blocks.len()
             );
-            ParseResult::Success(document)
+            TestParseResult::Success(document)
         }
     }
 }
 
-pub enum ParseResult {
+pub enum TestParseResult {
     Success(AispDocument),
     Failed,
 }
@@ -189,7 +190,7 @@ fn test_parse_minimal_document() {
 
 ⟦Ε⟧⟨δ≜0.7;τ≜◊⟩"#;
 
-    if let ParseResult::Success(document) = ParserTestBuilder::new(input)
+    if let TestParseResult::Success(document) = ParserTestBuilder::new(input)
         .expecting_blocks(5)
         .test_parse()
     {
@@ -227,7 +228,7 @@ fn test_parse_evidence_block() {
 
 ⟦Ε⟧⟨δ≜0.85;φ≜100;τ≜◊⁺⟩"#;
 
-    if let ParseResult::Success(document) = ParserTestBuilder::new(input)
+    if let TestParseResult::Success(document) = ParserTestBuilder::new(input)
         .expecting_blocks(5)
         .test_parse()
     {
@@ -263,7 +264,7 @@ fn test_parse_complex_types() {
 
 ⟦Ε⟧⟨δ≜0.6⟩"#;
 
-    if let ParseResult::Success(document) = ParserTestBuilder::new(input)
+    if let TestParseResult::Success(document) = ParserTestBuilder::new(input)
         .expecting_blocks(5)
         .test_parse()
     {
@@ -359,7 +360,7 @@ fn test_header_parsing() {
 
 ⟦Ε⟧⟨δ≜0.5⟩"#;
 
-    if let ParseResult::Success(document) = ParserTestBuilder::new(input)
+    if let TestParseResult::Success(document) = ParserTestBuilder::new(input)
         .expecting_blocks(5)
         .test_parse()
     {

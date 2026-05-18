@@ -6,7 +6,7 @@
 use aisp_core::{
     reference_validator::{ReferenceValidator, ComplianceLevel},
     reference_integration_test::ReferenceChallengeTestSuite,
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     semantic::SemanticAnalyzer,
     z3_verification::Z3VerificationFacade,
     error::AispResult,

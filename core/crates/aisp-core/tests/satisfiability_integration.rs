@@ -7,7 +7,7 @@ use aisp_core::{
     ast::canonical::{self, CanonicalAispDocument as AispDocument},
     invariant_discovery::InvariantDiscovery,
     invariant_types::InvariantDiscoveryConfig,
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     satisfiability_checker::{
         ConsistencyResult, SatisfiabilityChecker, SatisfiabilityConfig, SatisfiabilityResult,
     },
@@ -127,8 +127,10 @@ fn test_parser_integration_with_satisfiability() {
 "#;
 
     // Parse the document
-    let mut parser = AispParser::new(aisp_text.to_string());
-    let document = parser.parse().unwrap();
+    let parser = AispParser::new(aisp_text.to_string());
+    let parse_result = parser.parse(aisp_text);
+    assert!(parse_result.is_success(), "Parsing should succeed");
+    let document = parse_result.document.unwrap();
 
     // Discover invariants
     let mut discovery = InvariantDiscovery::new();

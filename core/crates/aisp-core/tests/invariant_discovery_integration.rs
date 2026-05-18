@@ -14,7 +14,7 @@ use aisp_core::{
     invariant_discovery::{
         DiscoveredInvariant, InvariantDiscovery, InvariantDiscoveryConfig, InvariantType,
     },
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     validator::AispValidator,
 };
 use std::collections::HashMap;

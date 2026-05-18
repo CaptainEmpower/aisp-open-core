@@ -13,7 +13,7 @@
 
 use aisp_core::{
     ast::canonical::*,
-    parser_new::AispParser,
+    parser::robust_parser::AispParser,
     proof_search::ProofSearchStrategy,
     property_extractor::PropertyExtractor,
     property_types::*,
