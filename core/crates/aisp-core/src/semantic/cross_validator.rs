@@ -182,7 +182,7 @@ mod validation_types {
         UserIntervention,
     }
 
-    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
     pub enum FinalDecision {
         Accept,
         Reject,
@@ -1783,8 +1783,13 @@ mod security_assessor {
         }
 
         fn create_mock_behavioral_with_violations() -> BehavioralVerificationResult {
+            use crate::semantic::behavioral_verifier::types::{BehavioralViolation, ViolationSeverity};
             BehavioralVerificationResult {
-                violations: vec!["test_violation".to_string()],
+                violations: vec![BehavioralViolation {
+                    violation_type: "test_violation".to_string(),
+                    description: "Test violation for unit test".to_string(),
+                    severity: ViolationSeverity::High,
+                }],
                 ..Default::default()
             }
         }

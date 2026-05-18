@@ -515,8 +515,8 @@ mod tests {
 
         if let LogicalExpression::Binary { op, left, right } = expr {
             assert!(matches!(op, BinaryOperator::And));
-            assert!(matches!(**left, LogicalExpression::Variable(_)));
-            assert!(matches!(**right, LogicalExpression::Variable(_)));
+            assert!(matches!(*left, LogicalExpression::Variable(_)));
+            assert!(matches!(*right, LogicalExpression::Variable(_)));
         } else {
             panic!("Expected binary expression");
         }
