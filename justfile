@@ -188,6 +188,20 @@ test-adversarial:
     @echo "🛡️ Running adversarial resistance tests..."
     cargo test test_adversarial_resistance -- --nocapture
 
+# Validate the full workspace (comprehensive validation)
+validate:
+    @echo "🔍 Running comprehensive workspace validation..."
+    just check
+    just test
+    just audit
+    @echo "✅ Workspace validation complete!"
+
+# Validate AISP document using CLI
+aisp-validate-cli FILE:
+    @echo "🔍 Validating AISP document: {{FILE}}"
+    cargo build --release --bin aisp-cli
+    ./target/release/aisp-cli validate "{{FILE}}"
+
 # Validate specific fixture
 validate-fixture FIXTURE:
     @echo "🔍 Validating fixture: {{FIXTURE}}"
