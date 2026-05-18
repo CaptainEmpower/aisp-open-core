@@ -575,8 +575,8 @@ mod tests {
         // Create a measurement that should trigger bottleneck detection
         let high_utilization_measurement = ResourceMeasurement {
             timestamp: Instant::now(),
-            utilization: 0.9, // Above threshold
-            raw_value: 90.0,
+            utilization: 0.95, // Above 0.9 threshold for Critical severity
+            raw_value: 95.0,
             capacity: 100.0,
         };
 

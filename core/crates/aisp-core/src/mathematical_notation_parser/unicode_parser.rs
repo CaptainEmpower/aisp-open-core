@@ -837,7 +837,7 @@ mod tests {
 
         let result = parser.try_parse_multi_char_operator(":", &mut chars, &mut context);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), ":");
+        assert_eq!(result.unwrap(), ":=");
     }
 
     #[test]

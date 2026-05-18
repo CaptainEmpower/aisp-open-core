@@ -89,6 +89,10 @@ impl MetricsCollector {
         // Perform cleanup if needed
         if stream.measurements.len() > self.config.buffer_size {
             stream.cleanup_old_measurements(self.config.cleanup_threshold);
+            // If still over buffer size after time-based cleanup, remove oldest measurements
+            while stream.measurements.len() > self.config.buffer_size {
+                stream.measurements.remove(0);
+            }
         }
 
         // Update statistics if real-time processing is enabled

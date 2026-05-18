@@ -282,7 +282,8 @@ impl LogicContentParser {
     fn try_parse_unary_expression(text: &str) -> Option<LogicalExpression> {
         if text.starts_with('¬') || text.starts_with("NOT") {
             let operand_text = if text.starts_with('¬') {
-                &text[1..].trim()
+                // Skip the ¬ character properly using char boundaries
+                &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..].trim()
             } else {
                 &text[3..].trim() // Skip "NOT"
             };
@@ -368,7 +369,8 @@ impl LogicContentParser {
     fn try_parse_membership(text: &str) -> Option<LogicalExpression> {
         if let Some(in_pos) = text.find(" ∈ ") {
             let element_text = &text[..in_pos].trim();
-            let set_text = &text[in_pos + 3..].trim(); // Skip " ∈ "
+            // Skip " ∈ " properly - it's 5 bytes total (space + 3-byte ∈ + space)
+            let set_text = &text[in_pos + 5..].trim();
 
             let element = Box::new(Self::parse_logical_expression(element_text));
             let set = Box::new(Self::parse_logical_expression(set_text));
