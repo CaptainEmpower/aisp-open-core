@@ -2262,11 +2262,23 @@ mod integration_tests {
         assert!(result.cross_validation_confidence >= 0.0);
         assert!(result.verification_coverage >= 0.0);
 
-        // Verify final assessment is generated (development systems may have lower confidence)
+        // Verify final assessment has valid confidence score
         assert!(result.final_assessment.security_confidence >= 0.0);
         assert!(result.final_assessment.security_confidence <= 1.0);
-        // Actionable recommendations are optional for basic documents
-        assert!(result.final_assessment.actionable_recommendations.len() >= 0);
+        
+        // For a comprehensive integration test, we should get either recommendations OR reasonable confidence
+        // This ensures the cross-validator is actually doing meaningful analysis without being too strict
+        // since 0.5 confidence is acceptable as a middle-ground assessment
+        let has_recommendations = !result.final_assessment.actionable_recommendations.is_empty();
+        let has_reasonable_confidence = result.final_assessment.security_confidence >= 0.5;
+        
+        assert!(
+            has_recommendations || has_reasonable_confidence,
+            "Cross-validator should either generate actionable recommendations or achieve reasonable confidence (>=0.5). \
+             Got confidence: {}, recommendations: {}. This indicates the cross-validator may need implementation improvements.",
+            result.final_assessment.security_confidence,
+            result.final_assessment.actionable_recommendations.len()
+        );
 
         // Test display formatting
         let display_output = format!("{}", result);

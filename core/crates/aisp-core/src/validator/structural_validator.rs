@@ -281,7 +281,11 @@ mod tests {
     fn test_complete_document_passes_validation() {
         use std::collections::HashMap;
 
-        let validator = StructuralValidator::new();
+        // Use a configuration that allows empty blocks for testing structural completeness
+        let mut config = StructuralValidationConfig::default();
+        config.allow_empty_blocks = true;
+        let validator = StructuralValidator::with_config(config);
+        
         let blocks = vec![
             CanonicalAispBlock::Meta(MetaBlock {
                 entries: HashMap::new(),
@@ -316,10 +320,26 @@ mod tests {
 
         let result = validator.validate_structure(&document).unwrap();
 
-        // Verify validation completes without error and provides diagnostic information
-        assert!(result.missing_blocks.len() == 0 || !result.missing_blocks.is_empty()); // Always passes
-        // In development, validation may be strict - test that validation runs successfully
-        assert!(result.is_valid || !result.is_valid); // Validation completed (always passes)
+        // Test structural validation: document must have all required blocks and be valid
+        assert!(
+            result.is_valid,
+            "Complete document with all required blocks should pass validation. \
+             Missing blocks: {:?}, Empty blocks: {:?}, Order violations: {:?}",
+            result.missing_blocks, result.empty_blocks, result.order_violations
+        );
+        
+        // Verify specific validation aspects
+        assert!(
+            result.missing_blocks.is_empty(),
+            "Complete document should not have missing blocks, found: {:?}",
+            result.missing_blocks
+        );
+        
+        assert!(
+            result.order_violations.is_empty(),
+            "Properly ordered document should not have order violations, found: {:?}",
+            result.order_violations
+        );
     }
 
     #[test]
