@@ -80,9 +80,9 @@ pub struct ComprehensiveVerificationResult {
 
 /// Adversarial test results with comprehensive attack analysis
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AdversarialTestResults { 
-    pub passed_tests: usize, 
-    pub total_tests: usize, 
+pub struct AdversarialTestResults {
+    pub passed_tests: usize,
+    pub total_tests: usize,
     pub attack_resistance: f64,
     pub total_attacks: usize,
     pub successful_attacks: usize,
@@ -94,150 +94,150 @@ pub struct AdversarialTestResults {
 
 /// Security policy definition
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct SecurityPolicy { 
-    pub policy_name: String, 
-    pub enforcement_level: String 
+pub struct SecurityPolicy {
+    pub policy_name: String,
+    pub enforcement_level: String,
 }
 
 /// Enforcement rule for security policies
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct EnforcementRule { 
-    pub rule_id: String, 
-    pub condition: String 
+pub struct EnforcementRule {
+    pub rule_id: String,
+    pub condition: String,
 }
 
 /// Violation handler for security breaches
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ViolationHandler { 
-    pub handler_type: String, 
-    pub response: String 
+pub struct ViolationHandler {
+    pub handler_type: String,
+    pub response: String,
 }
 
 /// Audit logger configuration
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AuditLogger { 
-    pub log_level: String, 
-    pub destinations: Vec<String> 
+pub struct AuditLogger {
+    pub log_level: String,
+    pub destinations: Vec<String>,
 }
 
 /// Incident responder configuration
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct IncidentResponder { 
-    pub response_protocols: Vec<String> 
+pub struct IncidentResponder {
+    pub response_protocols: Vec<String>,
 }
 
 /// Compliance framework definition
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ComplianceFramework { 
-    pub framework_name: String, 
-    pub version: String 
+pub struct ComplianceFramework {
+    pub framework_name: String,
+    pub version: String,
 }
 
 /// Audit checkpoint for compliance verification
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AuditCheckpoint { 
-    pub checkpoint_id: String, 
-    pub requirement: String 
+pub struct AuditCheckpoint {
+    pub checkpoint_id: String,
+    pub requirement: String,
 }
 
 /// Certification requirement specification
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct CertificationRequirement { 
-    pub requirement_id: String, 
-    pub standard: String 
+pub struct CertificationRequirement {
+    pub requirement_id: String,
+    pub standard: String,
 }
 
 /// Audit trail for compliance tracking
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AuditTrail { 
-    pub entries: Vec<String> 
+pub struct AuditTrail {
+    pub entries: Vec<String>,
 }
 
 /// Reporting engine configuration
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ReportingEngine { 
-    pub report_formats: Vec<String> 
+pub struct ReportingEngine {
+    pub report_formats: Vec<String>,
 }
 
 /// Performance metric definition
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PerformanceMetric { 
-    pub metric_name: String, 
-    pub value: f64 
+pub struct PerformanceMetric {
+    pub metric_name: String,
+    pub value: f64,
 }
 
 /// Resource usage tracking
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ResourceUsageTracker { 
-    pub cpu_usage: f64, 
-    pub memory_usage: f64 
+pub struct ResourceUsageTracker {
+    pub cpu_usage: f64,
+    pub memory_usage: f64,
 }
 
 /// Optimization engine configuration
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct OptimizationEngine { 
-    pub optimization_strategies: Vec<String> 
+pub struct OptimizationEngine {
+    pub optimization_strategies: Vec<String>,
 }
 
 /// Alerting system configuration
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AlertingSystem { 
-    pub alert_channels: Vec<String> 
+pub struct AlertingSystem {
+    pub alert_channels: Vec<String>,
 }
 
 /// Profiling data collection
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ProfilingData { 
-    pub profiling_samples: Vec<String> 
+pub struct ProfilingData {
+    pub profiling_samples: Vec<String>,
 }
 
 /// Resource manager for pipeline execution
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ResourceManager { 
-    pub resource_pools: HashMap<String, usize> 
+pub struct ResourceManager {
+    pub resource_pools: HashMap<String, usize>,
 }
 
 /// Enterprise security assessment results
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct EnterpriseSecurityAssessment { 
-    pub security_posture: String, 
-    pub threat_landscape: Vec<String> 
+pub struct EnterpriseSecurityAssessment {
+    pub security_posture: String,
+    pub threat_landscape: Vec<String>,
 }
 
 /// Compliance status summary
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ComplianceStatus { 
-    pub compliant_frameworks: Vec<String>, 
-    pub violations: Vec<String> 
+pub struct ComplianceStatus {
+    pub compliant_frameworks: Vec<String>,
+    pub violations: Vec<String>,
 }
 
 /// Performance analysis results
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PerformanceAnalysis { 
-    pub bottlenecks: Vec<String>, 
-    pub optimization_opportunities: Vec<String> 
+pub struct PerformanceAnalysis {
+    pub bottlenecks: Vec<String>,
+    pub optimization_opportunities: Vec<String>,
 }
 
 /// Audit summary with findings
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct AuditSummary { 
-    pub audit_passed: bool, 
-    pub findings: Vec<String> 
+pub struct AuditSummary {
+    pub audit_passed: bool,
+    pub findings: Vec<String>,
 }
 
 /// Production recommendation with categorization
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ProductionRecommendation { 
-    pub priority: String, 
-    pub category: String, 
-    pub action: String 
+pub struct ProductionRecommendation {
+    pub priority: String,
+    pub category: String,
+    pub action: String,
 }
 
 /// Certification eligibility assessment
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct CertificationEligibility { 
-    pub eligible_standards: Vec<String>, 
-    pub requirements_met: f64 
+pub struct CertificationEligibility {
+    pub eligible_standards: Vec<String>,
+    pub requirements_met: f64,
 }
 
 /// Attack result from adversarial testing
@@ -276,7 +276,7 @@ mod tests {
             AttackResistanceRating::Enhanced,
             AttackResistanceRating::Military,
         ];
-        
+
         assert_eq!(ratings.len(), 5);
         assert_eq!(ratings[4], AttackResistanceRating::Military);
     }
@@ -393,9 +393,12 @@ mod tests {
                 requirements_met: 0.92,
             },
         };
-        
+
         assert!(result.overall_security_score >= 0.9);
-        assert_eq!(result.attack_resistance_rating, AttackResistanceRating::Enhanced);
+        assert_eq!(
+            result.attack_resistance_rating,
+            AttackResistanceRating::Enhanced
+        );
         assert!(result.audit_summary.audit_passed);
     }
 }

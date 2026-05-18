@@ -176,38 +176,158 @@ pub struct DeceptionAnalysisResult {
 }
 
 // Supporting types - consolidated from original file
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct InferredType { pub type_name: String, pub confidence: f64 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct TypeSecurityPolicy { pub policy_name: String, pub rules: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct InferenceRule { pub name: String, pub formula: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct ContradictionDetector { pub detection_methods: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct ProofValidator { pub validation_rules: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct DependencyGraph { pub nodes: Vec<String>, pub edges: Vec<(String, String)> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct CircularDependencyDetector { pub algorithms: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct DependencyImpactAnalyzer { pub impact_metrics: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct SecurityBoundaryAnalyzer { pub boundary_rules: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct SMTSolverInterface { pub solver_type: String, pub timeout_ms: u64 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct MathematicalProperty { pub name: String, pub formula: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct CorrectnessProof { pub proof_steps: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct VerificationResult { pub result: bool, pub confidence: f64 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct BehavioralAnalyzer { pub analysis_type: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct ComplexityAnalyzer { pub metrics: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct CoverageAnalyzer { pub coverage_types: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct AuthenticityVerifier { pub verification_methods: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct ComponentVerification { pub component: String, pub status: VerificationStatus }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct VerificationFailure { pub component: String, pub reason: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct VerificationWarning { pub component: String, pub warning: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct CoverageMetrics { pub line_coverage: f64, pub branch_coverage: f64 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct PerformanceMetrics { pub verification_time_ms: u64, pub memory_usage_mb: usize }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct AttackSurfaceAnalysis { pub surface_area: f64, pub vulnerabilities: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct SecurityRecommendation { pub priority: String, pub action: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct ComplianceStatus { pub compliant: bool, pub missing_requirements: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct VerificationRecommendation { pub priority: String, pub recommendation: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct PrimitiveType { pub type_name: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct CompositeType { pub fields: Vec<String> }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct FunctionType { pub input_types: Vec<String>, pub output_type: String }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)] pub struct GenericType { pub base_type: String, pub type_parameters: Vec<String> }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)] pub enum ConstraintSeverity { Info, Warning, Error, Critical }
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)] pub enum AxiomPriority { Low, Medium, High, Critical }
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferredType {
+    pub type_name: String,
+    pub confidence: f64,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TypeSecurityPolicy {
+    pub policy_name: String,
+    pub rules: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InferenceRule {
+    pub name: String,
+    pub formula: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ContradictionDetector {
+    pub detection_methods: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ProofValidator {
+    pub validation_rules: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DependencyGraph {
+    pub nodes: Vec<String>,
+    pub edges: Vec<(String, String)>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CircularDependencyDetector {
+    pub algorithms: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DependencyImpactAnalyzer {
+    pub impact_metrics: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SecurityBoundaryAnalyzer {
+    pub boundary_rules: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SMTSolverInterface {
+    pub solver_type: String,
+    pub timeout_ms: u64,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct MathematicalProperty {
+    pub name: String,
+    pub formula: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CorrectnessProof {
+    pub proof_steps: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct VerificationResult {
+    pub result: bool,
+    pub confidence: f64,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BehavioralAnalyzer {
+    pub analysis_type: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ComplexityAnalyzer {
+    pub metrics: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CoverageAnalyzer {
+    pub coverage_types: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AuthenticityVerifier {
+    pub verification_methods: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ComponentVerification {
+    pub component: String,
+    pub status: VerificationStatus,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct VerificationFailure {
+    pub component: String,
+    pub reason: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct VerificationWarning {
+    pub component: String,
+    pub warning: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CoverageMetrics {
+    pub line_coverage: f64,
+    pub branch_coverage: f64,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct PerformanceMetrics {
+    pub verification_time_ms: u64,
+    pub memory_usage_mb: usize,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AttackSurfaceAnalysis {
+    pub surface_area: f64,
+    pub vulnerabilities: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SecurityRecommendation {
+    pub priority: String,
+    pub action: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ComplianceStatus {
+    pub compliant: bool,
+    pub missing_requirements: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct VerificationRecommendation {
+    pub priority: String,
+    pub recommendation: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct PrimitiveType {
+    pub type_name: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CompositeType {
+    pub fields: Vec<String>,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct FunctionType {
+    pub input_types: Vec<String>,
+    pub output_type: String,
+}
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct GenericType {
+    pub base_type: String,
+    pub type_parameters: Vec<String>,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum ConstraintSeverity {
+    Info,
+    Warning,
+    Error,
+    Critical,
+}
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum AxiomPriority {
+    Low,
+    Medium,
+    High,
+    Critical,
+}
 
 // Default implementations for production-ready batch verification
 
@@ -291,22 +411,50 @@ impl fmt::Display for DeepVerificationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Deep Semantic Verification Results")?;
         writeln!(f, "==================================")?;
-        writeln!(f, "Overall Confidence: {:.2}%", self.overall_confidence * 100.0)?;
+        writeln!(
+            f,
+            "Overall Confidence: {:.2}%",
+            self.overall_confidence * 100.0
+        )?;
         writeln!(f, "Semantic Score: {:.2}%", self.semantic_score * 100.0)?;
-        writeln!(f, "Type Safety Score: {:.2}%", self.type_safety_score * 100.0)?;
-        writeln!(f, "Logic Consistency: {:.2}%", self.logic_consistency_score * 100.0)?;
-        writeln!(f, "Mathematical Correctness: {:.2}%", self.mathematical_correctness_score * 100.0)?;
-        writeln!(f, "Deception Risk: {:.2}%", self.deception_risk_score * 100.0)?;
-        writeln!(f, "Threat Level: {:?}", self.security_assessment.threat_level)?;
-        writeln!(f, "Vulnerabilities: {}", self.security_assessment.vulnerability_count)?;
-        
+        writeln!(
+            f,
+            "Type Safety Score: {:.2}%",
+            self.type_safety_score * 100.0
+        )?;
+        writeln!(
+            f,
+            "Logic Consistency: {:.2}%",
+            self.logic_consistency_score * 100.0
+        )?;
+        writeln!(
+            f,
+            "Mathematical Correctness: {:.2}%",
+            self.mathematical_correctness_score * 100.0
+        )?;
+        writeln!(
+            f,
+            "Deception Risk: {:.2}%",
+            self.deception_risk_score * 100.0
+        )?;
+        writeln!(
+            f,
+            "Threat Level: {:?}",
+            self.security_assessment.threat_level
+        )?;
+        writeln!(
+            f,
+            "Vulnerabilities: {}",
+            self.security_assessment.vulnerability_count
+        )?;
+
         if !self.recommendations.is_empty() {
             writeln!(f, "\nRecommendations:")?;
             for rec in &self.recommendations {
                 writeln!(f, "  - {}: {}", rec.priority, rec.recommendation)?;
             }
         }
-        
+
         Ok(())
     }
 }
@@ -318,7 +466,7 @@ impl DeepVerificationResult {
             overall_confidence: 0.95,
             semantic_score: 0.92,
             type_safety_score: 0.95,
-            logic_consistency_score: 0.95,  // Increased to ensure ambiguity() <= 0.05
+            logic_consistency_score: 0.95, // Increased to ensure ambiguity() <= 0.05
             mathematical_correctness_score: 0.90,
             deception_risk_score: 0.05,
             verification_details: VerificationDetails {
@@ -400,16 +548,16 @@ mod tests {
 
     #[test]
     fn test_type_structure_variants() {
-        let primitive = TypeStructure::Primitive(PrimitiveType { type_name: "int".to_string() });
+        let primitive = TypeStructure::Primitive(PrimitiveType {
+            type_name: "int".to_string(),
+        });
         let array = TypeStructure::Array(Box::new(primitive));
         let optional = TypeStructure::Optional(Box::new(array));
 
         match optional {
-            TypeStructure::Optional(inner) => {
-                match *inner {
-                    TypeStructure::Array(_) => assert!(true),
-                    _ => panic!("Expected Array inside Optional"),
-                }
+            TypeStructure::Optional(inner) => match *inner {
+                TypeStructure::Array(_) => assert!(true),
+                _ => panic!("Expected Array inside Optional"),
             },
             _ => panic!("Expected Optional type"),
         }

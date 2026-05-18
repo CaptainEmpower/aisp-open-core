@@ -4,7 +4,9 @@
 //! Implements SRP by focusing solely on mathematical correctness
 
 use super::types::*;
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
@@ -28,7 +30,7 @@ impl MathematicalCorrectnessEngine {
             correctness_proofs: HashMap::new(),
             verification_cache: HashMap::new(),
         };
-        
+
         engine.setup_mathematical_properties();
         engine
     }
@@ -42,7 +44,10 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Analyze document for mathematical correctness
-    pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<MathematicalAnalysisResult> {
+    pub fn analyze_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<MathematicalAnalysisResult> {
         let mut proof_violations = Vec::new();
         let mut mathematical_errors = Vec::new();
         let mut correctness_score = 1.0;
@@ -123,7 +128,7 @@ impl MathematicalCorrectnessEngine {
     /// Setup enhanced mathematical properties for rigorous verification
     fn setup_enhanced_properties(&mut self) {
         self.setup_mathematical_properties();
-        
+
         self.mathematical_properties.extend(vec![
             MathematicalProperty {
                 name: "Monotonicity".to_string(),
@@ -147,24 +152,36 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Verify mathematical correctness of functions
-    fn verify_functions_correctness(&mut self, functions_block: &crate::ast::canonical::FunctionsBlock) -> AispResult<Vec<String>> {
+    fn verify_functions_correctness(
+        &mut self,
+        functions_block: &crate::ast::canonical::FunctionsBlock,
+    ) -> AispResult<Vec<String>> {
         let mut errors = Vec::new();
 
         for (index, func_def) in functions_block.functions.iter().enumerate() {
             let func_name = format!("function_{}", index);
             // Verify function mathematical properties
             if let Err(e) = self.verify_function_properties(&func_name, func_def) {
-                errors.push(format!("Mathematical error in function {}: {}", func_name, e));
+                errors.push(format!(
+                    "Mathematical error in function {}: {}",
+                    func_name, e
+                ));
             }
 
             // Check for mathematical inconsistencies
             if let Err(e) = self.check_function_consistency(&func_name, func_def) {
-                errors.push(format!("Consistency error in function {}: {}", func_name, e));
+                errors.push(format!(
+                    "Consistency error in function {}: {}",
+                    func_name, e
+                ));
             }
 
             // Verify using SMT solver
             if let Err(e) = self.smt_verify_function(&func_name, func_def) {
-                errors.push(format!("SMT verification failed for function {}: {}", func_name, e));
+                errors.push(format!(
+                    "SMT verification failed for function {}: {}",
+                    func_name, e
+                ));
             }
         }
 
@@ -172,13 +189,16 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Verify correctness of rules
-    fn verify_rules_correctness(&mut self, rules_block: &crate::ast::canonical::RulesBlock) -> AispResult<Vec<String>> {
+    fn verify_rules_correctness(
+        &mut self,
+        rules_block: &crate::ast::canonical::RulesBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         for (index, _rule) in rules_block.rules.iter().enumerate() {
             let rule_name = format!("rule_{}", index);
             let rule_def = std::collections::HashMap::new(); // Simplified for canonical structure
-            // Verify rule soundness mathematically
+                                                             // Verify rule soundness mathematically
             if let Err(e) = self.verify_rule_soundness(&rule_name, &rule_def) {
                 violations.push(format!("Rule soundness error in {}: {}", rule_name, e));
             }
@@ -193,22 +213,31 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Validate evidence block for mathematical correctness
-    fn validate_evidence_block(&mut self, evidence_block: &crate::ast::canonical::EvidenceBlock) -> AispResult<Vec<String>> {
+    fn validate_evidence_block(
+        &mut self,
+        evidence_block: &crate::ast::canonical::EvidenceBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         // Evidence block has different structure in canonical AST
         if evidence_block.delta.is_some() || evidence_block.phi.is_some() {
             let evidence_name = "evidence_block".to_string();
             let evidence_def = std::collections::HashMap::new(); // Simplified for canonical structure
-            
+
             // Verify evidence validity
             if let Err(e) = self.verify_evidence_validity(&evidence_name, &evidence_def) {
-                violations.push(format!("Evidence validity error in {}: {}", evidence_name, e));
+                violations.push(format!(
+                    "Evidence validity error in {}: {}",
+                    evidence_name, e
+                ));
             }
 
             // Check evidence completeness
             if let Err(e) = self.check_evidence_completeness(&evidence_name, &evidence_def) {
-                violations.push(format!("Evidence completeness error in {}: {}", evidence_name, e));
+                violations.push(format!(
+                    "Evidence completeness error in {}: {}",
+                    evidence_name, e
+                ));
             }
 
             // Store validated evidence
@@ -219,13 +248,19 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Verify mathematical properties using SMT solver
-    fn verify_mathematical_properties(&mut self, document: &AispDocument) -> AispResult<Vec<String>> {
+    fn verify_mathematical_properties(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         for property in &self.mathematical_properties.clone() {
             // Check if property holds for the document
             if let Err(e) = self.smt_verify_property(property, document) {
-                violations.push(format!("Mathematical property {} violated: {}", property.name, e));
+                violations.push(format!(
+                    "Mathematical property {} violated: {}",
+                    property.name, e
+                ));
             }
         }
 
@@ -239,7 +274,10 @@ impl MathematicalCorrectnessEngine {
         // Check for consistency across all mathematical elements
         for (proof_name, proof) in &self.correctness_proofs {
             if let Err(e) = self.validate_proof_consistency(proof_name, proof) {
-                violations.push(format!("Consistency violation in proof {}: {}", proof_name, e));
+                violations.push(format!(
+                    "Consistency violation in proof {}: {}",
+                    proof_name, e
+                ));
             }
         }
 
@@ -247,68 +285,106 @@ impl MathematicalCorrectnessEngine {
     }
 
     /// Store validated correctness evidence
-    fn store_correctness_evidence(&mut self, evidence_name: String, evidence_def: &std::collections::HashMap<String, String>) {
+    fn store_correctness_evidence(
+        &mut self,
+        evidence_name: String,
+        evidence_def: &std::collections::HashMap<String, String>,
+    ) {
         let proof_steps = vec![
             format!("Evidence step 1: {:?}", evidence_def),
             "Verification complete".to_string(),
         ];
 
-        self.correctness_proofs.insert(
-            evidence_name,
-            CorrectnessProof { proof_steps },
-        );
+        self.correctness_proofs
+            .insert(evidence_name, CorrectnessProof { proof_steps });
     }
 
     /// Mathematical verification helper methods
 
-    fn verify_function_properties(&mut self, func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn verify_function_properties(
+        &mut self,
+        func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Cache verification result
         self.verification_cache.insert(
             func_name.to_string(),
             VerificationResult {
                 result: true,
                 confidence: 0.95,
-            }
+            },
         );
         Ok(())
     }
 
-    fn check_function_consistency(&self, _func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn check_function_consistency(
+        &self,
+        _func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Simplified function consistency check
         Ok(())
     }
 
-    fn smt_verify_function(&self, _func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn smt_verify_function(
+        &self,
+        _func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Simplified SMT verification
         Ok(())
     }
 
-    fn verify_rule_soundness(&self, _rule_name: &str, _rule_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn verify_rule_soundness(
+        &self,
+        _rule_name: &str,
+        _rule_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Verify rule mathematical soundness using generic map
         Ok(())
     }
 
-    fn check_rule_completeness(&self, _rule_name: &str, _rule_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn check_rule_completeness(
+        &self,
+        _rule_name: &str,
+        _rule_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Check rule completeness using generic map
         Ok(())
     }
 
-    fn verify_evidence_validity(&self, _evidence_name: &str, _evidence_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn verify_evidence_validity(
+        &self,
+        _evidence_name: &str,
+        _evidence_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Verify evidence logical validity using generic map
         Ok(())
     }
 
-    fn check_evidence_completeness(&self, _evidence_name: &str, _evidence_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn check_evidence_completeness(
+        &self,
+        _evidence_name: &str,
+        _evidence_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Check evidence completeness using generic map
         Ok(())
     }
 
-    fn smt_verify_property(&self, _property: &MathematicalProperty, _document: &AispDocument) -> AispResult<()> {
+    fn smt_verify_property(
+        &self,
+        _property: &MathematicalProperty,
+        _document: &AispDocument,
+    ) -> AispResult<()> {
         // SMT verification of mathematical property
         Ok(())
     }
 
-    fn validate_proof_consistency(&self, _proof_name: &str, _proof: &CorrectnessProof) -> AispResult<()> {
+    fn validate_proof_consistency(
+        &self,
+        _proof_name: &str,
+        _proof: &CorrectnessProof,
+    ) -> AispResult<()> {
         // Validate proof consistency
         Ok(())
     }
@@ -334,11 +410,13 @@ mod tests {
     #[test]
     fn test_enhanced_verification() {
         let engine = MathematicalCorrectnessEngine::with_enhanced_verification();
-        
+
         // Enhanced verification now includes additional mathematical properties for better verification
-        assert!(engine.mathematical_properties.len() >= 7, 
-               "Expected at least 7 properties (4 default + 3 enhanced), got: {}", 
-               engine.mathematical_properties.len());
+        assert!(
+            engine.mathematical_properties.len() >= 7,
+            "Expected at least 7 properties (4 default + 3 enhanced), got: {}",
+            engine.mathematical_properties.len()
+        );
         assert_eq!(engine.smt_solver_interface.solver_type, "Z3_STRICT");
     }
 

@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 /// Verification execution strategies for pipeline orchestration
-/// 
+///
 /// **Contract Invariants:**
 /// - Each strategy defines deterministic execution ordering
 /// - Adaptive strategies maintain performance > Sequential baseline
@@ -66,7 +66,7 @@ pub struct AdversarialTestResults {
 }
 
 /// Comprehensive verification result with enterprise-grade metrics
-/// 
+///
 /// **Contract Invariants:**
 /// - All scores ∈ [0.0, 1.0] representing percentage compliance
 /// - `overall_success == true` ⟺ all critical stages passed
@@ -95,15 +95,47 @@ pub struct StageResult {
 }
 
 // Supporting types
-#[derive(Debug, Clone)] pub struct SecurityPolicy { pub name: String, pub rules: Vec<String> }
-#[derive(Debug, Clone)] pub struct EnforcementRule { pub condition: String, pub action: String }
-#[derive(Debug, Clone)] pub struct ViolationHandler { pub handler_type: String }
-#[derive(Debug, Clone)] pub struct AuditLogger { pub log_level: String }
-#[derive(Debug, Clone)] pub struct IncidentResponder { pub response_type: String }
-#[derive(Debug, Clone)] pub struct ComplianceFramework { pub name: String, pub version: String }
-#[derive(Debug, Clone)] pub struct AuditCheckpoint { pub name: String, pub status: bool }
-#[derive(Debug, Clone)] pub struct CertificationRequirement { pub requirement: String, pub met: bool }
-#[derive(Debug, Clone)] pub struct ResourceManager { pub resource_pools: HashMap<String, usize> }
+#[derive(Debug, Clone)]
+pub struct SecurityPolicy {
+    pub name: String,
+    pub rules: Vec<String>,
+}
+#[derive(Debug, Clone)]
+pub struct EnforcementRule {
+    pub condition: String,
+    pub action: String,
+}
+#[derive(Debug, Clone)]
+pub struct ViolationHandler {
+    pub handler_type: String,
+}
+#[derive(Debug, Clone)]
+pub struct AuditLogger {
+    pub log_level: String,
+}
+#[derive(Debug, Clone)]
+pub struct IncidentResponder {
+    pub response_type: String,
+}
+#[derive(Debug, Clone)]
+pub struct ComplianceFramework {
+    pub name: String,
+    pub version: String,
+}
+#[derive(Debug, Clone)]
+pub struct AuditCheckpoint {
+    pub name: String,
+    pub status: bool,
+}
+#[derive(Debug, Clone)]
+pub struct CertificationRequirement {
+    pub requirement: String,
+    pub met: bool,
+}
+#[derive(Debug, Clone)]
+pub struct ResourceManager {
+    pub resource_pools: HashMap<String, usize>,
+}
 
 impl Default for ExecutionStrategy {
     fn default() -> Self {
@@ -123,13 +155,22 @@ mod tests {
 
     #[test]
     fn test_execution_strategy_default() {
-        assert_eq!(ExecutionStrategy::default(), ExecutionStrategy::AdaptiveParallel);
+        assert_eq!(
+            ExecutionStrategy::default(),
+            ExecutionStrategy::AdaptiveParallel
+        );
     }
 
     #[test]
     fn test_verification_stage_equality() {
-        assert_eq!(VerificationStage::SemanticAnalysis, VerificationStage::SemanticAnalysis);
-        assert_ne!(VerificationStage::ParseValidation, VerificationStage::SemanticAnalysis);
+        assert_eq!(
+            VerificationStage::SemanticAnalysis,
+            VerificationStage::SemanticAnalysis
+        );
+        assert_ne!(
+            VerificationStage::ParseValidation,
+            VerificationStage::SemanticAnalysis
+        );
     }
 
     #[test]

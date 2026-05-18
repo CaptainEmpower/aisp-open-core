@@ -4,8 +4,8 @@
 //! resource limits, and verification results following SRP architecture.
 
 use std::collections::HashSet;
-use std::time::{Instant, Duration};
 use std::fmt;
+use std::time::{Duration, Instant};
 
 /// Behavioral verification result
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -93,17 +93,17 @@ pub enum SandboxOperation {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum SandboxSecurityLevel {
-    Strict,      // Maximum security, minimal permissions
-    Balanced,    // Balanced security and functionality
-    Permissive,  // More permissions for complex operations
+    Strict,     // Maximum security, minimal permissions
+    Balanced,   // Balanced security and functionality
+    Permissive, // More permissions for complex operations
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum IsolationMode {
-    ProcessIsolation,    // Separate process execution
-    ThreadIsolation,     // Thread-based isolation
-    MemoryIsolation,     // Memory space isolation
-    VirtualMachine,      // VM-based isolation
+    ProcessIsolation, // Separate process execution
+    ThreadIsolation,  // Thread-based isolation
+    MemoryIsolation,  // Memory space isolation
+    VirtualMachine,   // VM-based isolation
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -203,7 +203,7 @@ impl Default for SandboxSecurityPolicy {
         allowed_ops.insert(SandboxOperation::MathematicalComputation);
         allowed_ops.insert(SandboxOperation::LogicalEvaluation);
         allowed_ops.insert(SandboxOperation::TypeChecking);
-        
+
         Self {
             allow_file_access: false,
             allow_network_access: false,
@@ -218,11 +218,11 @@ impl Default for SandboxSecurityPolicy {
 impl Default for ResourceLimits {
     fn default() -> Self {
         Self {
-            max_execution_time_ms: 5000,     // 5 seconds
-            max_memory_mb: 128,              // 128 MB
-            max_cpu_usage_percent: 80.0,     // 80% CPU
-            max_iterations: 10000,           // 10k iterations
-            max_recursion_depth: 100,        // 100 levels
+            max_execution_time_ms: 5000,        // 5 seconds
+            max_memory_mb: 128,                 // 128 MB
+            max_cpu_usage_percent: 80.0,        // 80% CPU
+            max_iterations: 10000,              // 10k iterations
+            max_recursion_depth: 100,           // 100 levels
             max_output_size_bytes: 1024 * 1024, // 1 MB
         }
     }
@@ -238,7 +238,9 @@ mod tests {
         assert!(!policy.allow_file_access);
         assert!(!policy.allow_network_access);
         assert_eq!(policy.security_level, SandboxSecurityLevel::Strict);
-        assert!(policy.allowed_operations.contains(&SandboxOperation::MathematicalComputation));
+        assert!(policy
+            .allowed_operations
+            .contains(&SandboxOperation::MathematicalComputation));
     }
 
     #[test]
@@ -274,7 +276,7 @@ mod tests {
             violations: vec![],
             recommendations: vec![],
         };
-        
+
         let display = format!("{}", result);
         assert!(display.contains("overall_score: 0.950"));
         assert!(display.contains("safety: 0.980"));

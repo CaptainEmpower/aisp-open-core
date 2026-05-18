@@ -4,21 +4,21 @@
 //! Implements ADR-023: Deep Verification Architecture for Semantic Security
 //! Phase 2 of Security Hardening Implementation Roadmap
 
-pub mod types;
-pub mod type_analyzer;
-pub mod logic_checker;
-pub mod dependency_analyzer;
-pub mod mathematical_verifier;
 pub mod deception_detector;
+pub mod dependency_analyzer;
+pub mod logic_checker;
+pub mod mathematical_verifier;
+pub mod type_analyzer;
+pub mod types;
 
-pub use types::*;
-pub use type_analyzer::TypeSystemAnalyzer;
-pub use logic_checker::LogicConsistencyChecker;
-pub use dependency_analyzer::DependencyGraphAnalyzer;
-pub use mathematical_verifier::MathematicalCorrectnessEngine;
 pub use deception_detector::DeceptionDetector;
+pub use dependency_analyzer::DependencyGraphAnalyzer;
+pub use logic_checker::LogicConsistencyChecker;
+pub use mathematical_verifier::MathematicalCorrectnessEngine;
+pub use type_analyzer::TypeSystemAnalyzer;
+pub use types::*;
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument};
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::{AispError, AispResult};
 use std::time::Instant;
 
@@ -55,38 +55,49 @@ impl DeepSemanticVerifier {
     }
 
     /// Perform comprehensive deep semantic verification
-    pub fn verify_document(&mut self, document: &AispDocument) -> AispResult<DeepVerificationResult> {
+    pub fn verify_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<DeepVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Stage 1: Type System Analysis
-        let type_analysis = self.type_analyzer.analyze_document(document)
-            .map_err(|e| AispError::ValidationError {
+        let type_analysis = self.type_analyzer.analyze_document(document).map_err(|e| {
+            AispError::ValidationError {
                 message: format!("Type analysis failed: {}", e),
-            })?;
+            }
+        })?;
 
         // Stage 2: Logic Consistency Checking
-        let logic_analysis = self.logic_checker.analyze_document(document)
-            .map_err(|e| AispError::ValidationError {
+        let logic_analysis = self.logic_checker.analyze_document(document).map_err(|e| {
+            AispError::ValidationError {
                 message: format!("Logic analysis failed: {}", e),
-            })?;
+            }
+        })?;
 
         // Stage 3: Dependency Analysis
-        let dependency_analysis = self.dependency_analyzer.analyze_document(document)
+        let dependency_analysis = self
+            .dependency_analyzer
+            .analyze_document(document)
             .map_err(|e| AispError::ValidationError {
                 message: format!("Dependency analysis failed: {}", e),
             })?;
 
         // Stage 4: Mathematical Correctness Verification
-        let mathematical_analysis = self.mathematical_verifier.analyze_document(document)
+        let mathematical_analysis = self
+            .mathematical_verifier
+            .analyze_document(document)
             .map_err(|e| AispError::ValidationError {
                 message: format!("Mathematical analysis failed: {}", e),
             })?;
 
         // Stage 5: Deception Detection
-        let deception_analysis = self.deception_detector.analyze_document(document)
-            .map_err(|e| AispError::ValidationError {
-                message: format!("Deception analysis failed: {}", e),
-            })?;
+        let deception_analysis =
+            self.deception_detector
+                .analyze_document(document)
+                .map_err(|e| AispError::ValidationError {
+                    message: format!("Deception analysis failed: {}", e),
+                })?;
 
         let verification_time = start_time.elapsed();
 
@@ -126,7 +137,10 @@ impl DeepSemanticVerifier {
 
         Ok(DeepVerificationResult {
             overall_confidence,
-            semantic_score: (type_analysis.type_safety_score + logic_analysis.consistency_score + dependency_analysis.impact_score) / 3.0,
+            semantic_score: (type_analysis.type_safety_score
+                + logic_analysis.consistency_score
+                + dependency_analysis.impact_score)
+                / 3.0,
             type_safety_score: type_analysis.type_safety_score,
             logic_consistency_score: logic_analysis.consistency_score,
             mathematical_correctness_score: mathematical_analysis.correctness_score,
@@ -155,7 +169,8 @@ impl DeepSemanticVerifier {
             deception_analysis.authenticity_score,
         ];
 
-        scores.iter()
+        scores
+            .iter()
             .zip(weights.iter())
             .map(|(score, weight)| score * weight)
             .sum()
@@ -185,7 +200,8 @@ impl DeepSemanticVerifier {
         vulnerabilities.extend(logic_analysis.contradictions.clone());
         vulnerabilities.extend(dependency_analysis.dependency_violations.clone());
 
-        let threat_level = self.determine_threat_level(vulnerability_count, deception_analysis.deception_score);
+        let threat_level =
+            self.determine_threat_level(vulnerability_count, deception_analysis.deception_score);
 
         SecurityAssessment {
             threat_level,
@@ -194,12 +210,10 @@ impl DeepSemanticVerifier {
                 surface_area: deception_analysis.deception_score,
                 vulnerabilities,
             },
-            security_recommendations: vec![
-                SecurityRecommendation {
-                    priority: "High".to_string(),
-                    action: "Address identified vulnerabilities".to_string(),
-                },
-            ],
+            security_recommendations: vec![SecurityRecommendation {
+                priority: "High".to_string(),
+                action: "Address identified vulnerabilities".to_string(),
+            }],
             compliance_status: ComplianceStatus {
                 compliant: vulnerability_count == 0,
                 missing_requirements: if vulnerability_count > 0 {
@@ -316,7 +330,9 @@ impl DeepSemanticVerifier {
         if deception_analysis.deception_score > 0.5 {
             recommendations.push(VerificationRecommendation {
                 priority: "Critical".to_string(),
-                recommendation: "Address high deception risk - replace placeholders with real implementations".to_string(),
+                recommendation:
+                    "Address high deception risk - replace placeholders with real implementations"
+                        .to_string(),
             });
         }
 
@@ -331,7 +347,11 @@ impl DeepSemanticVerifier {
     }
 
     /// Determine threat level based on vulnerabilities and deception score
-    fn determine_threat_level(&self, vulnerability_count: usize, deception_score: f64) -> ThreatLevel {
+    fn determine_threat_level(
+        &self,
+        vulnerability_count: usize,
+        deception_score: f64,
+    ) -> ThreatLevel {
         if vulnerability_count > 10 || deception_score > 0.8 {
             ThreatLevel::Critical
         } else if vulnerability_count > 5 || deception_score > 0.5 {
@@ -373,31 +393,31 @@ mod tests {
     #[test]
     fn test_overall_confidence_calculation() {
         let verifier = DeepSemanticVerifier::new();
-        
+
         let type_analysis = TypeAnalysisResult {
             type_safety_score: 0.9,
             type_violations: vec![],
             type_recommendations: vec![],
         };
-        
+
         let logic_analysis = LogicAnalysisResult {
             consistency_score: 0.8,
             contradictions: vec![],
             axiom_violations: vec![],
         };
-        
+
         let dependency_analysis = DependencyAnalysisResult {
             circular_dependencies: vec![],
             dependency_violations: vec![],
             impact_score: 0.85,
         };
-        
+
         let mathematical_analysis = MathematicalAnalysisResult {
             correctness_score: 0.95,
             proof_violations: vec![],
             mathematical_errors: vec![],
         };
-        
+
         let deception_analysis = DeceptionAnalysisResult {
             deception_score: 0.1,
             placeholder_violations: vec![],
@@ -420,43 +440,46 @@ mod tests {
     #[test]
     fn test_threat_level_determination() {
         let verifier = DeepSemanticVerifier::new();
-        
+
         assert_eq!(verifier.determine_threat_level(0, 0.0), ThreatLevel::None);
         assert_eq!(verifier.determine_threat_level(1, 0.05), ThreatLevel::Low);
         assert_eq!(verifier.determine_threat_level(3, 0.2), ThreatLevel::Medium);
         assert_eq!(verifier.determine_threat_level(6, 0.4), ThreatLevel::High);
-        assert_eq!(verifier.determine_threat_level(12, 0.9), ThreatLevel::Critical);
+        assert_eq!(
+            verifier.determine_threat_level(12, 0.9),
+            ThreatLevel::Critical
+        );
     }
 
     #[test]
     fn test_security_assessment_generation() {
         let verifier = DeepSemanticVerifier::new();
-        
+
         let type_analysis = TypeAnalysisResult {
             type_safety_score: 0.7,
             type_violations: vec!["Type violation".to_string()],
             type_recommendations: vec![],
         };
-        
+
         // Create minimal other analysis results
         let logic_analysis = LogicAnalysisResult {
             consistency_score: 0.9,
             contradictions: vec![],
             axiom_violations: vec![],
         };
-        
+
         let dependency_analysis = DependencyAnalysisResult {
             circular_dependencies: vec![],
             dependency_violations: vec![],
             impact_score: 0.8,
         };
-        
+
         let mathematical_analysis = MathematicalAnalysisResult {
             correctness_score: 0.9,
             proof_violations: vec![],
             mathematical_errors: vec![],
         };
-        
+
         let deception_analysis = DeceptionAnalysisResult {
             deception_score: 0.2,
             placeholder_violations: vec![],

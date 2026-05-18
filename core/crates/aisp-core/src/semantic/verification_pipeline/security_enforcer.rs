@@ -70,14 +70,14 @@ impl SecurityEnforcer {
             ViolationHandler {
                 handler_type: "ImmediateBlock".to_string(),
                 response: "Reject document and log critical security event".to_string(),
-            }
+            },
         );
         violation_handlers.insert(
             SecurityViolationType::DeceptionPattern,
             ViolationHandler {
                 handler_type: "EnhancedAnalysis".to_string(),
                 response: "Trigger deep deception analysis and human review".to_string(),
-            }
+            },
         );
 
         Self {
@@ -102,17 +102,17 @@ impl SecurityEnforcer {
     /// Create balanced security enforcer for performance environments
     pub fn new_balanced() -> Self {
         let mut enforcer = Self::new();
-        
+
         // Adjust policies for balanced enforcement
         for policy in &mut enforcer.security_policies {
             if policy.policy_name == "ZeroTrustVerification" {
                 policy.enforcement_level = "Balanced".to_string();
             }
         }
-        
+
         // Adjust audit logging for performance
         enforcer.audit_logger.log_level = "WARN".to_string();
-        
+
         enforcer
     }
 
@@ -125,28 +125,29 @@ impl SecurityEnforcer {
             violations_detected: Vec::new(),
             enforcement_actions: Vec::new(),
         };
-        
-        self.active_sessions.insert(session_id.to_string(), security_session);
-        
+
+        self.active_sessions
+            .insert(session_id.to_string(), security_session);
+
         self.log_security_event(
             session_id,
             "SecuritySessionStart",
             "Verification security session initiated",
         )?;
-        
+
         Ok(())
     }
 
     /// Validate semantic verification results against security policies
     pub fn validate_semantic_results(
-        &self, 
-        results: &crate::semantic::deep_verifier::DeepVerificationResult
+        &self,
+        results: &crate::semantic::deep_verifier::DeepVerificationResult,
     ) -> AispResult<()> {
         // Check overall confidence threshold
         if results.overall_confidence < 0.90 {
             return self.handle_security_violation(
                 SecurityViolationType::LogicInconsistency,
-                "Semantic verification confidence below security threshold"
+                "Semantic verification confidence below security threshold",
             );
         }
 
@@ -154,17 +155,20 @@ impl SecurityEnforcer {
         if results.deception_risk_score > 0.20 {
             return self.handle_security_violation(
                 SecurityViolationType::DeceptionPattern,
-                "Elevated deception risk detected in semantic analysis"
+                "Elevated deception risk detected in semantic analysis",
             );
         }
 
         // Validate threat level
         match results.security_assessment.threat_level {
-            crate::semantic::deep_verifier::ThreatLevel::Critical |
-            crate::semantic::deep_verifier::ThreatLevel::High => {
+            crate::semantic::deep_verifier::ThreatLevel::Critical
+            | crate::semantic::deep_verifier::ThreatLevel::High => {
                 return self.handle_security_violation(
                     SecurityViolationType::LogicInconsistency,
-                    &format!("High threat level detected: {:?}", results.security_assessment.threat_level)
+                    &format!(
+                        "High threat level detected: {:?}",
+                        results.security_assessment.threat_level
+                    ),
                 );
             }
             _ => {}
@@ -176,13 +180,13 @@ impl SecurityEnforcer {
     /// Validate behavioral verification results
     pub fn validate_behavioral_results(
         &self,
-        results: &crate::semantic::behavioral_verifier::BehavioralVerificationResult
+        results: &crate::semantic::behavioral_verifier::BehavioralVerificationResult,
     ) -> AispResult<()> {
         // Check execution safety
         if results.execution_safety_score < 0.85 {
             return self.handle_security_violation(
                 SecurityViolationType::BehavioralAnomaly,
-                "Behavioral verification safety score below threshold"
+                "Behavioral verification safety score below threshold",
             );
         }
 
@@ -190,7 +194,7 @@ impl SecurityEnforcer {
         if results.authenticity_score < 0.90 {
             return self.handle_security_violation(
                 SecurityViolationType::DeceptionPattern,
-                "Authenticity score indicates potential deception"
+                "Authenticity score indicates potential deception",
             );
         }
 
@@ -199,7 +203,7 @@ impl SecurityEnforcer {
             crate::semantic::behavioral_verifier::ComplianceLevel::NonCompliant => {
                 return self.handle_security_violation(
                     SecurityViolationType::ComplianceViolation,
-                    "Behavioral verification compliance failure"
+                    "Behavioral verification compliance failure",
                 );
             }
             _ => {}
@@ -214,7 +218,7 @@ impl SecurityEnforcer {
         if results.attack_resistance_score < 0.80 {
             return self.handle_security_violation(
                 SecurityViolationType::TypeSafetyViolation,
-                "Attack resistance below acceptable threshold"
+                "Attack resistance below acceptable threshold",
             );
         }
 
@@ -224,7 +228,7 @@ impl SecurityEnforcer {
                 if vulnerability.contains("Critical") || vulnerability.contains("High") {
                     return self.handle_security_violation(
                         SecurityViolationType::ParseBypass,
-                        &format!("Critical vulnerability found: {}", vulnerability)
+                        &format!("Critical vulnerability found: {}", vulnerability),
                     );
                 }
             }
@@ -234,12 +238,15 @@ impl SecurityEnforcer {
     }
 
     /// Validate cross-validation results
-    pub fn validate_cross_validation_results(&self, results: &CrossValidationResult) -> AispResult<()> {
+    pub fn validate_cross_validation_results(
+        &self,
+        results: &CrossValidationResult,
+    ) -> AispResult<()> {
         // Check overall consistency
         if results.overall_consistency_score < 0.85 {
             return self.handle_security_violation(
                 SecurityViolationType::LogicInconsistency,
-                "Cross-validation consistency below security requirement"
+                "Cross-validation consistency below security requirement",
             );
         }
 
@@ -247,7 +254,7 @@ impl SecurityEnforcer {
         if results.cross_validation_confidence < 0.80 {
             return self.handle_security_violation(
                 SecurityViolationType::LogicInconsistency,
-                "Cross-validation confidence insufficient for security approval"
+                "Cross-validation confidence insufficient for security approval",
             );
         }
 
@@ -315,9 +322,10 @@ impl SecurityEnforcer {
         if let Some(handler) = self.violation_handlers.get(&violation_type) {
             match handler.handler_type.as_str() {
                 "ImmediateBlock" => {
-                    return Err(crate::error::AispError::security_violation(
-                        &format!("{:?}: {}", violation_type, description)
-                    ));
+                    return Err(crate::error::AispError::security_violation(&format!(
+                        "{:?}: {}",
+                        violation_type, description
+                    )));
                 }
                 "EnhancedAnalysis" => {
                     eprintln!("ENHANCED ANALYSIS TRIGGERED: {}", handler.response);
@@ -345,8 +353,10 @@ impl SecurityEnforcer {
             .as_millis();
 
         for destination in &self.audit_logger.destinations {
-            eprintln!("SECURITY_LOG[{}]: {} - {} - {} - {}", 
-                     destination, timestamp, session_id, event_type, description);
+            eprintln!(
+                "SECURITY_LOG[{}]: {} - {} - {} - {}",
+                destination, timestamp, session_id, event_type, description
+            );
         }
 
         Ok(())
@@ -355,15 +365,19 @@ impl SecurityEnforcer {
     /// Finalize security session
     pub fn finalize_security_session(&mut self, session_id: &str) -> AispResult<()> {
         if let Some(session) = self.active_sessions.remove(session_id) {
-            let duration = session.start_time.elapsed()
+            let duration = session
+                .start_time
+                .elapsed()
                 .unwrap_or(std::time::Duration::from_secs(0));
 
             self.log_security_event(
                 session_id,
                 "SecuritySessionEnd",
-                &format!("Session completed in {}ms with {} violations",
-                        duration.as_millis(),
-                        session.violations_detected.len()),
+                &format!(
+                    "Session completed in {}ms with {} violations",
+                    duration.as_millis(),
+                    session.violations_detected.len()
+                ),
             )?;
         }
 
@@ -375,7 +389,7 @@ impl SecurityEnforcer {
         let active_sessions_count = self.active_sessions.len();
         let total_policies = self.security_policies.len();
         let total_rules = self.enforcement_rules.len();
-        
+
         SecurityStatistics {
             active_sessions: active_sessions_count,
             total_policies,
@@ -415,9 +429,10 @@ mod tests {
     #[test]
     fn test_balanced_enforcer() {
         let enforcer = SecurityEnforcer::new_balanced();
-        
+
         // Should have modified policies for balanced enforcement
-        let zero_trust_policy = enforcer.security_policies
+        let zero_trust_policy = enforcer
+            .security_policies
             .iter()
             .find(|p| p.policy_name == "ZeroTrustVerification")
             .unwrap();
@@ -428,12 +443,12 @@ mod tests {
     fn test_security_session_management() {
         let mut enforcer = SecurityEnforcer::new();
         let session_id = "test_session_123";
-        
+
         // Start session
         let start_result = enforcer.start_security_session(session_id);
         assert!(start_result.is_ok());
         assert!(enforcer.active_sessions.contains_key(session_id));
-        
+
         // Finalize session
         let finalize_result = enforcer.finalize_security_session(session_id);
         assert!(finalize_result.is_ok());
@@ -444,7 +459,7 @@ mod tests {
     fn test_security_statistics() {
         let mut enforcer = SecurityEnforcer::new();
         enforcer.start_security_session("test_session").unwrap();
-        
+
         let stats = enforcer.get_security_statistics();
         assert_eq!(stats.active_sessions, 1);
         assert!(stats.total_policies > 0);

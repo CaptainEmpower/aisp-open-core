@@ -1,53 +1,33 @@
 // Semantic analysis module for AISP documents
 // Includes deep verification architecture for enterprise security
 
-pub mod deep_verifier;
 pub mod behavioral_verifier;
 pub mod cross_validator;
-pub mod verification_pipeline;
+pub mod deep_verifier;
 pub mod pipeline;
+pub mod verification_pipeline;
 
 pub use deep_verifier::{
-    DeepSemanticVerifier,
-    DeepVerificationResult,
-    TypeSystemAnalyzer,
-    LogicConsistencyChecker,
-    DependencyGraphAnalyzer,
-    MathematicalCorrectnessEngine,
-    DeceptionDetector,
-    SecurityAssessment,
-    ThreatLevel,
-    VerificationDetails,
-    CoverageMetrics,
-    PerformanceMetrics,
+    CoverageMetrics, DeceptionDetector, DeepSemanticVerifier, DeepVerificationResult,
+    DependencyGraphAnalyzer, LogicConsistencyChecker, MathematicalCorrectnessEngine,
+    PerformanceMetrics, SecurityAssessment, ThreatLevel, TypeSystemAnalyzer, VerificationDetails,
 };
 
 pub use behavioral_verifier::{
-    BehavioralVerifier,
-    BehavioralVerificationResult,
-    SafeExecutionSandbox,
+    BehavioralVerificationResult, BehavioralVerifier, SafeExecutionSandbox,
 };
 
 pub use cross_validator::{
-    CrossValidationChecker,
-    CrossValidationResult,
-    ConsistencyAnalyzer,
-    ConflictResolver,
-    VerificationOrchestrator,
-    FinalSecurityAssessment,
+    ConflictResolver, ConsistencyAnalyzer, CrossValidationChecker, CrossValidationResult,
+    FinalSecurityAssessment, VerificationOrchestrator,
 };
 
 pub use verification_pipeline::{
-    MultiLayerVerificationPipeline,
-    ComprehensiveVerificationResult,
-    PipelineOrchestrator,
-    SecurityEnforcer,
-    ComplianceAuditor,
-    PerformanceMonitor,
-    AttackResistanceRating,
+    AttackResistanceRating, ComplianceAuditor, ComprehensiveVerificationResult,
+    MultiLayerVerificationPipeline, PerformanceMonitor, PipelineOrchestrator, SecurityEnforcer,
 };
 
-// Compatibility types for legacy code  
+// Compatibility types for legacy code
 pub use deep_verifier::DeepVerificationResult as SemanticAnalysisResult;
 pub type SemanticAnalysis = deep_verifier::DeepVerificationResult;
 
@@ -73,7 +53,10 @@ impl SemanticAnalyzer {
         }
     }
 
-    pub fn analyze(&mut self, document: &crate::ast::canonical::CanonicalAispDocument) -> crate::error::AispResult<DeepVerificationResult> {
+    pub fn analyze(
+        &mut self,
+        document: &crate::ast::canonical::CanonicalAispDocument,
+    ) -> crate::error::AispResult<DeepVerificationResult> {
         self.verifier.verify_document(document)
     }
 }
@@ -114,15 +97,20 @@ impl DeepVerificationResult {
     }
 
     pub fn warnings(&self) -> Vec<String> {
-        self.recommendations.iter().map(|r| r.recommendation.clone()).collect()
+        self.recommendations
+            .iter()
+            .map(|r| r.recommendation.clone())
+            .collect()
     }
 
     pub fn errors(&self) -> Vec<String> {
-        self.verification_details.failed_verifications.iter()
+        self.verification_details
+            .failed_verifications
+            .iter()
             .map(|f| format!("{}: {}", f.component, f.reason))
             .collect()
     }
-    
+
     pub fn to_result(&self) -> Self {
         self.clone()
     }
@@ -138,12 +126,13 @@ impl DeepVerificationResult {
         Some(MockRelationalAnalysis {
             consistency_score: self.logic_consistency_score,
             constraint_analysis: MockConstraintAnalysis {
-                constraints: vec!["type_consistency".to_string(), "logical_constraints".to_string()],
+                constraints: vec![
+                    "type_consistency".to_string(),
+                    "logical_constraints".to_string(),
+                ],
                 satisfied: vec!["type_consistency".to_string()],
             },
-            conflict_analysis: MockConflictAnalysis {
-                conflicts: vec![],
-            },
+            conflict_analysis: MockConflictAnalysis { conflicts: vec![] },
         })
     }
 
@@ -151,7 +140,10 @@ impl DeepVerificationResult {
         Some(MockTemporalAnalysis {
             consistency_score: self.logic_consistency_score,
             formula_analysis: MockFormulaAnalysis {
-                formulas: vec!["temporal_formula_1".to_string(), "temporal_formula_2".to_string()],
+                formulas: vec![
+                    "temporal_formula_1".to_string(),
+                    "temporal_formula_2".to_string(),
+                ],
             },
             pattern_analysis: MockPatternAnalysis {
                 patterns: vec!["pattern_1".to_string()],
@@ -166,8 +158,11 @@ impl DeepVerificationResult {
     }
 
     pub fn block_score(&self) -> f64 {
-        (self.semantic_score + self.type_safety_score +
-         self.logic_consistency_score + self.mathematical_correctness_score) / 4.0
+        (self.semantic_score
+            + self.type_safety_score
+            + self.logic_consistency_score
+            + self.mathematical_correctness_score)
+            / 4.0
     }
 }
 
@@ -222,7 +217,7 @@ impl QualityTier {
         match self {
             QualityTier::Reject => "⊘",
             QualityTier::Bronze => "⚫",
-            QualityTier::Silver => "⚪", 
+            QualityTier::Silver => "⚪",
             QualityTier::Gold => "🟡",
             QualityTier::Platinum => "⭐",
         }
@@ -233,7 +228,7 @@ impl QualityTier {
             QualityTier::Reject => "Reject",
             QualityTier::Bronze => "Bronze",
             QualityTier::Silver => "Silver",
-            QualityTier::Gold => "Gold", 
+            QualityTier::Gold => "Gold",
             QualityTier::Platinum => "Platinum",
         }
     }

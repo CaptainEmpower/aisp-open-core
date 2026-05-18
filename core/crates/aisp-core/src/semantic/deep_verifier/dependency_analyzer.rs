@@ -4,7 +4,9 @@
 //! Implements SRP by focusing solely on dependency analysis
 
 use super::types::*;
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::{AispError, AispResult};
 use std::collections::{HashMap, HashSet};
 
@@ -28,10 +30,16 @@ impl DependencyGraphAnalyzer {
                 algorithms: vec!["tarjan".to_string(), "dfs".to_string()],
             },
             impact_analyzer: DependencyImpactAnalyzer {
-                impact_metrics: vec!["transitive_closure".to_string(), "critical_path".to_string()],
+                impact_metrics: vec![
+                    "transitive_closure".to_string(),
+                    "critical_path".to_string(),
+                ],
             },
             security_boundary_analyzer: SecurityBoundaryAnalyzer {
-                boundary_rules: vec!["isolation_check".to_string(), "trust_boundary_validation".to_string()],
+                boundary_rules: vec![
+                    "isolation_check".to_string(),
+                    "trust_boundary_validation".to_string(),
+                ],
             },
         }
     }
@@ -44,7 +52,10 @@ impl DependencyGraphAnalyzer {
     }
 
     /// Analyze document for dependency relationships and violations
-    pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<DependencyAnalysisResult> {
+    pub fn analyze_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<DependencyAnalysisResult> {
         let mut circular_dependencies = Vec::new();
         let mut dependency_violations = Vec::new();
         let mut impact_score = 1.0;
@@ -100,7 +111,7 @@ impl DependencyGraphAnalyzer {
                     for (index, func_def) in functions_block.functions.iter().enumerate() {
                         let func_name = format!("function_{}", index);
                         nodes.insert(func_name.clone());
-                        
+
                         // Extract function dependencies from implementation
                         let dependencies = self.extract_function_dependencies(func_def)?;
                         for dep in dependencies {
@@ -114,7 +125,7 @@ impl DependencyGraphAnalyzer {
                     if evidence_block.delta.is_some() || evidence_block.phi.is_some() {
                         let evidence_name = "evidence_block".to_string();
                         nodes.insert(evidence_name.clone());
-                        
+
                         // Extract evidence dependencies using simplified structure
                         let evidence_def = std::collections::HashMap::new();
                         let dependencies = self.extract_evidence_dependencies(&evidence_def)?;
@@ -127,7 +138,7 @@ impl DependencyGraphAnalyzer {
                 AispBlock::Types(types_block) => {
                     for (type_name, type_def) in &types_block.definitions {
                         nodes.insert(type_name.clone());
-                        
+
                         // Extract type dependencies
                         let dependencies = self.extract_type_dependencies(type_def)?;
                         for dep in dependencies {
@@ -191,7 +202,10 @@ impl DependencyGraphAnalyzer {
         // Check for improper cross-boundary dependencies
         for (source, target) in &self.dependency_graph.edges {
             if let Err(e) = self.validate_dependency_boundary(source, target) {
-                violations.push(format!("Boundary violation: {} -> {}: {}", source, target, e));
+                violations.push(format!(
+                    "Boundary violation: {} -> {}: {}",
+                    source, target, e
+                ));
             }
         }
 
@@ -208,17 +222,20 @@ impl DependencyGraphAnalyzer {
     }
 
     /// Extract dependencies from function definition
-    fn extract_function_dependencies(&self, func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<Vec<String>> {
+    fn extract_function_dependencies(
+        &self,
+        func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<Vec<String>> {
         let mut dependencies = Vec::new();
-        
+
         // Simplified dependency extraction from function implementation
         let func_str = format!("{:?}", func_def);
-        
+
         // Look for function calls and variable references
         if func_str.contains("call") {
             dependencies.push("external_function".to_string());
         }
-        
+
         if func_str.contains("variable") {
             dependencies.push("external_variable".to_string());
         }
@@ -227,12 +244,15 @@ impl DependencyGraphAnalyzer {
     }
 
     /// Extract dependencies from evidence definition
-    fn extract_evidence_dependencies(&self, evidence_def: &std::collections::HashMap<String, String>) -> AispResult<Vec<String>> {
+    fn extract_evidence_dependencies(
+        &self,
+        evidence_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<Vec<String>> {
         let mut dependencies = Vec::new();
-        
+
         // Simplified evidence dependency extraction using generic map
         let evidence_str = format!("{:?}", evidence_def);
-        
+
         if evidence_str.contains("reference") {
             dependencies.push("referenced_evidence".to_string());
         }
@@ -241,13 +261,16 @@ impl DependencyGraphAnalyzer {
     }
 
     /// Extract dependencies from type definition
-    fn extract_type_dependencies(&self, type_def: &crate::ast::canonical::TypeDefinition) -> AispResult<Vec<String>> {
+    fn extract_type_dependencies(
+        &self,
+        type_def: &crate::ast::canonical::TypeDefinition,
+    ) -> AispResult<Vec<String>> {
         let mut dependencies = Vec::new();
-        
+
         // Simplified type dependency extraction using canonical field
         let type_expr = &type_def.type_expr;
         let type_str = format!("{:?}", type_expr);
-        
+
         if type_str.contains("reference") {
             dependencies.push("referenced_type".to_string());
         }
@@ -268,7 +291,7 @@ impl DependencyGraphAnalyzer {
     fn tarjan_cycle_detection(&self) -> AispResult<Vec<String>> {
         // Simplified Tarjan's algorithm implementation
         let mut cycles = Vec::new();
-        
+
         // For demonstration, detect simple cycles
         for (source, target) in &self.dependency_graph.edges {
             for (back_source, back_target) in &self.dependency_graph.edges {
@@ -300,7 +323,12 @@ impl DependencyGraphAnalyzer {
     }
 
     /// DFS visit helper for cycle detection
-    fn dfs_visit(&self, node: &str, visited: &mut HashSet<String>, path: &mut HashSet<String>) -> Option<String> {
+    fn dfs_visit(
+        &self,
+        node: &str,
+        visited: &mut HashSet<String>,
+        path: &mut HashSet<String>,
+    ) -> Option<String> {
         if path.contains(node) {
             return Some(format!("Cycle detected involving node: {}", node));
         }
@@ -337,12 +365,15 @@ impl DependencyGraphAnalyzer {
     /// Analyze transitive closure for impact assessment
     fn analyze_transitive_closure(&self) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
-        
+
         // Check for excessive transitive dependencies
         for node in &self.dependency_graph.nodes {
             let transitive_count = self.count_transitive_dependencies(node);
             if transitive_count > 10 {
-                violations.push(format!("Node {} has excessive transitive dependencies: {}", node, transitive_count));
+                violations.push(format!(
+                    "Node {} has excessive transitive dependencies: {}",
+                    node, transitive_count
+                ));
             }
         }
 
@@ -352,12 +383,15 @@ impl DependencyGraphAnalyzer {
     /// Analyze critical dependency paths
     fn analyze_critical_paths(&self) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
-        
+
         // Identify critical paths with potential security implications
         for node in &self.dependency_graph.nodes {
             let path_length = self.calculate_longest_path(node);
             if path_length > 5 {
-                violations.push(format!("Critical path from {} exceeds safe length: {}", node, path_length));
+                violations.push(format!(
+                    "Critical path from {} exceeds safe length: {}",
+                    node, path_length
+                ));
             }
         }
 
@@ -421,15 +455,19 @@ mod tests {
     #[test]
     fn test_enhanced_security() {
         let analyzer = DependencyGraphAnalyzer::with_enhanced_security();
-        assert_eq!(analyzer.security_boundary_analyzer.boundary_rules.len(), 5); // 2 default + 3 enhanced
+        assert_eq!(analyzer.security_boundary_analyzer.boundary_rules.len(), 5);
+        // 2 default + 3 enhanced
     }
 
     #[test]
     fn test_dependency_graph_structure() {
         let mut analyzer = DependencyGraphAnalyzer::new();
         analyzer.dependency_graph.nodes.push("node1".to_string());
-        analyzer.dependency_graph.edges.push(("node1".to_string(), "node2".to_string()));
-        
+        analyzer
+            .dependency_graph
+            .edges
+            .push(("node1".to_string(), "node2".to_string()));
+
         assert_eq!(analyzer.dependency_graph.nodes.len(), 1);
         assert_eq!(analyzer.dependency_graph.edges.len(), 1);
     }
@@ -437,14 +475,26 @@ mod tests {
     #[test]
     fn test_cycle_detection_algorithms() {
         let analyzer = DependencyGraphAnalyzer::new();
-        assert!(analyzer.circular_dependency_detector.algorithms.contains(&"tarjan".to_string()));
-        assert!(analyzer.circular_dependency_detector.algorithms.contains(&"dfs".to_string()));
+        assert!(analyzer
+            .circular_dependency_detector
+            .algorithms
+            .contains(&"tarjan".to_string()));
+        assert!(analyzer
+            .circular_dependency_detector
+            .algorithms
+            .contains(&"dfs".to_string()));
     }
 
     #[test]
     fn test_impact_analysis_metrics() {
         let analyzer = DependencyGraphAnalyzer::new();
-        assert!(analyzer.impact_analyzer.impact_metrics.contains(&"transitive_closure".to_string()));
-        assert!(analyzer.impact_analyzer.impact_metrics.contains(&"critical_path".to_string()));
+        assert!(analyzer
+            .impact_analyzer
+            .impact_metrics
+            .contains(&"transitive_closure".to_string()));
+        assert!(analyzer
+            .impact_analyzer
+            .impact_metrics
+            .contains(&"critical_path".to_string()));
     }
 }

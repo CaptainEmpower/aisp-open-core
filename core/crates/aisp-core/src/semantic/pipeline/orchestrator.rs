@@ -3,8 +3,8 @@
 //! Manages verification workflow, stage dependencies, and execution strategies
 //! Implements SRP by focusing solely on pipeline orchestration logic
 
-use crate::error::{AispError, AispResult};
 use super::types::*;
+use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Pipeline orchestrator for managing verification workflow
@@ -24,25 +24,28 @@ impl PipelineOrchestrator {
             stage_dependencies: HashMap::new(),
             execution_strategy: ExecutionStrategy::default(),
             failure_handling: FailureHandlingStrategy::default(),
-            resource_manager: ResourceManager { resource_pools: HashMap::new() },
+            resource_manager: ResourceManager {
+                resource_pools: HashMap::new(),
+            },
         };
-        
+
         orchestrator.setup_stage_dependencies();
         orchestrator
     }
 
     /// Initialize verification session
     pub fn initialize_session(&mut self) -> AispResult<String> {
-        let session_id = format!("verification_session_{}", 
+        let session_id = format!(
+            "verification_session_{}",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap_or_default()
                 .as_millis()
         );
-        
+
         // Validate resource availability
         self.validate_resources()?;
-        
+
         Ok(session_id)
     }
 
@@ -60,15 +63,17 @@ impl PipelineOrchestrator {
     fn validate_resources(&self) -> AispResult<()> {
         // Check memory availability
         let available_memory = self.get_available_memory();
-        if available_memory < 100 { // 100MB minimum
+        if available_memory < 100 {
+            // 100MB minimum
             return Err(AispError::ValidationError {
                 message: "Insufficient memory for verification pipeline".to_string(),
             });
         }
 
-        // Check CPU availability  
+        // Check CPU availability
         let cpu_load = self.get_cpu_load();
-        if cpu_load > 0.9 { // 90% CPU usage threshold
+        if cpu_load > 0.9 {
+            // 90% CPU usage threshold
             return Err(AispError::ValidationError {
                 message: "System too busy for verification pipeline".to_string(),
             });
@@ -80,30 +85,37 @@ impl PipelineOrchestrator {
     /// Setup stage dependencies
     fn setup_stage_dependencies(&mut self) {
         // Parse validation has no dependencies
-        self.stage_dependencies.insert(VerificationStage::ParseValidation, vec![]);
-        
+        self.stage_dependencies
+            .insert(VerificationStage::ParseValidation, vec![]);
+
         // Semantic analysis depends on parse validation
         self.stage_dependencies.insert(
-            VerificationStage::SemanticAnalysis, 
-            vec![VerificationStage::ParseValidation]
+            VerificationStage::SemanticAnalysis,
+            vec![VerificationStage::ParseValidation],
         );
-        
+
         // Behavioral verification depends on semantic analysis
         self.stage_dependencies.insert(
             VerificationStage::BehavioralVerification,
-            vec![VerificationStage::SemanticAnalysis]
+            vec![VerificationStage::SemanticAnalysis],
         );
-        
+
         // Cross validation depends on both semantic and behavioral
         self.stage_dependencies.insert(
             VerificationStage::CrossValidation,
-            vec![VerificationStage::SemanticAnalysis, VerificationStage::BehavioralVerification]
+            vec![
+                VerificationStage::SemanticAnalysis,
+                VerificationStage::BehavioralVerification,
+            ],
         );
-        
+
         // Adversarial testing can run in parallel with cross validation
         self.stage_dependencies.insert(
             VerificationStage::AdversarialTesting,
-            vec![VerificationStage::SemanticAnalysis, VerificationStage::BehavioralVerification]
+            vec![
+                VerificationStage::SemanticAnalysis,
+                VerificationStage::BehavioralVerification,
+            ],
         );
     }
 
@@ -182,7 +194,9 @@ mod tests {
     fn test_orchestrator_creation() {
         let orchestrator = PipelineOrchestrator::new();
         assert_eq!(orchestrator.verification_stages.len(), 8);
-        assert!(orchestrator.stage_dependencies.contains_key(&VerificationStage::SemanticAnalysis));
+        assert!(orchestrator
+            .stage_dependencies
+            .contains_key(&VerificationStage::SemanticAnalysis));
     }
 
     #[test]
@@ -190,7 +204,7 @@ mod tests {
         let mut orchestrator = PipelineOrchestrator::new();
         let session_result = orchestrator.initialize_session();
         assert!(session_result.is_ok());
-        
+
         let session_id = session_result.unwrap();
         assert!(session_id.starts_with("verification_session_"));
     }
@@ -206,13 +220,13 @@ mod tests {
     #[test]
     fn test_stage_dependencies_setup() {
         let orchestrator = PipelineOrchestrator::new();
-        
+
         // Parse validation should have no dependencies
         assert_eq!(
-            orchestrator.stage_dependencies[&VerificationStage::ParseValidation].len(), 
+            orchestrator.stage_dependencies[&VerificationStage::ParseValidation].len(),
             0
         );
-        
+
         // Cross validation should depend on both semantic and behavioral
         assert_eq!(
             orchestrator.stage_dependencies[&VerificationStage::CrossValidation].len(),

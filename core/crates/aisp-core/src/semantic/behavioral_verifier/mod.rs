@@ -2,24 +2,28 @@
 //!
 //! Provides secure behavioral verification for AISP documents through
 //! safe execution sandbox, property-based testing, and threat detection.
-//! 
+//!
 //! This module follows SRP architecture with focused sub-modules:
 //! - `types`: Core data structures and type definitions
 //! - `sandbox`: Safe execution environment with isolation
 //! - `testing`: Property-based testing and validation components
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *,
+};
 use crate::error::{AispError, AispResult};
 
 // Re-export all public types from sub-modules
-pub use self::types::*;
 pub use self::sandbox::SafeExecutionSandbox;
-pub use self::testing::{PropertyBasedTester, PlaceholderDetector, RuntimeInvariantChecker, ComplianceValidator};
+pub use self::testing::{
+    ComplianceValidator, PlaceholderDetector, PropertyBasedTester, RuntimeInvariantChecker,
+};
+pub use self::types::*;
 
 // Module declarations
-pub mod types;
 pub mod sandbox;
 pub mod testing;
+pub mod types;
 
 /// Main behavioral verification engine coordinating all verification components
 pub struct BehavioralVerifier {
@@ -54,7 +58,10 @@ impl BehavioralVerifier {
     }
 
     /// Verify behavioral aspects of AISP document
-    pub fn verify_behavior(&mut self, document: &AispDocument) -> AispResult<BehavioralVerificationResult> {
+    pub fn verify_behavior(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<BehavioralVerificationResult> {
         let mut execution_results = Vec::new();
         let mut violations: Vec<BehavioralViolation> = Vec::new();
 
@@ -64,7 +71,10 @@ impl BehavioralVerifier {
                 for function in &functions_block.functions {
                     // Execute function in sandbox
                     let test_inputs = self.generate_test_inputs_simple()?;
-                    match self.sandbox.execute_function(&format!("{:?}", function), &test_inputs) {
+                    match self
+                        .sandbox
+                        .execute_function(&format!("{:?}", function), &test_inputs)
+                    {
                         Ok(result) => {
                             execution_results.push(result);
                         }
@@ -78,7 +88,9 @@ impl BehavioralVerifier {
                     }
 
                     // Check for placeholders
-                    let placeholder_analysis = self.placeholder_detector.analyze_implementation(&format!("{:?}", function))?;
+                    let placeholder_analysis = self
+                        .placeholder_detector
+                        .analyze_implementation(&format!("{:?}", function))?;
                     if placeholder_analysis.is_placeholder {
                         violations.push(BehavioralViolation {
                             violation_type: "PlaceholderImplementation".to_string(),
@@ -88,11 +100,16 @@ impl BehavioralVerifier {
                     }
 
                     // Verify runtime invariants
-                    let invariant_results = self.invariant_checker.check_invariants(&format!("{:?}", function))?;
+                    let invariant_results = self
+                        .invariant_checker
+                        .check_invariants(&format!("{:?}", function))?;
                     for violation in invariant_results.violations {
                         violations.push(BehavioralViolation {
                             violation_type: "InvariantViolation".to_string(),
-                            description: format!("InvariantViolation: {}", violation.violation_description),
+                            description: format!(
+                                "InvariantViolation: {}",
+                                violation.violation_description
+                            ),
                             severity: ViolationSeverity::High,
                         });
                     }
@@ -102,12 +119,17 @@ impl BehavioralVerifier {
 
         // Calculate scores
         let execution_safety_score = self.calculate_execution_safety_score(&execution_results);
-        let behavioral_consistency_score = self.calculate_behavioral_consistency_score(&execution_results);
-        let property_compliance_score = self.calculate_property_compliance_score(&execution_results);
+        let behavioral_consistency_score =
+            self.calculate_behavioral_consistency_score(&execution_results);
+        let property_compliance_score =
+            self.calculate_property_compliance_score(&execution_results);
         let authenticity_score = self.calculate_authenticity_score(&execution_results);
 
-        let overall_score = (execution_safety_score + behavioral_consistency_score + 
-                           property_compliance_score + authenticity_score) / 4.0;
+        let overall_score = (execution_safety_score
+            + behavioral_consistency_score
+            + property_compliance_score
+            + authenticity_score)
+            / 4.0;
 
         // Generate security assessment
         let security_assessment = BehavioralSecurityAssessment {
@@ -144,8 +166,11 @@ impl BehavioralVerifier {
             return 0.0;
         }
 
-        let safe_executions = results.iter()
-            .filter(|r| matches!(r.output, ExecutionOutput::Success(_)) && r.security_violations.is_empty())
+        let safe_executions = results
+            .iter()
+            .filter(|r| {
+                matches!(r.output, ExecutionOutput::Success(_)) && r.security_violations.is_empty()
+            })
             .count();
         safe_executions as f64 / results.len() as f64
     }
@@ -155,7 +180,8 @@ impl BehavioralVerifier {
             return 0.0;
         }
 
-        let consistent_behaviors = results.iter()
+        let consistent_behaviors = results
+            .iter()
             .filter(|r| matches!(r.behavior_classification, BehaviorClassification::Safe))
             .count();
         consistent_behaviors as f64 / results.len() as f64
@@ -166,7 +192,8 @@ impl BehavioralVerifier {
             return 1.0;
         }
 
-        let compliant_results = results.iter()
+        let compliant_results = results
+            .iter()
             .filter(|r| matches!(r.output, ExecutionOutput::Success(_)))
             .count();
         compliant_results as f64 / results.len() as f64
@@ -177,21 +204,23 @@ impl BehavioralVerifier {
             return 0.0;
         }
 
-        let authentic_implementations = results.iter()
+        let authentic_implementations = results
+            .iter()
             .filter(|r| !matches!(r.behavior_classification, BehaviorClassification::Unknown))
             .count();
         authentic_implementations as f64 / results.len() as f64
     }
 
     fn assess_behavioral_security(
-        &self, 
-        results: &[ExecutionResult], 
-        violations: &[String]
+        &self,
+        results: &[ExecutionResult],
+        violations: &[String],
     ) -> AispResult<BehavioralSecurityAssessment> {
         let mut security_score = 1.0f64;
 
         // Assess execution risks
-        let security_events_count = results.iter()
+        let security_events_count = results
+            .iter()
             .map(|r| r.security_violations.len())
             .sum::<usize>();
 
@@ -200,7 +229,8 @@ impl BehavioralVerifier {
         }
 
         // Assess malicious behavior
-        let malicious_count = results.iter()
+        let malicious_count = results
+            .iter()
             .filter(|r| matches!(r.behavior_classification, BehaviorClassification::Malicious))
             .count();
 
@@ -238,16 +268,17 @@ impl BehavioralVerifier {
     }
 
     fn generate_behavioral_recommendations(
-        &self, 
-        violations: &[String], 
-        assessment: &BehavioralSecurityAssessment
+        &self,
+        violations: &[String],
+        assessment: &BehavioralSecurityAssessment,
     ) -> AispResult<Vec<String>> {
         let mut recommendations = Vec::new();
 
         // Violation-based recommendations
         for violation in violations {
             if violation.contains("PlaceholderImplementation") {
-                recommendations.push("Replace placeholder implementations with genuine code".to_string());
+                recommendations
+                    .push("Replace placeholder implementations with genuine code".to_string());
             } else if violation.contains("InvariantViolation") {
                 recommendations.push("Fix invariant violations to ensure correctness".to_string());
             } else if violation.contains("ExecutionFailure") {
@@ -303,14 +334,15 @@ mod tests {
                 date: "2026-01-27".to_string(),
                 metadata: None,
             },
-            metadata: DocumentMetadata { domain: None, protocol: None },
-            blocks: vec![
-                AispBlock::Functions(FunctionsBlock {
-                    functions: vec![],
-                    raw_functions: vec!["test_func≜λx.x*2".to_string()],
-                    span: Some(Span::new(0, 0, 1, 1)),
-                })
-            ],
+            metadata: DocumentMetadata {
+                domain: None,
+                protocol: None,
+            },
+            blocks: vec![AispBlock::Functions(FunctionsBlock {
+                functions: vec![],
+                raw_functions: vec!["test_func≜λx.x*2".to_string()],
+                span: Some(Span::new(0, 0, 1, 1)),
+            })],
             span: Some(Span::new(0, 0, 1, 1)),
         };
 
@@ -332,15 +364,15 @@ mod tests {
     #[test]
     fn test_score_calculations() {
         let verifier = BehavioralVerifier::new();
-        
+
         // Test with empty results
         let empty_results: Vec<ExecutionResult> = vec![];
         let safety_score = verifier.calculate_execution_safety_score(&empty_results);
         let consistency_score = verifier.calculate_behavioral_consistency_score(&empty_results);
-        
+
         assert_eq!(safety_score, 0.0);
         assert_eq!(consistency_score, 0.0);
-        
+
         // Property compliance should be 1.0 for empty results (no failures)
         let compliance_score = verifier.calculate_property_compliance_score(&empty_results);
         assert_eq!(compliance_score, 1.0);
@@ -351,10 +383,10 @@ mod tests {
         let verifier = BehavioralVerifier::new();
         let empty_results: Vec<ExecutionResult> = vec![];
         let violations: Vec<String> = vec![];
-        
+
         let assessment = verifier.assess_behavioral_security(&empty_results, &violations);
         assert!(assessment.is_ok());
-        
+
         let assessment = assessment.unwrap();
         assert_eq!(assessment.threat_level, ThreatLevel::Minimal);
         assert_eq!(assessment.compliance_level, ComplianceLevel::FullyCompliant);

@@ -3,8 +3,8 @@
 //! Implements property-based testing, placeholder detection, and runtime
 //! invariant checking for behavioral verification.
 
-use crate::error::{AispError, AispResult};
 use super::types::*;
+use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Result of invariant violation check
@@ -235,23 +235,23 @@ impl PropertyBasedTester {
         Self {
             test_generators: Self::initialize_generators(),
             property_checkers: Self::initialize_checkers(),
-            coverage_tracker: CoverageTracker { 
-                line_coverage: 0.0, 
-                branch_coverage: 0.0 
+            coverage_tracker: CoverageTracker {
+                line_coverage: 0.0,
+                branch_coverage: 0.0,
             },
-            test_statistics: TestStatistics { 
-                total_tests: 0, 
-                passed_tests: 0 
+            test_statistics: TestStatistics {
+                total_tests: 0,
+                passed_tests: 0,
             },
         }
     }
 
     pub fn run_property_tests(&mut self, function_code: &str) -> AispResult<PropertyTestResult> {
         let mut test_results = Vec::new();
-        
+
         for generator in &self.test_generators {
             let test_cases = self.generate_test_cases(function_code, generator)?;
-            
+
             for test_case in test_cases {
                 let result = self.execute_property_test(function_code, &test_case)?;
                 test_results.push(result);
@@ -303,23 +303,39 @@ impl PropertyBasedTester {
         ]
     }
 
-    fn generate_test_cases(&self, _function_code: &str, generator: &TestGenerator) -> AispResult<Vec<TestCase>> {
+    fn generate_test_cases(
+        &self,
+        _function_code: &str,
+        generator: &TestGenerator,
+    ) -> AispResult<Vec<TestCase>> {
         // Simplified test case generation
         match generator.generation_strategy {
             GenerationStrategy::EdgeCase => Ok(vec![
-                TestCase { input: "edge_case_1".to_string(), expected: "expected_1".to_string() },
-                TestCase { input: "edge_case_2".to_string(), expected: "expected_2".to_string() },
+                TestCase {
+                    input: "edge_case_1".to_string(),
+                    expected: "expected_1".to_string(),
+                },
+                TestCase {
+                    input: "edge_case_2".to_string(),
+                    expected: "expected_2".to_string(),
+                },
             ]),
-            GenerationStrategy::Adversarial => Ok(vec![
-                TestCase { input: "malicious_input".to_string(), expected: "safe_handling".to_string() },
-            ]),
-            _ => Ok(vec![
-                TestCase { input: "standard_input".to_string(), expected: "standard_output".to_string() },
-            ]),
+            GenerationStrategy::Adversarial => Ok(vec![TestCase {
+                input: "malicious_input".to_string(),
+                expected: "safe_handling".to_string(),
+            }]),
+            _ => Ok(vec![TestCase {
+                input: "standard_input".to_string(),
+                expected: "standard_output".to_string(),
+            }]),
         }
     }
 
-    fn execute_property_test(&self, _function_code: &str, test_case: &TestCase) -> AispResult<TestResult> {
+    fn execute_property_test(
+        &self,
+        _function_code: &str,
+        test_case: &TestCase,
+    ) -> AispResult<TestResult> {
         // Simplified property test execution
         Ok(TestResult {
             test_case: test_case.clone(),
@@ -340,19 +356,25 @@ impl PlaceholderDetector {
     pub fn new() -> Self {
         Self {
             placeholder_patterns: Self::initialize_patterns(),
-            complexity_analyzer: ComplexityAnalyzer { 
-                complexity_metrics: vec!["cyclomatic".to_string(), "cognitive".to_string()] 
+            complexity_analyzer: ComplexityAnalyzer {
+                complexity_metrics: vec!["cyclomatic".to_string(), "cognitive".to_string()],
             },
-            implementation_validator: ImplementationValidator { 
-                validation_rules: vec!["non_empty".to_string(), "non_trivial".to_string()] 
+            implementation_validator: ImplementationValidator {
+                validation_rules: vec!["non_empty".to_string(), "non_trivial".to_string()],
             },
-            authenticity_scorer: AuthenticityScorer { 
-                scoring_algorithms: vec!["pattern_based".to_string(), "complexity_based".to_string()] 
+            authenticity_scorer: AuthenticityScorer {
+                scoring_algorithms: vec![
+                    "pattern_based".to_string(),
+                    "complexity_based".to_string(),
+                ],
             },
         }
     }
 
-    pub fn analyze_implementation(&self, function_code: &str) -> AispResult<PlaceholderAnalysisResult> {
+    pub fn analyze_implementation(
+        &self,
+        function_code: &str,
+    ) -> AispResult<PlaceholderAnalysisResult> {
         let mut detected_patterns = Vec::new();
         let mut confidence = 0.0;
 
@@ -374,7 +396,11 @@ impl PlaceholderDetector {
         }
 
         let is_placeholder = confidence > 0.5;
-        let authenticity_score = if is_placeholder { 1.0 - confidence } else { 0.9 };
+        let authenticity_score = if is_placeholder {
+            1.0 - confidence
+        } else {
+            0.9
+        };
 
         Ok(PlaceholderAnalysisResult {
             is_placeholder,
@@ -404,14 +430,14 @@ impl RuntimeInvariantChecker {
     pub fn new() -> Self {
         Self {
             invariants: Self::initialize_invariants(),
-            violation_detector: ViolationDetector { 
-                detection_methods: vec!["bounds_checking".to_string(), "null_checking".to_string()] 
+            violation_detector: ViolationDetector {
+                detection_methods: vec!["bounds_checking".to_string(), "null_checking".to_string()],
             },
-            state_tracker: StateTracker { 
-                tracked_variables: HashMap::new() 
+            state_tracker: StateTracker {
+                tracked_variables: HashMap::new(),
             },
-            recovery_handler: RecoveryHandler { 
-                recovery_strategies: vec!["safe_default".to_string(), "error_return".to_string()] 
+            recovery_handler: RecoveryHandler {
+                recovery_strategies: vec!["safe_default".to_string(), "error_return".to_string()],
             },
         }
     }
@@ -428,7 +454,8 @@ impl RuntimeInvariantChecker {
                 passed_checks.push(format!("Memory safety check: {}", invariant.invariant_id));
             } else if invariant.invariant_id.contains("bounds") {
                 // Bounds checking - might have violations
-                if utils::random_f64() > 0.8 {  // 20% chance of violation
+                if utils::random_f64() > 0.8 {
+                    // 20% chance of violation
                     violations.push(InvariantViolation {
                         invariant_id: invariant.invariant_id.clone(),
                         violation_description: "Array bounds potentially exceeded".to_string(),
@@ -441,7 +468,10 @@ impl RuntimeInvariantChecker {
             }
         }
 
-        let overall_status = if violations.iter().any(|v| v.severity == ViolationSeverity::Critical) {
+        let overall_status = if violations
+            .iter()
+            .any(|v| v.severity == ViolationSeverity::Critical)
+        {
             InvariantStatus::CriticalViolations
         } else if !violations.is_empty() {
             InvariantStatus::SomeViolations
@@ -478,7 +508,9 @@ impl ComplianceValidator {
     pub fn new() -> Self {
         Self {
             compliance_rules: Self::initialize_compliance_rules(),
-            audit_logger: AuditLogger { log_entries: Vec::new() },
+            audit_logger: AuditLogger {
+                log_entries: Vec::new(),
+            },
         }
     }
 
@@ -503,7 +535,7 @@ impl ComplianceValidator {
 
         let is_compliant = violations.is_empty();
         let compliance_score = if is_compliant { 1.0 } else { 0.7 };
-        
+
         Ok(ComplianceResult {
             overall_compliant: is_compliant,
             violations,
@@ -564,9 +596,12 @@ pub struct ComplianceResult {
 // Temporary utility functions
 mod utils {
     use std::time::{SystemTime, UNIX_EPOCH};
-    
+
     pub fn random_f64() -> f64 {
-        let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64;
+        let seed = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64;
         (seed % 1000) as f64 / 1000.0
     }
 }
@@ -585,12 +620,16 @@ mod tests {
     #[test]
     fn test_placeholder_detection() {
         let detector = PlaceholderDetector::new();
-        
-        let result = detector.analyze_implementation("TODO: implement this function").unwrap();
+
+        let result = detector
+            .analyze_implementation("TODO: implement this function")
+            .unwrap();
         assert!(result.is_placeholder);
         assert!(result.confidence > 0.7);
-        
-        let result2 = detector.analyze_implementation("fn add(x: i32, y: i32) -> i32 { x + y }").unwrap();
+
+        let result2 = detector
+            .analyze_implementation("fn add(x: i32, y: i32) -> i32 { x + y }")
+            .unwrap();
         assert!(!result2.is_placeholder);
     }
 
@@ -599,7 +638,7 @@ mod tests {
         let checker = RuntimeInvariantChecker::new();
         let result = checker.check_invariants("fn safe_function() { /* safe implementation */ }");
         assert!(result.is_ok());
-        
+
         let check_result = result.unwrap();
         assert!(!check_result.passed_checks.is_empty());
     }
@@ -607,9 +646,10 @@ mod tests {
     #[test]
     fn test_compliance_validation() {
         let validator = ComplianceValidator::new();
-        let result = validator.validate_compliance("fn compliant_function() { /* compliant code */ }");
+        let result =
+            validator.validate_compliance("fn compliant_function() { /* compliant code */ }");
         assert!(result.is_ok());
-        
+
         let compliance_result = result.unwrap();
         assert!(compliance_result.compliance_score > 0.0);
     }

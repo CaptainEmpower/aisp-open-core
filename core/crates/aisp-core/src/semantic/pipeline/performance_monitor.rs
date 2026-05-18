@@ -61,9 +61,15 @@ impl PerformanceMonitor {
             stage_timings: HashMap::new(),
             resource_usage: ResourceUsage::default(),
             performance_thresholds: PerformanceThresholds::default(),
-            optimization_engine: OptimizationEngine { optimization_strategies: vec![] },
-            alerting_system: AlertingSystem { alert_channels: vec![] },
-            profiling_data: ProfilingData { profiling_samples: vec![] },
+            optimization_engine: OptimizationEngine {
+                optimization_strategies: vec![],
+            },
+            alerting_system: AlertingSystem {
+                alert_channels: vec![],
+            },
+            profiling_data: ProfilingData {
+                profiling_samples: vec![],
+            },
         }
     }
 
@@ -88,7 +94,7 @@ impl PerformanceMonitor {
         if duration.as_millis() > self.performance_thresholds.max_verification_time_ms as u128 {
             self.trigger_performance_alert(&stage, duration);
         }
-        
+
         self.stage_timings.insert(stage, duration);
     }
 
@@ -108,7 +114,7 @@ impl PerformanceMonitor {
         let timing_score = self.calculate_timing_score();
         let resource_score = self.calculate_resource_score();
         let efficiency_score = self.calculate_efficiency_score();
-        
+
         // Weighted average
         (timing_score * 0.4) + (resource_score * 0.3) + (efficiency_score * 0.3)
     }
@@ -144,7 +150,7 @@ impl PerformanceMonitor {
         self.resource_usage.cpu_usage_percent = 45.0;
         self.resource_usage.disk_io_mb = 10;
         self.resource_usage.network_io_mb = 5;
-        
+
         if self.resource_usage.memory_usage_mb > self.resource_usage.peak_memory_mb {
             self.resource_usage.peak_memory_mb = self.resource_usage.memory_usage_mb;
         }
@@ -155,8 +161,9 @@ impl PerformanceMonitor {
         if self.resource_usage.memory_usage_mb > self.performance_thresholds.max_memory_usage_mb {
             self.trigger_memory_alert();
         }
-        
-        if self.resource_usage.cpu_usage_percent > self.performance_thresholds.max_cpu_usage_percent {
+
+        if self.resource_usage.cpu_usage_percent > self.performance_thresholds.max_cpu_usage_percent
+        {
             self.trigger_cpu_alert();
         }
     }
@@ -174,8 +181,9 @@ impl PerformanceMonitor {
     /// Calculate timing score
     fn calculate_timing_score(&self) -> f64 {
         let total_time = self.calculate_total_time();
-        let target_time = Duration::from_millis(self.performance_thresholds.max_verification_time_ms);
-        
+        let target_time =
+            Duration::from_millis(self.performance_thresholds.max_verification_time_ms);
+
         if total_time <= target_time {
             1.0
         } else {
@@ -185,16 +193,22 @@ impl PerformanceMonitor {
 
     /// Calculate resource utilization score
     fn calculate_resource_score(&self) -> f64 {
-        let memory_score = if self.resource_usage.memory_usage_mb <= self.performance_thresholds.max_memory_usage_mb {
+        let memory_score = if self.resource_usage.memory_usage_mb
+            <= self.performance_thresholds.max_memory_usage_mb
+        {
             1.0
         } else {
-            (self.performance_thresholds.max_memory_usage_mb as f64) / (self.resource_usage.memory_usage_mb as f64)
+            (self.performance_thresholds.max_memory_usage_mb as f64)
+                / (self.resource_usage.memory_usage_mb as f64)
         };
 
-        let cpu_score = if self.resource_usage.cpu_usage_percent <= self.performance_thresholds.max_cpu_usage_percent {
+        let cpu_score = if self.resource_usage.cpu_usage_percent
+            <= self.performance_thresholds.max_cpu_usage_percent
+        {
             1.0
         } else {
-            self.performance_thresholds.max_cpu_usage_percent / self.resource_usage.cpu_usage_percent
+            self.performance_thresholds.max_cpu_usage_percent
+                / self.resource_usage.cpu_usage_percent
         };
 
         (memory_score + cpu_score) / 2.0
@@ -212,21 +226,31 @@ impl PerformanceMonitor {
 
     /// Analyze stage performance
     fn analyze_stage_performance(&self) -> Vec<StagePerformanceAnalysis> {
-        self.stage_timings.iter().map(|(stage, duration)| {
-            StagePerformanceAnalysis {
+        self.stage_timings
+            .iter()
+            .map(|(stage, duration)| StagePerformanceAnalysis {
                 stage: stage.clone(),
                 execution_time: *duration,
-                performance_rating: if duration.as_millis() < 500 { "Excellent" } else { "Good" }.to_string(),
+                performance_rating: if duration.as_millis() < 500 {
+                    "Excellent"
+                } else {
+                    "Good"
+                }
+                .to_string(),
                 bottlenecks: vec![],
-            }
-        }).collect()
+            })
+            .collect()
     }
 
     /// Analyze resource usage patterns
     fn analyze_resource_usage(&self) -> ResourceAnalysis {
         ResourceAnalysis {
-            memory_efficiency: (self.performance_thresholds.max_memory_usage_mb as f64 - self.resource_usage.memory_usage_mb as f64) / self.performance_thresholds.max_memory_usage_mb as f64,
-            cpu_efficiency: (self.performance_thresholds.max_cpu_usage_percent - self.resource_usage.cpu_usage_percent) / self.performance_thresholds.max_cpu_usage_percent,
+            memory_efficiency: (self.performance_thresholds.max_memory_usage_mb as f64
+                - self.resource_usage.memory_usage_mb as f64)
+                / self.performance_thresholds.max_memory_usage_mb as f64,
+            cpu_efficiency: (self.performance_thresholds.max_cpu_usage_percent
+                - self.resource_usage.cpu_usage_percent)
+                / self.performance_thresholds.max_cpu_usage_percent,
             io_patterns: vec!["Sequential access".to_string()],
             optimization_opportunities: vec!["Consider memory pooling".to_string()],
         }
@@ -237,7 +261,8 @@ impl PerformanceMonitor {
         let mut suggestions = Vec::new();
 
         if self.resource_usage.memory_usage_mb > 200 {
-            suggestions.push("Consider implementing memory pooling to reduce allocations".to_string());
+            suggestions
+                .push("Consider implementing memory pooling to reduce allocations".to_string());
         }
 
         if self.resource_usage.cpu_usage_percent > 70.0 {
@@ -246,7 +271,9 @@ impl PerformanceMonitor {
 
         let total_time = self.calculate_total_time();
         if total_time.as_millis() > 2000 {
-            suggestions.push("Consider parallel processing for independent verification stages".to_string());
+            suggestions.push(
+                "Consider parallel processing for independent verification stages".to_string(),
+            );
         }
 
         if suggestions.is_empty() {
@@ -382,18 +409,27 @@ mod tests {
     fn test_stage_timing_recording() {
         let mut monitor = PerformanceMonitor::new();
         let duration = Duration::from_millis(250);
-        
+
         monitor.record_stage_timing(VerificationStage::SemanticAnalysis, duration);
-        
-        assert_eq!(monitor.stage_timings[&VerificationStage::SemanticAnalysis], duration);
+
+        assert_eq!(
+            monitor.stage_timings[&VerificationStage::SemanticAnalysis],
+            duration
+        );
     }
 
     #[test]
     fn test_performance_score_calculation() {
         let mut monitor = PerformanceMonitor::new();
-        monitor.record_stage_timing(VerificationStage::ParseValidation, Duration::from_millis(100));
-        monitor.record_stage_timing(VerificationStage::SemanticAnalysis, Duration::from_millis(200));
-        
+        monitor.record_stage_timing(
+            VerificationStage::ParseValidation,
+            Duration::from_millis(100),
+        );
+        monitor.record_stage_timing(
+            VerificationStage::SemanticAnalysis,
+            Duration::from_millis(200),
+        );
+
         let score = monitor.calculate_performance_score();
         assert!(score > 0.0);
         assert!(score <= 1.0);
@@ -403,7 +439,7 @@ mod tests {
     fn test_stage_profiler() {
         let profiler = StageProfiler::new(VerificationStage::BehavioralVerification);
         std::thread::sleep(Duration::from_millis(1));
-        
+
         let (stage, duration) = profiler.finish();
         assert_eq!(stage, VerificationStage::BehavioralVerification);
         assert!(duration.as_millis() >= 1);
@@ -412,8 +448,11 @@ mod tests {
     #[test]
     fn test_performance_report_generation() {
         let mut monitor = PerformanceMonitor::new();
-        monitor.record_stage_timing(VerificationStage::ParseValidation, Duration::from_millis(100));
-        
+        monitor.record_stage_timing(
+            VerificationStage::ParseValidation,
+            Duration::from_millis(100),
+        );
+
         let report = monitor.generate_performance_report();
         assert!(report.overall_score >= 0.0);
         assert!(!report.optimization_suggestions.is_empty());

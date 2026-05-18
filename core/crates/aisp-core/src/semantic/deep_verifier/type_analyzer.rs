@@ -4,7 +4,9 @@
 //! Implements SRP by focusing solely on type system analysis
 
 use super::types::*;
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
@@ -67,10 +69,11 @@ impl TypeSystemAnalyzer {
                 AispBlock::Types(types_block) => {
                     for (type_name, type_def) in &types_block.definitions {
                         if let Err(e) = self.validate_type_definition((type_name, type_def)) {
-                            type_violations.push(format!("Type definition error in {}: {}", type_name, e));
+                            type_violations
+                                .push(format!("Type definition error in {}: {}", type_name, e));
                             safety_score -= 0.1;
                         }
-                        
+
                         // Store validated type definitions
                         self.store_type_definition(type_name.clone(), type_def);
                     }
@@ -113,9 +116,12 @@ impl TypeSystemAnalyzer {
     }
 
     /// Validate individual type definition
-    fn validate_type_definition(&self, type_def: (&String, &crate::ast::canonical::TypeDefinition)) -> AispResult<()> {
+    fn validate_type_definition(
+        &self,
+        type_def: (&String, &crate::ast::canonical::TypeDefinition),
+    ) -> AispResult<()> {
         let (type_name, definition) = type_def;
-        
+
         // Check for unsafe type patterns
         if type_name.contains("Any") || type_name.to_lowercase().contains("unsafe") {
             return Err(AispError::ValidationError {
@@ -135,8 +141,8 @@ impl TypeSystemAnalyzer {
         if self.requires_constraints(type_name) {
             // For canonical structure, we validate type expression complexity
             match type_expr {
-                crate::ast::canonical::TypeExpression::Basic(_) => {}, // Simple types are OK
-                _ => {}, // Complex types handled elsewhere
+                crate::ast::canonical::TypeExpression::Basic(_) => {} // Simple types are OK
+                _ => {} // Complex types handled elsewhere
             }
         }
 
@@ -144,7 +150,11 @@ impl TypeSystemAnalyzer {
     }
 
     /// Store validated type definition for further analysis
-    fn store_type_definition(&mut self, type_name: String, definition: &crate::ast::canonical::TypeDefinition) {
+    fn store_type_definition(
+        &mut self,
+        type_name: String,
+        definition: &crate::ast::canonical::TypeDefinition,
+    ) {
         let stored_definition = TypeDefinition {
             name: type_name.clone(),
             structure: self.infer_type_structure(definition),
@@ -157,7 +167,10 @@ impl TypeSystemAnalyzer {
     }
 
     /// Analyze functions block for type safety
-    fn analyze_functions_block(&mut self, functions_block: &crate::ast::canonical::FunctionsBlock) -> AispResult<Vec<String>> {
+    fn analyze_functions_block(
+        &mut self,
+        functions_block: &crate::ast::canonical::FunctionsBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         // Analyze function definitions for type safety using canonical structure
@@ -174,7 +187,7 @@ impl TypeSystemAnalyzer {
                     InferredType {
                         type_name: inferred_type,
                         confidence: 0.9,
-                    }
+                    },
                 );
             }
         }
@@ -183,7 +196,10 @@ impl TypeSystemAnalyzer {
     }
 
     /// Analyze rules block for type consistency
-    fn analyze_rules_block(&mut self, rules_block: &crate::ast::canonical::RulesBlock) -> AispResult<Vec<String>> {
+    fn analyze_rules_block(
+        &mut self,
+        rules_block: &crate::ast::canonical::RulesBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         // Check rule type consistency using canonical structure
@@ -217,7 +233,8 @@ impl TypeSystemAnalyzer {
         match policy.policy_name.as_str() {
             "NoUnsafeTypes" => {
                 for (type_name, type_def) in &self.type_definitions {
-                    if type_name.contains("Any") || type_def.security_level == SecurityLevel::Public {
+                    if type_name.contains("Any") || type_def.security_level == SecurityLevel::Public
+                    {
                         violations.push(format!("Unsafe type detected: {}", type_name));
                     }
                 }
@@ -257,7 +274,10 @@ impl TypeSystemAnalyzer {
 
     /// Helper methods for type analysis
 
-    fn infer_type_structure(&self, definition: &crate::ast::canonical::TypeDefinition) -> TypeStructure {
+    fn infer_type_structure(
+        &self,
+        definition: &crate::ast::canonical::TypeDefinition,
+    ) -> TypeStructure {
         // Type structure inference using canonical field
         let type_expr = &definition.type_expr;
         if format!("{:?}", type_expr).contains("Set") {
@@ -271,7 +291,10 @@ impl TypeSystemAnalyzer {
         }
     }
 
-    fn extract_constraints(&self, definition: &crate::ast::canonical::TypeDefinition) -> Vec<TypeConstraint> {
+    fn extract_constraints(
+        &self,
+        definition: &crate::ast::canonical::TypeDefinition,
+    ) -> Vec<TypeConstraint> {
         // Extract constraints from canonical type definition structure
         // Since canonical structure doesn't have explicit constraints field,
         // we derive constraints from the type expression
@@ -299,17 +322,28 @@ impl TypeSystemAnalyzer {
         type_name.contains("Number") || type_name.contains("String") || type_name.contains("Array")
     }
 
-    fn validate_function_types(&self, _func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn validate_function_types(
+        &self,
+        _func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Simplified function type validation
         Ok(())
     }
 
-    fn validate_rule_types(&self, _rule_name: &str, _rule_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn validate_rule_types(
+        &self,
+        _rule_name: &str,
+        _rule_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Simplified rule type validation using generic map
         Ok(())
     }
 
-    fn infer_function_type(&self, _func_def: &crate::ast::canonical::FunctionDefinition) -> Option<String> {
+    fn infer_function_type(
+        &self,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> Option<String> {
         // Simplified function type inference
         Some("Function".to_string())
     }
@@ -354,9 +388,18 @@ mod tests {
     #[test]
     fn test_security_level_determination() {
         let analyzer = TypeSystemAnalyzer::new();
-        assert_eq!(analyzer.determine_security_level("secret_key"), SecurityLevel::Secret);
-        assert_eq!(analyzer.determine_security_level("confidential_data"), SecurityLevel::Confidential);
-        assert_eq!(analyzer.determine_security_level("public_info"), SecurityLevel::Public);
+        assert_eq!(
+            analyzer.determine_security_level("secret_key"),
+            SecurityLevel::Secret
+        );
+        assert_eq!(
+            analyzer.determine_security_level("confidential_data"),
+            SecurityLevel::Confidential
+        );
+        assert_eq!(
+            analyzer.determine_security_level("public_info"),
+            SecurityLevel::Public
+        );
     }
 
     #[test]

@@ -4,7 +4,9 @@
 //! Implements SRP by focusing solely on logical consistency analysis
 
 use super::types::*;
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
@@ -29,7 +31,7 @@ impl LogicConsistencyChecker {
                 validation_rules: vec!["proof_verification".to_string()],
             },
         };
-        
+
         checker.setup_default_axioms();
         checker.setup_inference_rules();
         checker
@@ -126,7 +128,7 @@ impl LogicConsistencyChecker {
     /// Setup enhanced axiom system for rigorous validation
     fn setup_enhanced_axioms(&mut self) {
         self.setup_default_axioms();
-        
+
         self.axiom_system.extend(vec![
             LogicalAxiom {
                 name: "Transitivity".to_string(),
@@ -168,7 +170,10 @@ impl LogicConsistencyChecker {
     }
 
     /// Analyze functions for logical consistency
-    fn analyze_functions_logic(&self, functions_block: &crate::ast::canonical::FunctionsBlock) -> AispResult<Vec<String>> {
+    fn analyze_functions_logic(
+        &self,
+        functions_block: &crate::ast::canonical::FunctionsBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         for (index, func_def) in functions_block.functions.iter().enumerate() {
@@ -188,13 +193,16 @@ impl LogicConsistencyChecker {
     }
 
     /// Validate rules block for logical consistency
-    fn validate_rules_block(&self, rules_block: &crate::ast::canonical::RulesBlock) -> AispResult<Vec<String>> {
+    fn validate_rules_block(
+        &self,
+        rules_block: &crate::ast::canonical::RulesBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         for (index, _rule) in rules_block.rules.iter().enumerate() {
             let rule_name = format!("rule_{}", index);
             let rule_def = std::collections::HashMap::new(); // Simplified for canonical structure
-            // Check rule for logical soundness
+                                                             // Check rule for logical soundness
             if let Err(e) = self.validate_rule_soundness(&rule_name, &rule_def) {
                 violations.push(format!("Rule soundness error in {}: {}", rule_name, e));
             }
@@ -209,7 +217,10 @@ impl LogicConsistencyChecker {
     }
 
     /// Check evidence definitions for logical consistency
-    fn check_evidence_logic(&self, evidence_block: &crate::ast::canonical::EvidenceBlock) -> AispResult<Vec<String>> {
+    fn check_evidence_logic(
+        &self,
+        evidence_block: &crate::ast::canonical::EvidenceBlock,
+    ) -> AispResult<Vec<String>> {
         let mut violations = Vec::new();
 
         // Evidence block has different structure in canonical AST
@@ -252,32 +263,56 @@ impl LogicConsistencyChecker {
 
     /// Helper validation methods
 
-    fn validate_function_logic(&self, _func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn validate_function_logic(
+        &self,
+        _func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Simplified function logic validation
         Ok(())
     }
 
-    fn check_axiom_compliance(&self, _func_name: &str, _func_def: &crate::ast::canonical::FunctionDefinition) -> AispResult<()> {
+    fn check_axiom_compliance(
+        &self,
+        _func_name: &str,
+        _func_def: &crate::ast::canonical::FunctionDefinition,
+    ) -> AispResult<()> {
         // Check if function satisfies all axioms
         Ok(())
     }
 
-    fn validate_rule_soundness(&self, _rule_name: &str, _rule_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn validate_rule_soundness(
+        &self,
+        _rule_name: &str,
+        _rule_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Validate rule logical soundness using generic map
         Ok(())
     }
 
-    fn check_rule_conflicts(&self, _rule_name: &str, _rule_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn check_rule_conflicts(
+        &self,
+        _rule_name: &str,
+        _rule_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Check for conflicts with existing rules using generic map
         Ok(())
     }
 
-    fn validate_evidence_logic(&self, _evidence_name: &str, _evidence_def: &std::collections::HashMap<String, String>) -> AispResult<()> {
+    fn validate_evidence_logic(
+        &self,
+        _evidence_name: &str,
+        _evidence_def: &std::collections::HashMap<String, String>,
+    ) -> AispResult<()> {
         // Validate evidence definition logic using generic map
         Ok(())
     }
 
-    fn apply_contradiction_detection(&self, _document: &AispDocument, _method: &str) -> AispResult<Vec<String>> {
+    fn apply_contradiction_detection(
+        &self,
+        _document: &AispDocument,
+        _method: &str,
+    ) -> AispResult<Vec<String>> {
         // Apply specific contradiction detection method
         Ok(vec![])
     }
@@ -308,17 +343,24 @@ mod tests {
     #[test]
     fn test_enhanced_validation() {
         let checker = LogicConsistencyChecker::with_enhanced_validation();
-        
+
         // Enhanced validation now includes additional axioms for better logical consistency
-        assert!(checker.axiom_system.len() >= 6, 
-               "Expected at least 6 axioms (3 default + 3 enhanced), got: {}", 
-               checker.axiom_system.len());
-               
+        assert!(
+            checker.axiom_system.len() >= 6,
+            "Expected at least 6 axioms (3 default + 3 enhanced), got: {}",
+            checker.axiom_system.len()
+        );
+
         // Verify core enhanced axioms are present
-        let axiom_names: Vec<&str> = checker.axiom_system.iter()
+        let axiom_names: Vec<&str> = checker
+            .axiom_system
+            .iter()
             .map(|a| a.name.as_str())
             .collect();
-        assert!(axiom_names.contains(&"Transitivity"), "Expected Transitivity axiom");
+        assert!(
+            axiom_names.contains(&"Transitivity"),
+            "Expected Transitivity axiom"
+        );
         assert!(axiom_names.contains(&"Symmetry"), "Expected Symmetry axiom");
     }
 
@@ -344,7 +386,7 @@ mod tests {
         let foundational = AxiomType::Foundational;
         let derived = AxiomType::Derived;
         let domain = AxiomType::Domain;
-        
+
         assert_ne!(foundational, derived);
         assert_ne!(derived, domain);
         assert_eq!(foundational, AxiomType::Foundational);

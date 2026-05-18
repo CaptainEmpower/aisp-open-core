@@ -3,8 +3,8 @@
 //! Enterprise-grade security compliance and enforcement
 //! Implements SRP by focusing solely on security policy enforcement
 
-use crate::error::{AispError, AispResult};
 use super::types::*;
+use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Security enforcer for enterprise-grade security compliance
@@ -23,10 +23,14 @@ impl SecurityEnforcer {
             security_policies: Vec::new(),
             enforcement_rules: Vec::new(),
             violation_handlers: HashMap::new(),
-            audit_logger: AuditLogger { log_level: "INFO".to_string() },
-            incident_responder: IncidentResponder { response_type: "Standard".to_string() },
+            audit_logger: AuditLogger {
+                log_level: "INFO".to_string(),
+            },
+            incident_responder: IncidentResponder {
+                response_type: "Standard".to_string(),
+            },
         };
-        
+
         enforcer.setup_default_policies();
         enforcer.setup_violation_handlers();
         enforcer
@@ -42,23 +46,23 @@ impl SecurityEnforcer {
     /// Start security session
     pub fn start_security_session(&mut self, session_id: &str) -> AispResult<()> {
         self.audit_logger.log_level = format!("Session {} started", session_id);
-        
+
         // Validate session permissions
         self.validate_session_permissions(session_id)?;
-        
+
         // Initialize security monitoring
         self.initialize_monitoring()?;
-        
+
         Ok(())
     }
 
     /// End security session
     pub fn end_security_session(&mut self, session_id: &str) -> AispResult<()> {
         self.audit_logger.log_level = format!("Session {} ended", session_id);
-        
+
         // Perform final security audit
         self.perform_session_audit(session_id)?;
-        
+
         Ok(())
     }
 
@@ -74,7 +78,9 @@ impl SecurityEnforcer {
             });
         }
 
-        if results.security_assessment.threat_level == crate::semantic::deep_verifier::ThreatLevel::Critical {
+        if results.security_assessment.threat_level
+            == crate::semantic::deep_verifier::ThreatLevel::Critical
+        {
             return Err(AispError::ValidationError {
                 message: "Critical threat level detected".to_string(),
             });
@@ -93,7 +99,10 @@ impl SecurityEnforcer {
             for violation in &results.violations {
                 if violation.violation_type == "SecurityViolation" {
                     return Err(AispError::ValidationError {
-                        message: format!("Behavioral security violation: {}", violation.description),
+                        message: format!(
+                            "Behavioral security violation: {}",
+                            violation.description
+                        ),
                     });
                 }
             }
@@ -104,7 +113,9 @@ impl SecurityEnforcer {
 
     /// Enforce security policy
     pub fn enforce_policy(&self, policy_name: &str) -> AispResult<()> {
-        let policy = self.security_policies.iter()
+        let policy = self
+            .security_policies
+            .iter()
             .find(|p| p.name == policy_name)
             .ok_or_else(|| AispError::ValidationError {
                 message: format!("Security policy not found: {}", policy_name),
@@ -179,15 +190,21 @@ impl SecurityEnforcer {
     fn setup_violation_handlers(&mut self) {
         self.violation_handlers.insert(
             SecurityViolationType::UnauthorizedAccess,
-            ViolationHandler { handler_type: "BlockAccess".to_string() },
+            ViolationHandler {
+                handler_type: "BlockAccess".to_string(),
+            },
         );
         self.violation_handlers.insert(
             SecurityViolationType::DataLeakage,
-            ViolationHandler { handler_type: "AlertAndBlock".to_string() },
+            ViolationHandler {
+                handler_type: "AlertAndBlock".to_string(),
+            },
         );
         self.violation_handlers.insert(
             SecurityViolationType::IntegrityBreach,
-            ViolationHandler { handler_type: "FailVerification".to_string() },
+            ViolationHandler {
+                handler_type: "FailVerification".to_string(),
+            },
         );
     }
 
@@ -252,15 +269,19 @@ mod tests {
     #[test]
     fn test_strict_policies() {
         let enforcer = SecurityEnforcer::with_strict_policies();
-        
+
         // Enhanced security implementation now includes additional policies beyond the basic 5
         // This is better for production security readiness
-        assert!(enforcer.security_policies.len() >= 5, 
-               "Expected at least 5 policies (3 default + 2 strict), got: {}", 
-               enforcer.security_policies.len());
-               
+        assert!(
+            enforcer.security_policies.len() >= 5,
+            "Expected at least 5 policies (3 default + 2 strict), got: {}",
+            enforcer.security_policies.len()
+        );
+
         // Verify that the core strict policies are present
-        let policy_names: Vec<&str> = enforcer.security_policies.iter()
+        let policy_names: Vec<&str> = enforcer
+            .security_policies
+            .iter()
             .map(|p| p.name.as_str())
             .collect();
         assert!(policy_names.contains(&"ZeroTrust"));
@@ -271,10 +292,10 @@ mod tests {
     fn test_security_session() {
         let mut enforcer = SecurityEnforcer::new();
         let session_id = "test_session_123";
-        
+
         let start_result = enforcer.start_security_session(session_id);
         assert!(start_result.is_ok());
-        
+
         let end_result = enforcer.end_security_session(session_id);
         assert!(end_result.is_ok());
     }
@@ -284,7 +305,7 @@ mod tests {
         let enforcer = SecurityEnforcer::new();
         let result = enforcer.enforce_policy("DataProtection");
         assert!(result.is_ok());
-        
+
         let invalid_result = enforcer.enforce_policy("NonexistentPolicy");
         assert!(invalid_result.is_err());
     }
@@ -292,10 +313,10 @@ mod tests {
     #[test]
     fn test_violation_handling() {
         let enforcer = SecurityEnforcer::new();
-        
+
         let result1 = enforcer.handle_violation(SecurityViolationType::UnauthorizedAccess);
         assert!(result1.is_ok());
-        
+
         let result2 = enforcer.handle_violation(SecurityViolationType::DataLeakage);
         assert!(result2.is_ok());
     }
@@ -303,9 +324,15 @@ mod tests {
     #[test]
     fn test_violation_handlers_setup() {
         let enforcer = SecurityEnforcer::new();
-        
-        assert!(enforcer.violation_handlers.contains_key(&SecurityViolationType::UnauthorizedAccess));
-        assert!(enforcer.violation_handlers.contains_key(&SecurityViolationType::DataLeakage));
-        assert!(enforcer.violation_handlers.contains_key(&SecurityViolationType::IntegrityBreach));
+
+        assert!(enforcer
+            .violation_handlers
+            .contains_key(&SecurityViolationType::UnauthorizedAccess));
+        assert!(enforcer
+            .violation_handlers
+            .contains_key(&SecurityViolationType::DataLeakage));
+        assert!(enforcer
+            .violation_handlers
+            .contains_key(&SecurityViolationType::IntegrityBreach));
     }
 }

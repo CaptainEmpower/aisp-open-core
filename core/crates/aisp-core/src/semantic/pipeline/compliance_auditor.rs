@@ -3,8 +3,8 @@
 //! Regulatory and standard compliance validation
 //! Implements SRP by focusing solely on compliance auditing
 
-use crate::error::{AispError, AispResult};
 use super::types::*;
+use crate::error::{AispError, AispResult};
 
 /// Compliance auditor for regulatory and standard compliance
 pub struct ComplianceAuditor {
@@ -48,7 +48,7 @@ impl ComplianceAuditor {
             audit_checklist: Vec::new(),
             certification_requirements: Vec::new(),
         };
-        
+
         auditor.setup_default_frameworks();
         auditor.setup_audit_checklist();
         auditor
@@ -70,7 +70,7 @@ impl ComplianceAuditor {
     ) -> AispResult<ComplianceAuditResult> {
         let mut passed_checks = 0;
         let total_checks = self.audit_checklist.len();
-        
+
         // Perform compliance checks
         for checkpoint in &self.audit_checklist {
             if self.evaluate_checkpoint(checkpoint, semantic_results, behavioral_results)? {
@@ -79,15 +79,17 @@ impl ComplianceAuditor {
         }
 
         let compliance_score = passed_checks as f64 / total_checks as f64;
-        
+
         // Evaluate framework compliance
-        let framework_compliance = self.evaluate_frameworks(semantic_results, behavioral_results)?;
-        
+        let framework_compliance =
+            self.evaluate_frameworks(semantic_results, behavioral_results)?;
+
         // Check certification eligibility
         let certification_status = self.check_certifications(compliance_score)?;
-        
+
         // Generate recommendations
-        let recommendations = self.generate_recommendations(compliance_score, &framework_compliance);
+        let recommendations =
+            self.generate_recommendations(compliance_score, &framework_compliance);
 
         Ok(ComplianceAuditResult {
             compliance_score,
@@ -184,18 +186,12 @@ impl ComplianceAuditor {
         behavioral_results: &crate::semantic::behavioral_verifier::BehavioralVerificationResult,
     ) -> AispResult<bool> {
         match checkpoint.name.as_str() {
-            "DataIntegrityValidation" => {
-                Ok(semantic_results.overall_confidence > 0.8)
-            }
+            "DataIntegrityValidation" => Ok(semantic_results.overall_confidence > 0.8),
             "AccessControlVerification" => {
                 Ok(semantic_results.security_assessment.vulnerability_count == 0)
             }
-            "SecurityTesting" => {
-                Ok(behavioral_results.overall_score > 0.8)
-            }
-            "ErrorHandling" => {
-                Ok(behavioral_results.violations.is_empty())
-            }
+            "SecurityTesting" => Ok(behavioral_results.overall_score > 0.8),
+            "ErrorHandling" => Ok(behavioral_results.violations.is_empty()),
             "AuditLogging" => {
                 Ok(true) // Always pass for now
             }
@@ -212,7 +208,11 @@ impl ComplianceAuditor {
         let mut framework_compliance = Vec::new();
 
         for framework in &self.compliance_frameworks {
-            let (passed, total) = self.evaluate_framework_requirements(&framework.name, semantic_results, behavioral_results)?;
+            let (passed, total) = self.evaluate_framework_requirements(
+                &framework.name,
+                semantic_results,
+                behavioral_results,
+            )?;
             let compliance_percentage = passed as f64 / total as f64 * 100.0;
 
             framework_compliance.push(FrameworkCompliance {
@@ -237,20 +237,40 @@ impl ComplianceAuditor {
             "ISO27001" => {
                 let total = 5;
                 let mut passed = 0;
-                if semantic_results.overall_confidence > 0.8 { passed += 1; }
-                if behavioral_results.overall_score > 0.8 { passed += 1; }
-                if semantic_results.security_assessment.vulnerability_count < 3 { passed += 1; }
-                if behavioral_results.violations.len() < 2 { passed += 1; }
-                if semantic_results.deception_risk_score < 0.3 { passed += 1; }
+                if semantic_results.overall_confidence > 0.8 {
+                    passed += 1;
+                }
+                if behavioral_results.overall_score > 0.8 {
+                    passed += 1;
+                }
+                if semantic_results.security_assessment.vulnerability_count < 3 {
+                    passed += 1;
+                }
+                if behavioral_results.violations.len() < 2 {
+                    passed += 1;
+                }
+                if semantic_results.deception_risk_score < 0.3 {
+                    passed += 1;
+                }
                 Ok((passed, total))
             }
             "NIST" => {
                 let total = 4;
                 let mut passed = 0;
-                if semantic_results.type_safety_score > 0.9 { passed += 1; }
-                if semantic_results.logic_consistency_score > 0.9 { passed += 1; }
-                if behavioral_results.overall_score > 0.85 { passed += 1; }
-                if semantic_results.security_assessment.threat_level != crate::semantic::deep_verifier::ThreatLevel::Critical { passed += 1; }
+                if semantic_results.type_safety_score > 0.9 {
+                    passed += 1;
+                }
+                if semantic_results.logic_consistency_score > 0.9 {
+                    passed += 1;
+                }
+                if behavioral_results.overall_score > 0.85 {
+                    passed += 1;
+                }
+                if semantic_results.security_assessment.threat_level
+                    != crate::semantic::deep_verifier::ThreatLevel::Critical
+                {
+                    passed += 1;
+                }
                 Ok((passed, total))
             }
             _ => Ok((2, 3)), // Default compliance
@@ -295,7 +315,8 @@ impl ComplianceAuditor {
         let mut recommendations = Vec::new();
 
         if compliance_score < 0.8 {
-            recommendations.push("Improve overall compliance score to meet enterprise standards".to_string());
+            recommendations
+                .push("Improve overall compliance score to meet enterprise standards".to_string());
         }
 
         for framework in framework_compliance {
@@ -341,11 +362,11 @@ mod tests {
     #[test]
     fn test_certification_eligibility() {
         let auditor = ComplianceAuditor::new();
-        
+
         let high_score_certs = auditor.check_certifications(0.95).unwrap();
         assert!(high_score_certs[0].eligible); // BasicSecurity
         assert!(high_score_certs[1].eligible); // EnterpriseGrade
-        
+
         let low_score_certs = auditor.check_certifications(0.6).unwrap();
         assert!(!low_score_certs[0].eligible); // BasicSecurity
         assert!(!low_score_certs[1].eligible); // EnterpriseGrade
@@ -354,23 +375,27 @@ mod tests {
     #[test]
     fn test_framework_requirements() {
         let auditor = ComplianceAuditor::new();
-        
+
         // Mock results for testing
-        let (passed_iso, total_iso) = auditor.evaluate_framework_requirements(
-            "ISO27001",
-            &mock_semantic_results(),
-            &mock_behavioral_results()
-        ).unwrap();
-        
+        let (passed_iso, total_iso) = auditor
+            .evaluate_framework_requirements(
+                "ISO27001",
+                &mock_semantic_results(),
+                &mock_behavioral_results(),
+            )
+            .unwrap();
+
         assert_eq!(total_iso, 5);
         assert!(passed_iso <= total_iso);
-        
-        let (passed_nist, total_nist) = auditor.evaluate_framework_requirements(
-            "NIST",
-            &mock_semantic_results(),
-            &mock_behavioral_results()
-        ).unwrap();
-        
+
+        let (passed_nist, total_nist) = auditor
+            .evaluate_framework_requirements(
+                "NIST",
+                &mock_semantic_results(),
+                &mock_behavioral_results(),
+            )
+            .unwrap();
+
         assert_eq!(total_nist, 4);
         assert!(passed_nist <= total_nist);
     }
@@ -378,22 +403,23 @@ mod tests {
     #[test]
     fn test_recommendation_generation() {
         let auditor = ComplianceAuditor::new();
-        
-        let framework_compliance = vec![
-            FrameworkCompliance {
-                framework_name: "TestFramework".to_string(),
-                compliance_percentage: 70.0,
-                passed_requirements: 7,
-                total_requirements: 10,
-            }
-        ];
-        
+
+        let framework_compliance = vec![FrameworkCompliance {
+            framework_name: "TestFramework".to_string(),
+            compliance_percentage: 70.0,
+            passed_requirements: 7,
+            total_requirements: 10,
+        }];
+
         let recommendations = auditor.generate_recommendations(0.75, &framework_compliance);
         assert!(!recommendations.is_empty());
-        
+
         // The test should check that TestFramework appears in any recommendation, not just the first
-        assert!(recommendations.iter().any(|r| r.contains("TestFramework")), 
-               "Expected TestFramework to appear in recommendations: {:?}", recommendations);
+        assert!(
+            recommendations.iter().any(|r| r.contains("TestFramework")),
+            "Expected TestFramework to appear in recommendations: {:?}",
+            recommendations
+        );
     }
 
     // Mock helper functions for testing
@@ -435,7 +461,8 @@ mod tests {
         }
     }
 
-    fn mock_behavioral_results() -> crate::semantic::behavioral_verifier::BehavioralVerificationResult {
+    fn mock_behavioral_results(
+    ) -> crate::semantic::behavioral_verifier::BehavioralVerificationResult {
         crate::semantic::behavioral_verifier::BehavioralVerificationResult {
             overall_score: 0.82,
             execution_safety_score: 0.85,
@@ -443,13 +470,15 @@ mod tests {
             property_compliance_score: 0.82,
             authenticity_score: 0.81,
             execution_results: vec![],
-            security_assessment: crate::semantic::behavioral_verifier::BehavioralSecurityAssessment {
-                threat_level: crate::semantic::behavioral_verifier::ThreatLevel::Low,
-                attack_surface_size: 0.1,
-                vulnerability_count: 0,
-                security_score: 0.85,
-                compliance_level: crate::semantic::behavioral_verifier::ComplianceLevel::FullyCompliant,
-            },
+            security_assessment:
+                crate::semantic::behavioral_verifier::BehavioralSecurityAssessment {
+                    threat_level: crate::semantic::behavioral_verifier::ThreatLevel::Low,
+                    attack_surface_size: 0.1,
+                    vulnerability_count: 0,
+                    security_score: 0.85,
+                    compliance_level:
+                        crate::semantic::behavioral_verifier::ComplianceLevel::FullyCompliant,
+                },
             violations: vec![],
             recommendations: vec![],
         }

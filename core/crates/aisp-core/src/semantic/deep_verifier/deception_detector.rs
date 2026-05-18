@@ -4,7 +4,9 @@
 //! Implements SRP by focusing solely on authenticity verification
 
 use super::types::*;
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
@@ -24,16 +26,22 @@ impl DeceptionDetector {
             placeholder_patterns: Vec::new(),
             behavioral_analyzers: Vec::new(),
             complexity_analyzer: ComplexityAnalyzer {
-                metrics: vec!["cyclomatic_complexity".to_string(), "cognitive_complexity".to_string()],
+                metrics: vec![
+                    "cyclomatic_complexity".to_string(),
+                    "cognitive_complexity".to_string(),
+                ],
             },
             coverage_analyzer: CoverageAnalyzer {
                 coverage_types: vec!["line_coverage".to_string(), "branch_coverage".to_string()],
             },
             authenticity_verifier: AuthenticityVerifier {
-                verification_methods: vec!["pattern_analysis".to_string(), "semantic_analysis".to_string()],
+                verification_methods: vec![
+                    "pattern_analysis".to_string(),
+                    "semantic_analysis".to_string(),
+                ],
             },
         };
-        
+
         detector.setup_placeholder_patterns();
         detector.setup_behavioral_analyzers();
         detector
@@ -48,7 +56,10 @@ impl DeceptionDetector {
     }
 
     /// Analyze document for deception and authenticity
-    pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<DeceptionAnalysisResult> {
+    pub fn analyze_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<DeceptionAnalysisResult> {
         let mut placeholder_violations = Vec::new();
         let mut behavioral_inconsistencies = Vec::new();
         let mut deception_score = 0.0;
@@ -192,7 +203,7 @@ impl DeceptionDetector {
 
         for block in &document.blocks {
             let block_str = format!("{:?}", block);
-            
+
             for pattern in &self.placeholder_patterns {
                 if self.matches_pattern(&block_str, &pattern.detection_regex) {
                     violations.push(format!(
@@ -257,7 +268,11 @@ impl DeceptionDetector {
     }
 
     /// Apply specific behavioral analyzer
-    fn apply_behavioral_analyzer(&self, analyzer: &BehavioralAnalyzer, document: &AispDocument) -> AispResult<Vec<String>> {
+    fn apply_behavioral_analyzer(
+        &self,
+        analyzer: &BehavioralAnalyzer,
+        document: &AispDocument,
+    ) -> AispResult<Vec<String>> {
         match analyzer.analysis_type.as_str() {
             "ImplementationDepth" => self.analyze_implementation_depth(document),
             "LogicComplexity" => self.analyze_logic_complexity(document),
@@ -269,7 +284,11 @@ impl DeceptionDetector {
     }
 
     /// Apply specific complexity analysis metric
-    fn apply_complexity_analysis(&self, metric: &str, document: &AispDocument) -> AispResult<Vec<String>> {
+    fn apply_complexity_analysis(
+        &self,
+        metric: &str,
+        document: &AispDocument,
+    ) -> AispResult<Vec<String>> {
         match metric {
             "cyclomatic_complexity" => self.analyze_cyclomatic_complexity(document),
             "cognitive_complexity" => self.analyze_cognitive_complexity(document),
@@ -278,7 +297,11 @@ impl DeceptionDetector {
     }
 
     /// Apply specific coverage analysis
-    fn apply_coverage_analysis(&self, coverage_type: &str, document: &AispDocument) -> AispResult<Vec<String>> {
+    fn apply_coverage_analysis(
+        &self,
+        coverage_type: &str,
+        document: &AispDocument,
+    ) -> AispResult<Vec<String>> {
         match coverage_type {
             "line_coverage" => self.analyze_line_coverage(document),
             "branch_coverage" => self.analyze_branch_coverage(document),
@@ -287,7 +310,11 @@ impl DeceptionDetector {
     }
 
     /// Apply specific authenticity verification method
-    fn apply_authenticity_verification(&self, method: &str, document: &AispDocument) -> AispResult<Vec<String>> {
+    fn apply_authenticity_verification(
+        &self,
+        method: &str,
+        document: &AispDocument,
+    ) -> AispResult<Vec<String>> {
         match method {
             "pattern_analysis" => self.verify_pattern_authenticity(document),
             "semantic_analysis" => self.verify_semantic_authenticity(document),
@@ -299,7 +326,8 @@ impl DeceptionDetector {
 
     fn matches_pattern(&self, text: &str, pattern: &str) -> bool {
         // Simplified pattern matching - extract content from regex groups
-        let cleaned_pattern = pattern.to_lowercase()
+        let cleaned_pattern = pattern
+            .to_lowercase()
             .replace(r"(?i)", "")
             .replace("(", "")
             .replace(")", "");
@@ -421,7 +449,13 @@ mod tests {
     #[test]
     fn test_behavioral_analyzers() {
         let detector = DeceptionDetector::new();
-        assert_eq!(detector.behavioral_analyzers[0].analysis_type, "ImplementationDepth");
-        assert_eq!(detector.behavioral_analyzers[1].analysis_type, "LogicComplexity");
+        assert_eq!(
+            detector.behavioral_analyzers[0].analysis_type,
+            "ImplementationDepth"
+        );
+        assert_eq!(
+            detector.behavioral_analyzers[1].analysis_type,
+            "LogicComplexity"
+        );
     }
 }

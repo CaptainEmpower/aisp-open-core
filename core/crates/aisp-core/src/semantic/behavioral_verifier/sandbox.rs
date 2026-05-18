@@ -3,10 +3,10 @@
 //! Provides secure execution environment for AISP behavioral verification
 //! with isolation, monitoring, and security policy enforcement.
 
-use crate::error::{AispError, AispResult};
 use super::types::*;
-use std::time::Instant;
+use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
+use std::time::Instant;
 
 /// Safe execution sandbox for behavioral verification
 pub struct SafeExecutionSandbox {
@@ -98,7 +98,11 @@ impl SafeExecutionSandbox {
     }
 
     /// Execute function in secure sandbox environment
-    pub fn execute_function(&mut self, function_code: &str, test_inputs: &[String]) -> AispResult<ExecutionResult> {
+    pub fn execute_function(
+        &mut self,
+        function_code: &str,
+        test_inputs: &[String],
+    ) -> AispResult<ExecutionResult> {
         let function_name = self.extract_function_name(function_code)?;
         let start_time = Instant::now();
 
@@ -122,19 +126,18 @@ impl SafeExecutionSandbox {
 
         let execution_time = start_time.elapsed();
         let memory_used = self.execution_monitor.get_memory_usage();
-        
+
         // Analyze behavior
-        let behavior_classification = self.behavior_analyzer.classify_behavior(
-            function_code,
-            &output,
-            execution_time,
-        )?;
+        let behavior_classification =
+            self.behavior_analyzer
+                .classify_behavior(function_code, &output, execution_time)?;
 
         // Collect security events
         let security_violations = self.execution_monitor.get_security_events();
 
         // Clean up isolation
-        self.isolation_engine.cleanup_isolation_context(isolation_context)?;
+        self.isolation_engine
+            .cleanup_isolation_context(isolation_context)?;
 
         Ok(ExecutionResult {
             function_name,
@@ -157,9 +160,13 @@ impl SafeExecutionSandbox {
         Ok("anonymous".to_string())
     }
 
-    fn safe_execute_with_monitoring(&mut self, function_code: &str, _test_inputs: &[String]) -> AispResult<String> {
+    fn safe_execute_with_monitoring(
+        &mut self,
+        function_code: &str,
+        _test_inputs: &[String],
+    ) -> AispResult<String> {
         // Simplified safe execution (would implement actual sandboxed execution)
-        
+
         // Check for obvious placeholders
         if function_code.contains("TODO") || function_code.trim() == "{}" {
             return Ok("placeholder_detected".to_string());
@@ -171,8 +178,11 @@ impl SafeExecutionSandbox {
         }
 
         // Check for mathematical operations
-        if function_code.contains('+') || function_code.contains('-') || 
-           function_code.contains('*') || function_code.contains('/') {
+        if function_code.contains('+')
+            || function_code.contains('-')
+            || function_code.contains('*')
+            || function_code.contains('/')
+        {
             return Ok("mathematical_operation_detected".to_string());
         }
 
@@ -205,7 +215,8 @@ impl ExecutionMonitor {
         // Simplified resource checking
         if let Some(start) = self.start_time {
             let elapsed = start.elapsed();
-            if elapsed.as_millis() > 5000 {  // 5 second limit
+            if elapsed.as_millis() > 5000 {
+                // 5 second limit
                 return Ok(false);
             }
         }
@@ -223,7 +234,7 @@ impl ExecutionMonitor {
 
     fn get_current_memory_usage(&self) -> usize {
         // Placeholder for actual memory monitoring
-        1024 * 1024  // 1MB placeholder
+        1024 * 1024 // 1MB placeholder
     }
 }
 
@@ -243,7 +254,7 @@ impl IsolationEngine {
             created_at: Instant::now(),
             resource_limits: ResourceLimits::default(),
         };
-        
+
         self.active_contexts.insert(context_id.clone(), context);
         Ok(context_id)
     }
@@ -263,10 +274,10 @@ impl BehaviorAnalyzer {
     }
 
     pub fn classify_behavior(
-        &mut self, 
-        function_code: &str, 
-        output: &ExecutionOutput, 
-        execution_time: std::time::Duration
+        &mut self,
+        function_code: &str,
+        output: &ExecutionOutput,
+        execution_time: std::time::Duration,
     ) -> AispResult<BehaviorClassification> {
         // Record behavior event
         self.behavior_history.push(BehaviorEvent {
@@ -315,26 +326,26 @@ impl BehaviorAnalyzer {
 
     fn calculate_risk_level(&self, function_code: &str, output: &ExecutionOutput) -> f64 {
         let mut risk: f64 = 0.0;
-        
+
         if function_code.contains("exec") || function_code.contains("system") {
             risk += 0.8;
         }
-        
+
         if matches!(output, ExecutionOutput::SecurityViolation(_)) {
             risk += 0.9;
         }
-        
+
         if function_code.contains("file") || function_code.contains("network") {
             risk += 0.3;
         }
-        
+
         risk.min(1.0)
     }
 
     fn contains_malicious_patterns(&self, function_code: &str) -> bool {
         self.threat_patterns.iter().any(|pattern| {
-            pattern.severity == ViolationSeverity::Critical && 
-            self.matches_pattern(function_code, &pattern.pattern_regex)
+            pattern.severity == ViolationSeverity::Critical
+                && self.matches_pattern(function_code, &pattern.pattern_regex)
         })
     }
 
@@ -345,15 +356,16 @@ impl BehaviorAnalyzer {
             .replace(")", "")
             .replace("|", " ")
             .replace(".*", " ");
-        
-        keywords.split_whitespace()
+
+        keywords
+            .split_whitespace()
             .any(|keyword| text.contains(keyword))
     }
 
     fn contains_suspicious_patterns(&self, function_code: &str) -> bool {
         self.threat_patterns.iter().any(|pattern| {
-            pattern.severity == ViolationSeverity::High && 
-            function_code.contains(&pattern.pattern_regex.replace(".*", ""))
+            pattern.severity == ViolationSeverity::High
+                && function_code.contains(&pattern.pattern_regex.replace(".*", ""))
         })
     }
 }
@@ -361,21 +373,27 @@ impl BehaviorAnalyzer {
 // Temporary implementations for UUID and random number generation
 mod utils {
     use std::time::{SystemTime, UNIX_EPOCH};
-    
+
     pub struct Uuid;
     impl Uuid {
         pub fn new_v4() -> String {
-            let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64;
+            let seed = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos() as u64;
             format!("{:x}", seed % 0xFFFFFFFF)
         }
     }
-    
+
     pub fn random_u64() -> u64 {
         // Simple PRNG for demo purposes
-        let seed = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64;
+        let seed = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64;
         seed % 1000000
     }
-    
+
     pub fn random_f64() -> f64 {
         (random_u64() % 1000) as f64 / 1000.0
     }
@@ -387,8 +405,13 @@ impl SandboxSecurityPolicy {
             allow_file_access: false,
             allow_network_access: false,
             allow_system_calls: false,
-            allowed_operations: [SandboxOperation::MathematicalComputation, 
-                               SandboxOperation::LogicalEvaluation].iter().cloned().collect(),
+            allowed_operations: [
+                SandboxOperation::MathematicalComputation,
+                SandboxOperation::LogicalEvaluation,
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             security_level: SandboxSecurityLevel::Strict,
             isolation_mode: IsolationMode::ProcessIsolation,
         }
@@ -399,10 +422,15 @@ impl SandboxSecurityPolicy {
             allow_file_access: false,
             allow_network_access: false,
             allow_system_calls: false,
-            allowed_operations: [SandboxOperation::MathematicalComputation, 
-                               SandboxOperation::LogicalEvaluation,
-                               SandboxOperation::StringManipulation,
-                               SandboxOperation::CollectionOperations].iter().cloned().collect(),
+            allowed_operations: [
+                SandboxOperation::MathematicalComputation,
+                SandboxOperation::LogicalEvaluation,
+                SandboxOperation::StringManipulation,
+                SandboxOperation::CollectionOperations,
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             security_level: SandboxSecurityLevel::Balanced,
             isolation_mode: IsolationMode::ThreadIsolation,
         }
@@ -412,22 +440,22 @@ impl SandboxSecurityPolicy {
 impl ResourceLimits {
     pub fn strict() -> Self {
         Self {
-            max_execution_time_ms: 1000,     // 1 second
-            max_memory_mb: 64,               // 64 MB
-            max_cpu_usage_percent: 50.0,     // 50% CPU
-            max_iterations: 1000,            // 1k iterations
-            max_recursion_depth: 10,         // 10 levels
+            max_execution_time_ms: 1000,      // 1 second
+            max_memory_mb: 64,                // 64 MB
+            max_cpu_usage_percent: 50.0,      // 50% CPU
+            max_iterations: 1000,             // 1k iterations
+            max_recursion_depth: 10,          // 10 levels
             max_output_size_bytes: 10 * 1024, // 10 KB
         }
     }
 
     pub fn balanced() -> Self {
         Self {
-            max_execution_time_ms: 5000,     // 5 seconds
-            max_memory_mb: 128,              // 128 MB
-            max_cpu_usage_percent: 80.0,     // 80% CPU
-            max_iterations: 10000,           // 10k iterations
-            max_recursion_depth: 50,         // 50 levels
+            max_execution_time_ms: 5000,        // 5 seconds
+            max_memory_mb: 128,                 // 128 MB
+            max_cpu_usage_percent: 80.0,        // 80% CPU
+            max_iterations: 10000,              // 10k iterations
+            max_recursion_depth: 50,            // 50 levels
             max_output_size_bytes: 1024 * 1024, // 1 MB
         }
     }
@@ -441,7 +469,10 @@ mod tests {
     fn test_sandbox_creation() {
         let sandbox = SafeExecutionSandbox::new_strict();
         assert!(!sandbox.security_policy.allow_file_access);
-        assert_eq!(sandbox.security_policy.security_level, SandboxSecurityLevel::Strict);
+        assert_eq!(
+            sandbox.security_policy.security_level,
+            SandboxSecurityLevel::Strict
+        );
     }
 
     #[test]
@@ -454,12 +485,14 @@ mod tests {
     #[test]
     fn test_behavior_classification() {
         let mut analyzer = BehaviorAnalyzer::new();
-        let classification = analyzer.classify_behavior(
-            "fn safe_math(x: i32) -> i32 { x + 1 }", 
-            &ExecutionOutput::Success("43".to_string()),
-            std::time::Duration::from_millis(100)
-        ).unwrap();
-        
+        let classification = analyzer
+            .classify_behavior(
+                "fn safe_math(x: i32) -> i32 { x + 1 }",
+                &ExecutionOutput::Success("43".to_string()),
+                std::time::Duration::from_millis(100),
+            )
+            .unwrap();
+
         assert_eq!(classification, BehaviorClassification::Safe);
     }
 
