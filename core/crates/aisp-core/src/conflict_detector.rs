@@ -3,9 +3,9 @@
 //! This module provides robust conflict detection and resolution strategies
 //! for formal verification of AISP relational constraints.
 
-use crate::error::*;
-use crate::constraint_solver::ConstraintAnalysisResult;
 use crate::conflict_types::ConflictSeverity;
+use crate::constraint_solver::ConstraintAnalysisResult;
+use crate::error::*;
 use std::collections::HashMap;
 
 /// Production-ready conflict detection result
@@ -191,13 +191,16 @@ impl ConflictDetector {
         constraint_analysis: &ConstraintAnalysisResult,
     ) -> Conflict {
         let id = self.next_conflict_id();
-        
+
         Conflict {
             id,
             conflict_type: ConflictType::UnsatisfiableSet,
             severity: ConflictSeverity::Critical,
             constraints: constraint_analysis.unsatisfied.clone(),
-            description: format!("Constraint set is unsatisfiable - {} constraints cannot be satisfied", constraint_analysis.unsatisfied.len()),
+            description: format!(
+                "Constraint set is unsatisfiable - {} constraints cannot be satisfied",
+                constraint_analysis.unsatisfied.len()
+            ),
             evidence: ConflictEvidence {
                 proof_method: ProofMethod::SmtSolver,
                 proof: Some("Constraint solver found unsatisfiable constraints".to_string()),
@@ -217,11 +220,11 @@ impl ConflictDetector {
         // Simplified implementation - production would do deeper analysis
         // This would involve:
         // 1. Pairwise constraint contradiction checking
-        // 2. Transitive consistency verification  
+        // 2. Transitive consistency verification
         // 3. Semantic equivalence analysis
-        
+
         // Placeholder for production implementation
-        
+
         conflicts
     }
 
@@ -286,9 +289,12 @@ impl ConflictDetector {
     }
 
     /// Calculate distribution of conflict severities
-    fn calculate_severity_distribution(&self, conflicts: &[Conflict]) -> HashMap<ConflictSeverity, usize> {
+    fn calculate_severity_distribution(
+        &self,
+        conflicts: &[Conflict],
+    ) -> HashMap<ConflictSeverity, usize> {
         let mut distribution = HashMap::new();
-        
+
         for conflict in conflicts {
             *distribution.entry(conflict.severity.clone()).or_insert(0) += 1;
         }
@@ -332,7 +338,7 @@ mod tests {
     #[test]
     fn test_satisfiable_constraints_no_conflicts() -> AispResult<()> {
         let mut detector = ConflictDetector::new();
-        
+
         let constraint_analysis = ConstraintAnalysisResult {
             constraints: vec![],
             satisfied: vec![],
@@ -342,7 +348,7 @@ mod tests {
         };
 
         let result = detector.detect_constraint_conflicts(&constraint_analysis)?;
-        
+
         assert!(result.conflicts.is_empty());
         assert!(result.resolutions.is_empty());
         assert!(result.severity_distribution.is_empty());
@@ -353,26 +359,30 @@ mod tests {
     #[test]
     fn test_unsatisfiable_constraints_creates_conflict() -> AispResult<()> {
         let mut detector = ConflictDetector::new();
-        
-        use crate::constraint_solver::{Constraint, ConstraintType, ConstraintPriority};
+
         use crate::ast::canonical::Span;
-        
+        use crate::constraint_solver::{Constraint, ConstraintPriority, ConstraintType};
+
         let constraint_analysis = ConstraintAnalysisResult {
             constraints: vec![
                 Constraint {
                     id: "c1".to_string(),
                     variables: vec!["x".to_string()],
-                    constraint_type: ConstraintType::Logical { expression: "x > 5".to_string() },
+                    constraint_type: ConstraintType::Logical {
+                        expression: "x > 5".to_string(),
+                    },
                     priority: ConstraintPriority::High,
                     span: Span::new(1, 1, 1, 10),
                 },
                 Constraint {
                     id: "c2".to_string(),
                     variables: vec!["x".to_string()],
-                    constraint_type: ConstraintType::Logical { expression: "x < 3".to_string() },
+                    constraint_type: ConstraintType::Logical {
+                        expression: "x < 3".to_string(),
+                    },
                     priority: ConstraintPriority::High,
                     span: Span::new(2, 1, 2, 10),
-                }
+                },
             ],
             satisfied: vec![],
             unsatisfied: vec!["c1".to_string(), "c2".to_string()],
@@ -381,10 +391,10 @@ mod tests {
         };
 
         let result = detector.detect_constraint_conflicts(&constraint_analysis)?;
-        
+
         assert_eq!(result.conflicts.len(), 1);
         assert_eq!(result.resolutions.len(), 1);
-        
+
         let conflict = &result.conflicts[0];
         assert_eq!(conflict.conflict_type, ConflictType::UnsatisfiableSet);
         assert_eq!(conflict.severity, ConflictSeverity::Critical);
@@ -436,7 +446,7 @@ mod tests {
     #[test]
     fn test_conflict_id_generation() {
         let mut detector = ConflictDetector::new();
-        
+
         assert_eq!(detector.next_conflict_id(), "conflict_0");
         assert_eq!(detector.next_conflict_id(), "conflict_1");
         assert_eq!(detector.next_resolution_id(), "resolution_0");

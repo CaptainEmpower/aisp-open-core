@@ -104,26 +104,29 @@ impl RossNetScorer {
         let start_time = Instant::now();
 
         // Calculate similarity component
-        let similarity_score = self.similarity_engine.calculate_similarity(content_a, content_b)?;
+        let similarity_score = self
+            .similarity_engine
+            .calculate_similarity(content_a, content_b)?;
 
         // Calculate fitness component
-        let fitness_score = self.fitness_evaluator.evaluate_fitness(content_a, content_b, context)?;
+        let fitness_score = self
+            .fitness_evaluator
+            .evaluate_fitness(content_a, content_b, context)?;
 
         // Calculate affinity component
         let affinity_score = self.affinity_tracker.get_affinity(*content_a, *content_b);
 
         // Apply weighted combination: θ·sim+fit+aff
-        let raw_score = self.weights.similarity_weight * similarity_score +
-                       self.weights.fitness_weight * fitness_score +
-                       self.weights.affinity_weight * affinity_score;
+        let raw_score = self.weights.similarity_weight * similarity_score
+            + self.weights.fitness_weight * fitness_score
+            + self.weights.affinity_weight * affinity_score;
 
         // Apply diversity bonus and consistency penalty
         let diversity_bonus = self.calculate_diversity_bonus(content_a, content_b)?;
         let consistency_penalty = self.calculate_consistency_penalty(content_a, content_b)?;
 
-        let adjusted_score = raw_score + 
-                           self.weights.diversity_bonus * diversity_bonus -
-                           self.weights.consistency_penalty * consistency_penalty;
+        let adjusted_score = raw_score + self.weights.diversity_bonus * diversity_bonus
+            - self.weights.consistency_penalty * consistency_penalty;
 
         // Apply sigmoid activation: σ(x) = 1/(1+e^(-x))
         let final_score = self.sigmoid_activation(adjusted_score);
@@ -139,7 +142,7 @@ impl RossNetScorer {
 
         let improvement_suggestions = self.generate_improvement_suggestions(&feedback_components);
         let confidence_level = self.calculate_confidence_level(&feedback_components);
-        
+
         let feedback = ScoringFeedback {
             score: final_score,
             feedback_components,
@@ -165,7 +168,7 @@ impl RossNetScorer {
         context: &FitnessContext,
     ) -> AispResult<Vec<ScoringFeedback>> {
         let mut results = Vec::with_capacity(pairs.len());
-        
+
         for (content_a, content_b) in pairs {
             let feedback = self.calculate_score(content_a, content_b, context)?;
             results.push(feedback);
@@ -182,7 +185,9 @@ impl RossNetScorer {
                 "fitness" => self.weights.fitness_weight = (*adjustment).max(0.0).min(1.0),
                 "affinity" => self.weights.affinity_weight = (*adjustment).max(0.0).min(1.0),
                 "diversity_bonus" => self.weights.diversity_bonus = (*adjustment).max(0.0).min(1.0),
-                "consistency_penalty" => self.weights.consistency_penalty = (*adjustment).max(0.0).min(1.0),
+                "consistency_penalty" => {
+                    self.weights.consistency_penalty = (*adjustment).max(0.0).min(1.0)
+                }
                 _ => {} // Ignore unknown components
             }
         }
@@ -208,10 +213,26 @@ impl RossNetScorer {
         content_b: &ContentHash,
     ) -> AispResult<f64> {
         // Simple diversity metric based on hash distance
-        let hash_a = u64::from_le_bytes([content_a[0], content_a[1], content_a[2], content_a[3], 
-                                       content_a[4], content_a[5], content_a[6], content_a[7]]);
-        let hash_b = u64::from_le_bytes([content_b[0], content_b[1], content_b[2], content_b[3], 
-                                       content_b[4], content_b[5], content_b[6], content_b[7]]);
+        let hash_a = u64::from_le_bytes([
+            content_a[0],
+            content_a[1],
+            content_a[2],
+            content_a[3],
+            content_a[4],
+            content_a[5],
+            content_a[6],
+            content_a[7],
+        ]);
+        let hash_b = u64::from_le_bytes([
+            content_b[0],
+            content_b[1],
+            content_b[2],
+            content_b[3],
+            content_b[4],
+            content_b[5],
+            content_b[6],
+            content_b[7],
+        ]);
         let xor_distance = hash_a ^ hash_b;
         let diversity = (xor_distance.count_ones() as f64) / 64.0; // Normalize to [0,1]
         Ok(diversity)
@@ -224,10 +245,26 @@ impl RossNetScorer {
         content_b: &ContentHash,
     ) -> AispResult<f64> {
         // Simple consistency check - low penalty for similar hashes
-        let hash_a = u64::from_le_bytes([content_a[0], content_a[1], content_a[2], content_a[3], 
-                                       content_a[4], content_a[5], content_a[6], content_a[7]]);
-        let hash_b = u64::from_le_bytes([content_b[0], content_b[1], content_b[2], content_b[3], 
-                                       content_b[4], content_b[5], content_b[6], content_b[7]]);
+        let hash_a = u64::from_le_bytes([
+            content_a[0],
+            content_a[1],
+            content_a[2],
+            content_a[3],
+            content_a[4],
+            content_a[5],
+            content_a[6],
+            content_a[7],
+        ]);
+        let hash_b = u64::from_le_bytes([
+            content_b[0],
+            content_b[1],
+            content_b[2],
+            content_b[3],
+            content_b[4],
+            content_b[5],
+            content_b[6],
+            content_b[7],
+        ]);
         let similarity = 1.0 - ((hash_a ^ hash_b).count_ones() as f64) / 64.0;
         let penalty = if similarity > 0.9 { 0.1 } else { 0.0 };
         Ok(penalty)
@@ -239,10 +276,7 @@ impl RossNetScorer {
     }
 
     /// Generate improvement suggestions
-    fn generate_improvement_suggestions(
-        &self,
-        components: &HashMap<String, f64>,
-    ) -> Vec<String> {
+    fn generate_improvement_suggestions(&self, components: &HashMap<String, f64>) -> Vec<String> {
         let mut suggestions = Vec::new();
 
         if let Some(&similarity) = components.get("similarity") {
@@ -259,7 +293,8 @@ impl RossNetScorer {
 
         if let Some(&affinity) = components.get("affinity") {
             if affinity < 0.0 {
-                suggestions.push("Negative affinity detected - check interaction history".to_string());
+                suggestions
+                    .push("Negative affinity detected - check interaction history".to_string());
             }
         }
 
@@ -281,19 +316,18 @@ impl RossNetScorer {
         }
 
         let mean = values.iter().sum::<f64>() / values.len() as f64;
-        let variance = values.iter()
-            .map(|&x| (x - mean).powi(2))
-            .sum::<f64>() / values.len() as f64;
+        let variance =
+            values.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / values.len() as f64;
         variance
     }
 
     /// Update scoring statistics
     fn update_scoring_statistics(&mut self, score: f64, elapsed_ms: f64) {
         self.scoring_stats.total_scores_calculated += 1;
-        
+
         // Update average scoring time using exponential moving average
         let alpha = 0.1;
-        self.scoring_stats.average_scoring_time_ms = 
+        self.scoring_stats.average_scoring_time_ms =
             alpha * elapsed_ms + (1.0 - alpha) * self.scoring_stats.average_scoring_time_ms;
 
         // Update score distribution
@@ -304,15 +338,19 @@ impl RossNetScorer {
             s if s < 0.8 => "0.6-0.8",
             _ => "0.8-1.0",
         };
-        *self.scoring_stats.score_distribution.entry(range.to_string()).or_insert(0) += 1;
+        *self
+            .scoring_stats
+            .score_distribution
+            .entry(range.to_string())
+            .or_insert(0) += 1;
     }
 
     /// Normalize weights to ensure consistency
     fn normalize_weights(&mut self) {
-        let total = self.weights.similarity_weight + 
-                   self.weights.fitness_weight + 
-                   self.weights.affinity_weight;
-        
+        let total = self.weights.similarity_weight
+            + self.weights.fitness_weight
+            + self.weights.affinity_weight;
+
         if total > 0.0 {
             self.weights.similarity_weight /= total;
             self.weights.fitness_weight /= total;
@@ -351,10 +389,26 @@ impl VectorSimilarityCalculator {
     /// Calculate vector-based similarity
     pub fn calculate(&self, content_a: &ContentHash, content_b: &ContentHash) -> AispResult<f64> {
         // Simple hash-based similarity
-        let hash_a = u64::from_le_bytes([content_a[0], content_a[1], content_a[2], content_a[3], 
-                                       content_a[4], content_a[5], content_a[6], content_a[7]]);
-        let hash_b = u64::from_le_bytes([content_b[0], content_b[1], content_b[2], content_b[3], 
-                                       content_b[4], content_b[5], content_b[6], content_b[7]]);
+        let hash_a = u64::from_le_bytes([
+            content_a[0],
+            content_a[1],
+            content_a[2],
+            content_a[3],
+            content_a[4],
+            content_a[5],
+            content_a[6],
+            content_a[7],
+        ]);
+        let hash_b = u64::from_le_bytes([
+            content_b[0],
+            content_b[1],
+            content_b[2],
+            content_b[3],
+            content_b[4],
+            content_b[5],
+            content_b[6],
+            content_b[7],
+        ]);
         let common_bits = !(hash_a ^ hash_b).count_ones();
         let similarity = common_bits as f64 / 64.0;
         Ok(similarity)
@@ -365,10 +419,26 @@ impl SemanticSimilarityCalculator {
     /// Calculate semantic similarity
     pub fn calculate(&self, content_a: &ContentHash, content_b: &ContentHash) -> AispResult<f64> {
         // Placeholder semantic similarity - in real implementation would use embeddings
-        let hash_a = u64::from_le_bytes([content_a[0], content_a[1], content_a[2], content_a[3], 
-                                       content_a[4], content_a[5], content_a[6], content_a[7]]);
-        let hash_b = u64::from_le_bytes([content_b[0], content_b[1], content_b[2], content_b[3], 
-                                       content_b[4], content_b[5], content_b[6], content_b[7]]);
+        let hash_a = u64::from_le_bytes([
+            content_a[0],
+            content_a[1],
+            content_a[2],
+            content_a[3],
+            content_a[4],
+            content_a[5],
+            content_a[6],
+            content_a[7],
+        ]);
+        let hash_b = u64::from_le_bytes([
+            content_b[0],
+            content_b[1],
+            content_b[2],
+            content_b[3],
+            content_b[4],
+            content_b[5],
+            content_b[6],
+            content_b[7],
+        ]);
         let semantic_distance = ((hash_a.wrapping_sub(hash_b)) as f64).abs() / u64::MAX as f64;
         let similarity = 1.0 - semantic_distance;
         Ok(similarity.max(0.0).min(1.0))
@@ -379,10 +449,26 @@ impl StructuralSimilarityCalculator {
     /// Calculate structural similarity
     pub fn calculate(&self, content_a: &ContentHash, content_b: &ContentHash) -> AispResult<f64> {
         // Placeholder structural similarity
-        let hash_a = u64::from_le_bytes([content_a[0], content_a[1], content_a[2], content_a[3], 
-                                       content_a[4], content_a[5], content_a[6], content_a[7]]);
-        let hash_b = u64::from_le_bytes([content_b[0], content_b[1], content_b[2], content_b[3], 
-                                       content_b[4], content_b[5], content_b[6], content_b[7]]);
+        let hash_a = u64::from_le_bytes([
+            content_a[0],
+            content_a[1],
+            content_a[2],
+            content_a[3],
+            content_a[4],
+            content_a[5],
+            content_a[6],
+            content_a[7],
+        ]);
+        let hash_b = u64::from_le_bytes([
+            content_b[0],
+            content_b[1],
+            content_b[2],
+            content_b[3],
+            content_b[4],
+            content_b[5],
+            content_b[6],
+            content_b[7],
+        ]);
         let structural_score = if hash_a % 3 == hash_b % 3 { 0.8 } else { 0.2 };
         Ok(structural_score)
     }
@@ -428,7 +514,8 @@ impl FitnessEvaluator {
 
     /// Update criterion weight
     pub fn update_criterion_weight(&mut self, criterion: String, weight: f64) {
-        self.criteria_weights.insert(criterion, weight.max(0.0).min(1.0));
+        self.criteria_weights
+            .insert(criterion, weight.max(0.0).min(1.0));
     }
 }
 
@@ -465,7 +552,7 @@ impl AffinityTracker {
     ) {
         let key = (content_a, content_b);
         let history = self.affinity_history.entry(key).or_insert_with(Vec::new);
-        
+
         // Apply temporal decay to existing values
         let temporal_decay = self.decay_factors.get("temporal").copied().unwrap_or(0.95);
         for affinity in history.iter_mut() {
@@ -576,7 +663,9 @@ mod tests {
         content_a[0..8].copy_from_slice(&123u64.to_le_bytes());
         content_b[0..8].copy_from_slice(&456u64.to_le_bytes());
 
-        let fitness = evaluator.evaluate_fitness(&content_a, &content_b, &context).unwrap();
+        let fitness = evaluator
+            .evaluate_fitness(&content_a, &content_b, &context)
+            .unwrap();
         assert!(fitness >= 0.0 && fitness <= 1.0);
     }
 
@@ -606,7 +695,7 @@ mod tests {
     #[test]
     fn test_sigmoid_activation() {
         let scorer = RossNetScorer::new();
-        
+
         // Test sigmoid properties
         assert_eq!(scorer.sigmoid_activation(0.0), 0.5);
         assert!(scorer.sigmoid_activation(-10.0) < 0.1);
@@ -617,7 +706,7 @@ mod tests {
     fn test_batch_scoring() {
         let mut scorer = RossNetScorer::new();
         let context = create_test_context();
-        
+
         let mut content_pairs = Vec::new();
         for (a, b) in [(123u64, 456u64), (789u64, 101u64), (112u64, 131u64)] {
             let mut content_a = [0u8; 32];
@@ -630,7 +719,7 @@ mod tests {
 
         let results = scorer.batch_score(&pairs, &context).unwrap();
         assert_eq!(results.len(), 3);
-        
+
         for feedback in results {
             assert!(feedback.score >= 0.0 && feedback.score <= 1.0);
         }
@@ -647,18 +736,18 @@ mod tests {
         adjustments.insert("affinity".to_string(), 0.1);
 
         scorer.update_weights(&adjustments);
-        
+
         // Weights should be normalized
-        let total = scorer.weights.similarity_weight + 
-                   scorer.weights.fitness_weight + 
-                   scorer.weights.affinity_weight;
+        let total = scorer.weights.similarity_weight
+            + scorer.weights.fitness_weight
+            + scorer.weights.affinity_weight;
         assert!((total - 1.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_improvement_suggestions() {
         let scorer = RossNetScorer::new();
-        
+
         let mut poor_components = HashMap::new();
         poor_components.insert("similarity".to_string(), 0.1);
         poor_components.insert("fitness".to_string(), 0.2);
@@ -693,13 +782,15 @@ mod tests {
     #[test]
     fn test_diversity_bonus() {
         let scorer = RossNetScorer::new();
-        
+
         // Very different hashes should have high diversity
         let mut content_a = [0u8; 32];
         let mut content_b = [0u8; 32];
         content_a[0..8].copy_from_slice(&0x0000000000000000u64.to_le_bytes());
         content_b[0..8].copy_from_slice(&0xFFFFFFFFFFFFFFFFu64.to_le_bytes());
-        let diversity = scorer.calculate_diversity_bonus(&content_a, &content_b).unwrap();
+        let diversity = scorer
+            .calculate_diversity_bonus(&content_a, &content_b)
+            .unwrap();
         assert!(diversity > 0.8);
 
         // Identical hashes should have low diversity
@@ -707,20 +798,24 @@ mod tests {
         let mut content_d = [0u8; 32];
         content_c[0..8].copy_from_slice(&12345u64.to_le_bytes());
         content_d[0..8].copy_from_slice(&12345u64.to_le_bytes());
-        let low_diversity = scorer.calculate_diversity_bonus(&content_c, &content_d).unwrap();
+        let low_diversity = scorer
+            .calculate_diversity_bonus(&content_c, &content_d)
+            .unwrap();
         assert!(low_diversity < 0.2);
     }
 
     #[test]
     fn test_consistency_penalty() {
         let scorer = RossNetScorer::new();
-        
+
         // Very similar hashes should have penalty
         let mut content_a = [0u8; 32];
         let mut content_b = [0u8; 32];
         content_a[0..8].copy_from_slice(&12345u64.to_le_bytes());
         content_b[0..8].copy_from_slice(&12345u64.to_le_bytes());
-        let penalty = scorer.calculate_consistency_penalty(&content_a, &content_b).unwrap();
+        let penalty = scorer
+            .calculate_consistency_penalty(&content_a, &content_b)
+            .unwrap();
         assert!(penalty > 0.0);
 
         // Very different hashes should have no penalty
@@ -728,7 +823,9 @@ mod tests {
         let mut content_d = [0u8; 32];
         content_c[0..8].copy_from_slice(&0x0000000000000000u64.to_le_bytes());
         content_d[0..8].copy_from_slice(&0xFFFFFFFFFFFFFFFFu64.to_le_bytes());
-        let no_penalty = scorer.calculate_consistency_penalty(&content_c, &content_d).unwrap();
+        let no_penalty = scorer
+            .calculate_consistency_penalty(&content_c, &content_d)
+            .unwrap();
         assert_eq!(no_penalty, 0.0);
     }
 }

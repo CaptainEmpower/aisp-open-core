@@ -2,9 +2,7 @@
 //!
 //! Core type definitions for concurrent behavior verification.
 
-use crate::{
-    protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger},
-};
+use crate::protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
@@ -608,7 +606,10 @@ mod tests {
     fn test_process_priority_ordering() {
         assert!(ProcessPriority::Low < ProcessPriority::Critical);
         assert!(ProcessPriority::Normal < ProcessPriority::High);
-        assert_eq!(ProcessPriority::High.cmp(&ProcessPriority::High), std::cmp::Ordering::Equal);
+        assert_eq!(
+            ProcessPriority::High.cmp(&ProcessPriority::High),
+            std::cmp::Ordering::Equal
+        );
     }
 
     #[test]
@@ -628,7 +629,7 @@ mod tests {
         let analysis = ConcurrentBehaviorAnalysis::default();
         assert!(analysis.concurrent_processes.is_empty());
         assert_eq!(analysis.race_condition_analysis.confidence_level, 0.0);
-        
+
         let race_analysis = RaceConditionAnalysis::default();
         assert!(race_analysis.race_conditions.is_empty());
         assert_eq!(race_analysis.confidence_level, 0.0);
@@ -645,7 +646,7 @@ mod tests {
             buffer_capacity: Some(100),
             reliability: ChannelReliability::AtLeastOnce,
         };
-        
+
         assert_eq!(channel.channel_type, ChannelType::Asynchronous);
         assert_eq!(channel.reliability, ChannelReliability::AtLeastOnce);
         assert_eq!(channel.buffer_capacity, Some(100));

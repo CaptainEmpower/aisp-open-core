@@ -142,14 +142,14 @@ pub enum TemporalFormula {
     /// Strong release - φ M ψ
     StrongRelease(Box<TemporalFormula>, Box<TemporalFormula>),
     /// CTL path quantifiers
-    ExistsAlways(Box<TemporalFormula>),      // EG
-    ForallAlways(Box<TemporalFormula>),      // AG
-    ExistsEventually(Box<TemporalFormula>),  // EF
-    ForallEventually(Box<TemporalFormula>),  // AF
-    ExistsNext(Box<TemporalFormula>),        // EX
-    ForallNext(Box<TemporalFormula>),        // AX
-    ExistsUntil(Box<TemporalFormula>, Box<TemporalFormula>),  // EU
-    ForallUntil(Box<TemporalFormula>, Box<TemporalFormula>),  // AU
+    ExistsAlways(Box<TemporalFormula>), // EG
+    ForallAlways(Box<TemporalFormula>),                      // AG
+    ExistsEventually(Box<TemporalFormula>),                  // EF
+    ForallEventually(Box<TemporalFormula>),                  // AF
+    ExistsNext(Box<TemporalFormula>),                        // EX
+    ForallNext(Box<TemporalFormula>),                        // AX
+    ExistsUntil(Box<TemporalFormula>, Box<TemporalFormula>), // EU
+    ForallUntil(Box<TemporalFormula>, Box<TemporalFormula>), // AU
 }
 
 /// Model checking algorithms
@@ -326,14 +326,14 @@ impl ModelChecker {
     pub fn verify_properties(&mut self) -> AispResult<ModelCheckingResult> {
         let start_time = Instant::now();
         let mut property_results = HashMap::new();
-        
+
         // Reset statistics
         self.stats = ModelCheckingStats::new();
 
         let properties = self.properties.clone();
         for property in &properties {
             let property_start = Instant::now();
-            
+
             let result = match property.property_type {
                 TemporalLogicType::LTL => self.verify_ltl_property(&property.formula)?,
                 TemporalLogicType::CTL => self.verify_ctl_property(&property.formula)?,
@@ -341,7 +341,7 @@ impl ModelChecker {
             };
 
             let verification_time = property_start.elapsed();
-            
+
             let property_result = PropertyResult {
                 property_id: property.id.clone(),
                 result: result.0.clone(),
@@ -351,7 +351,7 @@ impl ModelChecker {
             };
 
             property_results.insert(property.id.clone(), property_result);
-            
+
             // Update statistics
             match result.0 {
                 PropertyVerificationResult::Satisfied => self.stats.properties_verified += 1,
@@ -384,11 +384,17 @@ impl ModelChecker {
     fn verify_ltl_property(
         &mut self,
         formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
         match self.algorithm {
             ModelCheckingAlgorithm::ExplicitState => self.ltl_explicit_state(formula),
             ModelCheckingAlgorithm::Tableau => self.ltl_tableau_method(formula),
-            _ => Err(AispError::validation_error("LTL algorithm not supported".to_string())),
+            _ => Err(AispError::validation_error(
+                "LTL algorithm not supported".to_string(),
+            )),
         }
     }
 
@@ -396,7 +402,11 @@ impl ModelChecker {
     fn verify_ctl_property(
         &mut self,
         formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
         self.ctl_explicit_state(formula)
     }
 
@@ -404,21 +414,31 @@ impl ModelChecker {
     fn verify_ctl_star_property(
         &mut self,
         _formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
-        Err(AispError::validation_error("CTL* verification not implemented".to_string()))
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
+        Err(AispError::validation_error(
+            "CTL* verification not implemented".to_string(),
+        ))
     }
 
     /// LTL verification using explicit state enumeration
     fn ltl_explicit_state(
         &mut self,
         formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
         // Convert LTL formula to Büchi automaton (simplified)
         let negated_formula = TemporalFormula::Not(Box::new(formula.clone()));
-        
+
         // Check for accepting runs in product of system and Büchi automaton
         let accepting_run = self.find_accepting_run(&negated_formula)?;
-        
+
         if let Some(trace) = accepting_run {
             // Found counterexample
             Ok((PropertyVerificationResult::Violated, Some(trace), None))
@@ -432,7 +452,11 @@ impl ModelChecker {
     fn ltl_tableau_method(
         &mut self,
         _formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
         // Simplified tableau method - would implement full algorithm
         Ok((PropertyVerificationResult::Unknown, None, None))
     }
@@ -441,15 +465,21 @@ impl ModelChecker {
     fn ctl_explicit_state(
         &mut self,
         formula: &TemporalFormula,
-    ) -> AispResult<(PropertyVerificationResult, Option<CounterexampleTrace>, Option<WitnessTrace>)> {
+    ) -> AispResult<(
+        PropertyVerificationResult,
+        Option<CounterexampleTrace>,
+        Option<WitnessTrace>,
+    )> {
         // Mark states that satisfy the formula
         let satisfying_states = self.ctl_marking_algorithm(formula)?;
-        
+
         // Check if all initial states satisfy the property
-        let all_initial_satisfy = self.state_space.initial_states
+        let all_initial_satisfy = self
+            .state_space
+            .initial_states
             .iter()
             .all(|state_id| satisfying_states.contains(state_id));
-        
+
         if all_initial_satisfy {
             Ok((PropertyVerificationResult::Satisfied, None, None))
         } else {
@@ -464,14 +494,17 @@ impl ModelChecker {
         match formula {
             TemporalFormula::Atomic(prop) => {
                 // Return states where atomic proposition holds
-                Ok(self.state_space.atomic_props
-                   .get(prop)
-                   .cloned()
-                   .unwrap_or_default())
+                Ok(self
+                    .state_space
+                    .atomic_props
+                    .get(prop)
+                    .cloned()
+                    .unwrap_or_default())
             }
             TemporalFormula::Not(inner) => {
                 let inner_states = self.ctl_marking_algorithm(inner)?;
-                let all_states: HashSet<StateId> = self.state_space.states.keys().cloned().collect();
+                let all_states: HashSet<StateId> =
+                    self.state_space.states.keys().cloned().collect();
                 Ok(all_states.difference(&inner_states).cloned().collect())
             }
             TemporalFormula::And(left, right) => {
@@ -487,25 +520,27 @@ impl ModelChecker {
             TemporalFormula::ExistsNext(inner) => {
                 let inner_states = self.ctl_marking_algorithm(inner)?;
                 let mut result = HashSet::new();
-                
+
                 for (state_id, transitions) in &self.state_space.transitions {
                     if transitions.iter().any(|t| inner_states.contains(&t.to)) {
                         result.insert(*state_id);
                     }
                 }
-                
+
                 Ok(result)
             }
             TemporalFormula::ForallNext(inner) => {
                 let inner_states = self.ctl_marking_algorithm(inner)?;
                 let mut result = HashSet::new();
-                
+
                 for (state_id, transitions) in &self.state_space.transitions {
-                    if !transitions.is_empty() && transitions.iter().all(|t| inner_states.contains(&t.to)) {
+                    if !transitions.is_empty()
+                        && transitions.iter().all(|t| inner_states.contains(&t.to))
+                    {
                         result.insert(*state_id);
                     }
                 }
-                
+
                 Ok(result)
             }
             TemporalFormula::ExistsEventually(inner) => {
@@ -528,19 +563,24 @@ impl ModelChecker {
                 let inner_states = self.ctl_marking_algorithm(inner)?;
                 self.ctl_forall_always(&inner_states)
             }
-            _ => Err(AispError::validation_error("Temporal operator not supported in CTL".to_string())),
+            _ => Err(AispError::validation_error(
+                "Temporal operator not supported in CTL".to_string(),
+            )),
         }
     }
 
     /// Compute EF (exists eventually) using fixed point
-    fn ctl_exists_eventually(&self, target_states: &HashSet<StateId>) -> AispResult<HashSet<StateId>> {
+    fn ctl_exists_eventually(
+        &self,
+        target_states: &HashSet<StateId>,
+    ) -> AispResult<HashSet<StateId>> {
         let mut current = target_states.clone();
         let mut changed = true;
-        
+
         while changed {
             changed = false;
             let mut new_states = current.clone();
-            
+
             for (state_id, transitions) in &self.state_space.transitions {
                 if !current.contains(state_id) {
                     if transitions.iter().any(|t| current.contains(&t.to)) {
@@ -549,22 +589,25 @@ impl ModelChecker {
                     }
                 }
             }
-            
+
             current = new_states;
         }
-        
+
         Ok(current)
     }
 
     /// Compute AF (forall eventually) using fixed point
-    fn ctl_forall_eventually(&self, target_states: &HashSet<StateId>) -> AispResult<HashSet<StateId>> {
+    fn ctl_forall_eventually(
+        &self,
+        target_states: &HashSet<StateId>,
+    ) -> AispResult<HashSet<StateId>> {
         let mut current = target_states.clone();
         let mut changed = true;
-        
+
         while changed {
             changed = false;
             let mut new_states = current.clone();
-            
+
             for (state_id, transitions) in &self.state_space.transitions {
                 if !current.contains(state_id) && !transitions.is_empty() {
                     if transitions.iter().all(|t| current.contains(&t.to)) {
@@ -573,10 +616,10 @@ impl ModelChecker {
                     }
                 }
             }
-            
+
             current = new_states;
         }
-        
+
         Ok(current)
     }
 
@@ -584,11 +627,11 @@ impl ModelChecker {
     fn ctl_exists_always(&self, target_states: &HashSet<StateId>) -> AispResult<HashSet<StateId>> {
         let mut current = target_states.clone();
         let mut changed = true;
-        
+
         while changed {
             changed = false;
             let mut new_states = HashSet::new();
-            
+
             for state_id in &current {
                 if let Some(transitions) = self.state_space.transitions.get(state_id) {
                     if transitions.iter().any(|t| current.contains(&t.to)) {
@@ -600,10 +643,10 @@ impl ModelChecker {
                     changed = true;
                 }
             }
-            
+
             current = new_states;
         }
-        
+
         Ok(current)
     }
 
@@ -611,14 +654,16 @@ impl ModelChecker {
     fn ctl_forall_always(&self, target_states: &HashSet<StateId>) -> AispResult<HashSet<StateId>> {
         let mut current = target_states.clone();
         let mut changed = true;
-        
+
         while changed {
             changed = false;
             let mut new_states = HashSet::new();
-            
+
             for state_id in &current {
                 if let Some(transitions) = self.state_space.transitions.get(state_id) {
-                    if !transitions.is_empty() && transitions.iter().all(|t| current.contains(&t.to)) {
+                    if !transitions.is_empty()
+                        && transitions.iter().all(|t| current.contains(&t.to))
+                    {
                         new_states.insert(*state_id);
                     } else {
                         changed = true;
@@ -627,15 +672,18 @@ impl ModelChecker {
                     changed = true;
                 }
             }
-            
+
             current = new_states;
         }
-        
+
         Ok(current)
     }
 
     /// Find accepting run for LTL verification (simplified)
-    fn find_accepting_run(&mut self, _formula: &TemporalFormula) -> AispResult<Option<CounterexampleTrace>> {
+    fn find_accepting_run(
+        &mut self,
+        _formula: &TemporalFormula,
+    ) -> AispResult<Option<CounterexampleTrace>> {
         // Simplified implementation - would implement full Büchi automaton construction
         Ok(None)
     }
@@ -665,10 +713,10 @@ impl ModelChecker {
             locations: HashSet::new(),
             properties: HashSet::new(),
         };
-        
+
         self.state_space.states.insert(0, initial_state);
         self.state_space.initial_states.insert(0);
-        
+
         Ok(())
     }
 
@@ -744,7 +792,7 @@ mod tests {
             50_000,
             Duration::from_secs(120),
         );
-        
+
         assert_eq!(checker.algorithm, ModelCheckingAlgorithm::BFS);
         assert_eq!(checker.max_states, 50_000);
         assert_eq!(checker.timeout, Duration::from_secs(120));
@@ -760,7 +808,7 @@ mod tests {
             property_type: TemporalLogicType::LTL,
             expected: Some(true),
         };
-        
+
         checker.add_property(property);
         assert_eq!(checker.properties.len(), 1);
     }
@@ -781,14 +829,14 @@ mod tests {
             locations: HashSet::new(),
             properties: HashSet::new(),
         };
-        
+
         let state2 = SystemState {
             id: 1,
             variables: HashMap::new(),
             locations: HashSet::new(),
             properties: HashSet::new(),
         };
-        
+
         assert_eq!(state1, state2);
     }
 
@@ -797,7 +845,7 @@ mod tests {
         let bool_val = Value::Bool(true);
         let int_val = Value::Int(42);
         let string_val = Value::String("test".to_string());
-        
+
         assert_eq!(bool_val, Value::Bool(true));
         assert_eq!(int_val, Value::Int(42));
         assert_eq!(string_val, Value::String("test".to_string()));

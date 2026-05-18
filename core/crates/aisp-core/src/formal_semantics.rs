@@ -1,6 +1,6 @@
 //! # AISP Formal Semantics Framework
 //!
-//! This module establishes the mathematical foundations for AISP (AI Symbolic Protocol) 
+//! This module establishes the mathematical foundations for AISP (AI Symbolic Protocol)
 //! document semantics, addressing the formal methods deficiencies identified in the
 //! scientific assessment.
 //!
@@ -22,8 +22,8 @@
 //! - Evidence blocks (Ε) → Validation parameters and quality metrics
 
 use crate::{ast::*, error::AispResult};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use serde::{Serialize, Deserialize};
 
 /// The formal semantic domain for AISP documents.
 /// This provides a mathematical interpretation of AISP syntax.
@@ -197,7 +197,7 @@ pub enum FormulaAST {
         formula: Box<FormulaAST>,
     },
     Exists {
-        var: String, 
+        var: String,
         domain: String,
         formula: Box<FormulaAST>,
     },
@@ -211,10 +211,7 @@ pub enum TermAST {
     /// Constants
     Constant(String),
     /// Function application f(t1, ..., tn)
-    Function {
-        name: String,
-        args: Vec<TermAST>,
-    },
+    Function { name: String, args: Vec<TermAST> },
 }
 
 /// Semantic interpretation of logical formulas
@@ -363,19 +360,19 @@ pub struct ValidationParameters {
 }
 
 /// Formal semantics interpreter trait
-/// 
+///
 /// This trait defines the interface for interpreting AISP documents
 /// in the formal semantic domain.
 pub trait FormalSemantics {
     /// The semantic domain type
     type Domain;
-    
+
     /// Interpret an AISP document in the semantic domain
     fn interpret(&self, document: &CanonicalAispDocument) -> AispResult<Self::Domain>;
-    
+
     /// Check if a semantic interpretation is valid
     fn is_valid(&self, domain: &Self::Domain) -> bool;
-    
+
     /// Compute semantic equivalence between interpretations
     fn semantically_equivalent(&self, d1: &Self::Domain, d2: &Self::Domain) -> bool;
 }
@@ -403,7 +400,7 @@ impl Default for AispSemantics {
 
 impl FormalSemantics for AispSemantics {
     type Domain = SemanticDomain;
-    
+
     fn interpret(&self, document: &CanonicalAispDocument) -> AispResult<Self::Domain> {
         // Extract semantic components from AST
         let document_sem = self.interpret_document(document)?;
@@ -411,7 +408,7 @@ impl FormalSemantics for AispSemantics {
         let logic = self.interpret_logic(document)?;
         let functions = self.interpret_functions(document)?;
         let evidence = self.interpret_evidence(document)?;
-        
+
         Ok(SemanticDomain {
             document: document_sem,
             types,
@@ -420,25 +417,24 @@ impl FormalSemantics for AispSemantics {
             evidence,
         })
     }
-    
+
     fn is_valid(&self, domain: &Self::Domain) -> bool {
         // Validity requires:
         // 1. Type system consistency
-        // 2. Logical consistency  
+        // 2. Logical consistency
         // 3. Function termination
         // 4. Evidence quality thresholds
-        
+
         domain.types.decidable
             && domain.logic.consistent.unwrap_or(false)
             && domain.functions.terminating
             && domain.evidence.quality_metrics.delta >= 0.20
     }
-    
+
     fn semantically_equivalent(&self, d1: &Self::Domain, d2: &Self::Domain) -> bool {
         // Semantic equivalence up to alpha-renaming and logical equivalence
-        d1.document.version == d2.document.version
-            && d1.types.base_types == d2.types.base_types
-            // Note: Full semantic equivalence requires sophisticated proof techniques
+        d1.document.version == d2.document.version && d1.types.base_types == d2.types.base_types
+        // Note: Full semantic equivalence requires sophisticated proof techniques
     }
 }
 
@@ -447,9 +443,12 @@ impl AispSemantics {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     /// Interpret document metadata
-    fn interpret_document(&self, document: &CanonicalAispDocument) -> AispResult<DocumentSemantics> {
+    fn interpret_document(
+        &self,
+        document: &CanonicalAispDocument,
+    ) -> AispResult<DocumentSemantics> {
         // Extract metadata from Meta block
         let version = SemanticVersion {
             major: 5,
@@ -457,7 +456,7 @@ impl AispSemantics {
             patch: 0,
             compatible_with: vec![],
         };
-        
+
         Ok(DocumentSemantics {
             version,
             domain: "aisp_document".to_string(),
@@ -465,13 +464,13 @@ impl AispSemantics {
             ambiguity: 0.01,
         })
     }
-    
+
     /// Interpret type system
     fn interpret_types(&self, document: &CanonicalAispDocument) -> AispResult<TypeSystem> {
         let mut base_types = HashSet::new();
         base_types.insert(BaseType::Natural);
         base_types.insert(BaseType::Boolean);
-        
+
         Ok(TypeSystem {
             base_types,
             user_types: HashMap::new(),
@@ -479,7 +478,7 @@ impl AispSemantics {
             decidable: true,
         })
     }
-    
+
     /// Interpret logical system
     fn interpret_logic(&self, document: &CanonicalAispDocument) -> AispResult<LogicalSystem> {
         Ok(LogicalSystem {
@@ -489,7 +488,7 @@ impl AispSemantics {
             fragment: LogicFragment::FirstOrder,
         })
     }
-    
+
     /// Interpret function system
     fn interpret_functions(&self, document: &CanonicalAispDocument) -> AispResult<FunctionSystem> {
         Ok(FunctionSystem {
@@ -498,7 +497,7 @@ impl AispSemantics {
             terminating: true,
         })
     }
-    
+
     /// Interpret evidence system
     fn interpret_evidence(&self, document: &CanonicalAispDocument) -> AispResult<EvidenceSystem> {
         Ok(EvidenceSystem {
@@ -525,10 +524,7 @@ impl AispSemantics {
 mod tests {
     use super::*;
     use crate::ast::canonical::{
-        CanonicalAispDocument as AispDocument, 
-        DocumentHeader, 
-        DocumentMetadata, 
-        Span
+        CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
     use std::collections::HashMap;
 
@@ -554,45 +550,45 @@ mod tests {
     fn test_semantic_interpretation() {
         let semantics = AispSemantics::new();
         let doc = create_minimal_valid_document();
-        
+
         let result = semantics.interpret(&doc);
         assert!(result.is_ok());
-        
+
         let domain = result.unwrap();
         assert!(semantics.is_valid(&domain));
         assert_eq!(domain.document.version.major, 5);
         assert!(domain.types.decidable);
     }
-    
+
     #[test]
     fn test_validity_conditions() {
         let semantics = AispSemantics::new();
         let doc = create_minimal_valid_document();
         let domain = semantics.interpret(&doc).unwrap();
-        
+
         // Valid domain should pass all validity checks
         assert!(semantics.is_valid(&domain));
         assert!(domain.functions.terminating);
         assert!(domain.evidence.quality_metrics.delta >= 0.20);
     }
-    
+
     #[test]
     fn test_type_system_interpretation() {
         let semantics = AispSemantics::new();
         let doc = create_minimal_valid_document();
         let domain = semantics.interpret(&doc).unwrap();
-        
+
         assert!(domain.types.base_types.contains(&BaseType::Natural));
         assert!(domain.types.base_types.contains(&BaseType::Boolean));
         assert!(domain.types.decidable);
     }
-    
+
     #[test]
     fn test_evidence_system_interpretation() {
         let semantics = AispSemantics::new();
         let doc = create_minimal_valid_document();
         let domain = semantics.interpret(&doc).unwrap();
-        
+
         let evidence = &domain.evidence;
         assert!(evidence.quality_metrics.delta >= 0.0);
         assert!(evidence.quality_metrics.delta <= 1.0);

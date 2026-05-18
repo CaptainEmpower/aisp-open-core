@@ -61,7 +61,10 @@ impl FourStateBindingVerifier {
         component_b: &TypeSignature,
     ) -> AispResult<BindingState> {
         // Check cache for pre-computed binding
-        if let Some(&cached_state) = self.binding_rules.get(&(component_a.clone(), component_b.clone())) {
+        if let Some(&cached_state) = self
+            .binding_rules
+            .get(&(component_a.clone(), component_b.clone()))
+        {
             return Ok(cached_state);
         }
 
@@ -78,7 +81,7 @@ impl FourStateBindingVerifier {
 
         // Phase 3: Type compatibility check (adaptation vs zero-cost)
         let type_compatibility = self.check_type_compatibility(component_a, component_b)?;
-        
+
         let binding_state = match (socket_compatibility, type_compatibility) {
             (CompatibilityLevel::Perfect, true) => BindingState::Zero,
             (CompatibilityLevel::Perfect, false) => BindingState::Adapt,
@@ -96,7 +99,8 @@ impl FourStateBindingVerifier {
         component_b: TypeSignature,
         binding_state: BindingState,
     ) {
-        self.binding_rules.insert((component_a, component_b), binding_state);
+        self.binding_rules
+            .insert((component_a, component_b), binding_state);
     }
 
     /// Get adaptation strategy for components requiring adaptation
@@ -105,12 +109,16 @@ impl FourStateBindingVerifier {
         source_type: &str,
         target_type: &str,
     ) -> Option<&AdaptationStrategy> {
-        self.adaptation_strategies.strategies.get(&(source_type.to_string(), target_type.to_string()))
+        self.adaptation_strategies
+            .strategies
+            .get(&(source_type.to_string(), target_type.to_string()))
     }
 
     /// Add custom socket interface
     pub fn register_socket_interface(&mut self, interface: SocketInterface) {
-        self.socket_registry.socket_interfaces.insert(interface.interface_id.clone(), interface);
+        self.socket_registry
+            .socket_interfaces
+            .insert(interface.interface_id.clone(), interface);
     }
 
     /// Set compatibility between socket types
@@ -120,12 +128,16 @@ impl FourStateBindingVerifier {
         interface_b: String,
         compatibility: CompatibilityLevel,
     ) {
-        self.socket_registry.compatibility_matrix.insert((interface_a, interface_b), compatibility);
+        self.socket_registry
+            .compatibility_matrix
+            .insert((interface_a, interface_b), compatibility);
     }
 
     /// Add logical contradiction pattern
     pub fn add_contradiction_pattern(&mut self, pattern: ContradictionPattern) {
-        self.consistency_checker.contradiction_patterns.push(pattern);
+        self.consistency_checker
+            .contradiction_patterns
+            .push(pattern);
     }
 
     /// Check for logical contradictions
@@ -150,13 +162,15 @@ impl FourStateBindingVerifier {
     ) -> AispResult<CompatibilityLevel> {
         let interface_a = component_a.base_type.clone();
         let interface_b = component_b.base_type.clone();
-        
+
         // Identical types are always perfectly compatible
         if interface_a == interface_b {
             return Ok(CompatibilityLevel::Perfect);
         }
-        
-        Ok(self.socket_registry.compatibility_matrix
+
+        Ok(self
+            .socket_registry
+            .compatibility_matrix
             .get(&(interface_a, interface_b))
             .cloned()
             .unwrap_or(CompatibilityLevel::Incompatible))
@@ -169,8 +183,9 @@ impl FourStateBindingVerifier {
         component_b: &TypeSignature,
     ) -> AispResult<bool> {
         // Perfect match: identical types and parameters
-        if component_a.base_type == component_b.base_type &&
-           component_a.parameters == component_b.parameters {
+        if component_a.base_type == component_b.base_type
+            && component_a.parameters == component_b.parameters
+        {
             return Ok(true);
         }
 
@@ -213,9 +228,9 @@ impl FourStateBindingVerifier {
     /// Check if constraints are conflicting
     fn are_constraints_conflicting(&self, constraint_a: &str, constraint_b: &str) -> bool {
         // Simple conflict detection
-        (constraint_a.contains("Pure") && constraint_b.contains("Impure")) ||
-        (constraint_a.contains("Immutable") && constraint_b.contains("Mutable")) ||
-        (constraint_a.contains("Sync") && constraint_b.contains("Async"))
+        (constraint_a.contains("Pure") && constraint_b.contains("Impure"))
+            || (constraint_a.contains("Immutable") && constraint_b.contains("Mutable"))
+            || (constraint_a.contains("Sync") && constraint_b.contains("Async"))
     }
 
     /// Check if components match contradiction pattern
@@ -227,14 +242,14 @@ impl FourStateBindingVerifier {
     ) -> bool {
         let a_matches_antecedent = component_a.base_type.contains(&pattern.antecedent);
         let b_matches_consequent = component_b.base_type.contains(&pattern.consequent);
-        
+
         a_matches_antecedent && b_matches_consequent
     }
 
     /// Get binding statistics
     pub fn get_binding_statistics(&self) -> BindingStatistics {
         let mut stats = BindingStatistics::default();
-        
+
         for &binding_state in self.binding_rules.values() {
             match binding_state {
                 BindingState::Crash => stats.crash_count += 1,
@@ -243,7 +258,7 @@ impl FourStateBindingVerifier {
                 BindingState::Zero => stats.zero_count += 1,
             }
         }
-        
+
         stats.total_bindings = self.binding_rules.len();
         stats
     }
@@ -277,7 +292,8 @@ impl LogicalConsistencyChecker {
             pattern_name: "Sync-Async Contradiction".to_string(),
             antecedent: "Sync".to_string(),
             consequent: "Async".to_string(),
-            contradiction_proof: "Synchronous and asynchronous operations are mutually exclusive".to_string(),
+            contradiction_proof: "Synchronous and asynchronous operations are mutually exclusive"
+                .to_string(),
         });
 
         self.contradiction_patterns.push(ContradictionPattern {
@@ -313,9 +329,9 @@ impl LogicalConsistencyChecker {
 
     /// Check if constraint is self-contradictory
     fn is_self_contradictory(&self, constraint: &str) -> bool {
-        constraint.contains("Pure") && constraint.contains("Impure") ||
-        constraint.contains("Sync") && constraint.contains("Async") ||
-        constraint.contains("Immutable") && constraint.contains("Mutable")
+        constraint.contains("Pure") && constraint.contains("Impure")
+            || constraint.contains("Sync") && constraint.contains("Async")
+            || constraint.contains("Immutable") && constraint.contains("Mutable")
     }
 }
 
@@ -334,24 +350,41 @@ impl SocketCompatibilityRegistry {
     fn load_default_interfaces(&mut self) {
         let rest_interface = SocketInterface {
             interface_id: "REST".to_string(),
-            required_methods: vec!["GET".to_string(), "POST".to_string(), "PUT".to_string(), "DELETE".to_string()],
+            required_methods: vec![
+                "GET".to_string(),
+                "POST".to_string(),
+                "PUT".to_string(),
+                "DELETE".to_string(),
+            ],
             provided_capabilities: vec!["HTTP".to_string(), "JSON".to_string()],
             communication_protocol: "HTTP/1.1".to_string(),
         };
 
         let graphql_interface = SocketInterface {
             interface_id: "GraphQL".to_string(),
-            required_methods: vec!["query".to_string(), "mutation".to_string(), "subscription".to_string()],
+            required_methods: vec![
+                "query".to_string(),
+                "mutation".to_string(),
+                "subscription".to_string(),
+            ],
             provided_capabilities: vec!["GraphQL".to_string(), "JSON".to_string()],
             communication_protocol: "HTTP/1.1".to_string(),
         };
 
-        self.socket_interfaces.insert("REST".to_string(), rest_interface);
-        self.socket_interfaces.insert("GraphQL".to_string(), graphql_interface);
+        self.socket_interfaces
+            .insert("REST".to_string(), rest_interface);
+        self.socket_interfaces
+            .insert("GraphQL".to_string(), graphql_interface);
 
         // Set compatibility levels
-        self.compatibility_matrix.insert(("REST".to_string(), "GraphQL".to_string()), CompatibilityLevel::Adaptable);
-        self.compatibility_matrix.insert(("GraphQL".to_string(), "REST".to_string()), CompatibilityLevel::Adaptable);
+        self.compatibility_matrix.insert(
+            ("REST".to_string(), "GraphQL".to_string()),
+            CompatibilityLevel::Adaptable,
+        );
+        self.compatibility_matrix.insert(
+            ("GraphQL".to_string(), "REST".to_string()),
+            CompatibilityLevel::Adaptable,
+        );
     }
 
     /// Get interface definition
@@ -390,14 +423,17 @@ impl AdaptationStrategyRepository {
             success_probability: 0.8,
         };
 
-        self.strategies.insert(("REST".to_string(), "GraphQL".to_string()), rest_to_graphql);
-        self.success_rates.insert("REST_to_GraphQL".to_string(), 0.8);
+        self.strategies
+            .insert(("REST".to_string(), "GraphQL".to_string()), rest_to_graphql);
+        self.success_rates
+            .insert("REST_to_GraphQL".to_string(), 0.8);
     }
 
     /// Add adaptation strategy
     pub fn add_strategy(&mut self, strategy: AdaptationStrategy) {
         let key = (strategy.source_type.clone(), strategy.target_type.clone());
-        self.success_rates.insert(strategy.strategy_id.clone(), strategy.success_probability);
+        self.success_rates
+            .insert(strategy.strategy_id.clone(), strategy.success_probability);
         self.strategies.insert(key, strategy);
     }
 
@@ -437,7 +473,7 @@ mod tests {
     fn test_identical_type_binding() {
         let verifier = FourStateBindingVerifier::new();
         let type_sig = TypeSignature::new("String".to_string());
-        
+
         let result = verifier.verify_binding(&type_sig, &type_sig);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), BindingState::Zero);
@@ -446,12 +482,13 @@ mod tests {
     #[test]
     fn test_contradictory_constraints() {
         let verifier = FourStateBindingVerifier::new();
-        let type_a = TypeSignature::new("Function".to_string())
-            .with_constraint("Pure".to_string());
-        let type_b = TypeSignature::new("Function".to_string())
-            .with_constraint("Impure".to_string());
-        
-        let compatibility = verifier.check_constraints_compatibility(&type_a, &type_b).unwrap();
+        let type_a = TypeSignature::new("Function".to_string()).with_constraint("Pure".to_string());
+        let type_b =
+            TypeSignature::new("Function".to_string()).with_constraint("Impure".to_string());
+
+        let compatibility = verifier
+            .check_constraints_compatibility(&type_a, &type_b)
+            .unwrap();
         assert!(!compatibility);
     }
 
@@ -460,8 +497,10 @@ mod tests {
         let verifier = FourStateBindingVerifier::new();
         let rest_type = TypeSignature::new("REST".to_string());
         let graphql_type = TypeSignature::new("GraphQL".to_string());
-        
-        let compatibility = verifier.check_socket_compatibility(&rest_type, &graphql_type).unwrap();
+
+        let compatibility = verifier
+            .check_socket_compatibility(&rest_type, &graphql_type)
+            .unwrap();
         assert_eq!(compatibility, CompatibilityLevel::Adaptable);
     }
 
@@ -470,9 +509,9 @@ mod tests {
         let mut verifier = FourStateBindingVerifier::new();
         let type_a = TypeSignature::new("Type1".to_string());
         let type_b = TypeSignature::new("Type2".to_string());
-        
+
         verifier.cache_binding_rule(type_a.clone(), type_b.clone(), BindingState::Adapt);
-        
+
         let result = verifier.verify_binding(&type_a, &type_b).unwrap();
         assert_eq!(result, BindingState::Adapt);
     }
@@ -481,24 +520,24 @@ mod tests {
     fn test_logical_consistency_checker() {
         let checker = LogicalConsistencyChecker::new();
         assert!(!checker.contradiction_patterns.is_empty());
-        
-        let valid_type = TypeSignature::new("Function".to_string())
-            .with_constraint("Pure".to_string());
+
+        let valid_type =
+            TypeSignature::new("Function".to_string()).with_constraint("Pure".to_string());
         assert!(checker.validate_consistency(&valid_type).unwrap());
-        
-        let invalid_type = TypeSignature::new("Function".to_string())
-            .with_constraint("Pure Impure".to_string());
+
+        let invalid_type =
+            TypeSignature::new("Function".to_string()).with_constraint("Pure Impure".to_string());
         assert!(!checker.validate_consistency(&invalid_type).unwrap());
     }
 
     #[test]
     fn test_socket_registry() {
         let registry = SocketCompatibilityRegistry::new();
-        
+
         let rest_interface = registry.get_interface("REST");
         assert!(rest_interface.is_some());
         assert_eq!(rest_interface.unwrap().interface_id, "REST");
-        
+
         let compatibility = registry.get_compatibility("REST", "GraphQL");
         assert_eq!(compatibility, CompatibilityLevel::Adaptable);
     }
@@ -506,14 +545,16 @@ mod tests {
     #[test]
     fn test_adaptation_strategy_repository() {
         let mut repo = AdaptationStrategyRepository::new();
-        
-        let strategy = repo.strategies.get(&("REST".to_string(), "GraphQL".to_string()));
+
+        let strategy = repo
+            .strategies
+            .get(&("REST".to_string(), "GraphQL".to_string()));
         assert!(strategy.is_some());
-        
+
         let success_rate = repo.get_success_rate("REST_to_GraphQL");
         assert!(success_rate.is_some());
         assert_eq!(success_rate.unwrap(), 0.8);
-        
+
         // Test success rate update
         repo.update_success_rate("REST_to_GraphQL", false);
         let updated_rate = repo.get_success_rate("REST_to_GraphQL").unwrap();
@@ -523,24 +564,24 @@ mod tests {
     #[test]
     fn test_binding_statistics() {
         let mut verifier = FourStateBindingVerifier::new();
-        
+
         // Add some test bindings
         verifier.cache_binding_rule(
             TypeSignature::new("A".to_string()),
             TypeSignature::new("B".to_string()),
-            BindingState::Zero
+            BindingState::Zero,
         );
         verifier.cache_binding_rule(
             TypeSignature::new("C".to_string()),
             TypeSignature::new("D".to_string()),
-            BindingState::Adapt
+            BindingState::Adapt,
         );
         verifier.cache_binding_rule(
             TypeSignature::new("E".to_string()),
             TypeSignature::new("F".to_string()),
-            BindingState::Crash
+            BindingState::Crash,
         );
-        
+
         let stats = verifier.get_binding_statistics();
         assert_eq!(stats.total_bindings, 3);
         assert_eq!(stats.zero_count, 1);
@@ -554,7 +595,7 @@ mod tests {
         let verifier = FourStateBindingVerifier::new();
         let sync_type = TypeSignature::new("SyncFunction".to_string());
         let async_type = TypeSignature::new("AsyncFunction".to_string());
-        
+
         let pattern = &verifier.consistency_checker.contradiction_patterns[0];
         let matches = verifier.matches_contradiction_pattern(&sync_type, &async_type, pattern);
         assert!(matches);

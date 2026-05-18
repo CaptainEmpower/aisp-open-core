@@ -4,9 +4,9 @@
 //! for formal verification of AISP documents, focusing on soundness and completeness.
 
 use crate::ast::canonical::*;
+use crate::conflict_detector::{ConflictDetectionResult, ConflictDetector};
+use crate::constraint_solver::{ConstraintAnalysisResult, ConstraintSolver};
 use crate::error::*;
-use crate::constraint_solver::{ConstraintSolver, ConstraintAnalysisResult};
-use crate::conflict_detector::{ConflictDetector, ConflictDetectionResult};
 use std::collections::HashMap;
 
 /// Production-ready relational analysis result
@@ -105,7 +105,7 @@ impl RelationalAnalyzer {
     ) -> AispResult<RelationalAnalysis> {
         // Reset state for fresh analysis
         self.reset_state();
-        
+
         // Build environments from document
         self.build_type_environment(doc, type_env)?;
         self.build_function_environment(doc)?;
@@ -113,7 +113,8 @@ impl RelationalAnalyzer {
         // Core analysis steps
         let constraint_analysis = self.analyze_constraints(doc)?;
         let type_violations = self.detect_type_violations(doc)?;
-        let logical_contradictions = self.detect_logical_contradictions(doc, &constraint_analysis)?;
+        let logical_contradictions =
+            self.detect_logical_contradictions(doc, &constraint_analysis)?;
         let conflict_analysis = self.detect_conflicts(&constraint_analysis)?;
 
         // Calculate metrics
@@ -165,12 +166,14 @@ impl RelationalAnalyzer {
             if let AispBlock::Types(types_block) = block {
                 for (name, type_def) in &types_block.definitions {
                     if self.type_env.contains_key(name) {
-                        self.warnings.push(AispWarning::warning(
-                            format!("Type '{}' redefined, using first definition", name)
-                        ));
+                        self.warnings.push(AispWarning::warning(format!(
+                            "Type '{}' redefined, using first definition",
+                            name
+                        )));
                         continue;
                     }
-                    self.type_env.insert(name.clone(), type_def.type_expr.clone());
+                    self.type_env
+                        .insert(name.clone(), type_def.type_expr.clone());
                 }
             }
         }
@@ -185,12 +188,14 @@ impl RelationalAnalyzer {
                 for func_def in &funcs_block.functions {
                     let name = &func_def.name;
                     if self.function_env.contains_key(name) {
-                        self.warnings.push(AispWarning::warning(
-                            format!("Function '{}' redefined, using first definition", name)
-                        ));
+                        self.warnings.push(AispWarning::warning(format!(
+                            "Function '{}' redefined, using first definition",
+                            name
+                        )));
                         continue;
                     }
-                    self.function_env.insert(name.clone(), func_def.lambda.clone());
+                    self.function_env
+                        .insert(name.clone(), func_def.lambda.clone());
                 }
             }
         }
@@ -215,7 +220,8 @@ impl RelationalAnalyzer {
                     let func_name = &func_def.name;
                     // Validate parameter types exist
                     for param in &func_def.lambda.parameters {
-                        if let Some(param_type) = self.infer_parameter_type(param, &func_def.lambda) {
+                        if let Some(param_type) = self.infer_parameter_type(param, &func_def.lambda)
+                        {
                             if !self.is_valid_type(&param_type) {
                                 violations.push(TypeViolation {
                                     id: format!("tv_{}", violation_id),
@@ -272,7 +278,10 @@ impl RelationalAnalyzer {
             contradictions.push(LogicalContradiction {
                 id: format!("lc_{}", contradiction_id),
                 constraints: constraint_analysis.unsatisfied.clone(),
-                explanation: format!("Constraint system has {} unsatisfied constraints", constraint_analysis.unsatisfied.len()),
+                explanation: format!(
+                    "Constraint system has {} unsatisfied constraints",
+                    constraint_analysis.unsatisfied.len()
+                ),
                 proof: Some("Constraint solver found unsatisfiable constraints".to_string()),
                 location: None,
             });
@@ -286,10 +295,7 @@ impl RelationalAnalyzer {
                 for (rule_a, rule_b, explanation) in rule_contradictions {
                     contradictions.push(LogicalContradiction {
                         id: format!("lc_{}", contradiction_id),
-                        constraints: vec![
-                            format!("rule_{}", rule_a),
-                            format!("rule_{}", rule_b),
-                        ],
+                        constraints: vec![format!("rule_{}", rule_a), format!("rule_{}", rule_b)],
                         explanation,
                         proof: None,
                         location: rules_block.rules.get(rule_a).and_then(|r| r.span.clone()),
@@ -307,7 +313,8 @@ impl RelationalAnalyzer {
         &mut self,
         constraint_analysis: &ConstraintAnalysisResult,
     ) -> AispResult<ConflictDetectionResult> {
-        self.conflict_detector.detect_constraint_conflicts(constraint_analysis)
+        self.conflict_detector
+            .detect_constraint_conflicts(constraint_analysis)
     }
 
     /// Calculate overall consistency score
@@ -362,7 +369,10 @@ impl RelationalAnalyzer {
         }
 
         // No critical type violations
-        if type_violations.iter().any(|v| v.severity == ViolationSeverity::Critical) {
+        if type_violations
+            .iter()
+            .any(|v| v.severity == ViolationSeverity::Critical)
+        {
             return false;
         }
 
@@ -386,8 +396,8 @@ impl RelationalAnalyzer {
 
     fn is_valid_type(&self, type_name: &str) -> bool {
         // Check if type exists in type environment
-        self.type_env.contains_key(type_name) || 
-        matches!(type_name, "Any" | "Int" | "Bool" | "String" | "Real")
+        self.type_env.contains_key(type_name)
+            || matches!(type_name, "Any" | "Int" | "Bool" | "String" | "Real")
     }
 
     fn check_rule_type_consistency(&self, _rule: &LogicalRule) -> Option<Vec<TypeViolationInfo>> {
@@ -435,7 +445,7 @@ mod tests {
     fn test_empty_document_analysis() -> AispResult<()> {
         let mut analyzer = RelationalAnalyzer::new();
         let type_env = HashMap::new();
-        
+
         let doc = AispDocument {
             header: DocumentHeader {
                 version: "5.1".to_string(),
@@ -452,7 +462,7 @@ mod tests {
         };
 
         let result = analyzer.analyze(&doc, &type_env)?;
-        
+
         assert!(result.valid);
         assert!(result.type_violations.is_empty());
         assert!(result.logical_contradictions.is_empty());
@@ -464,16 +474,22 @@ mod tests {
     #[test]
     fn test_type_environment_building() -> AispResult<()> {
         let mut analyzer = RelationalAnalyzer::new();
-        
+
         let mut external_types = HashMap::new();
-        external_types.insert("ExternalType".to_string(), TypeExpression::Basic(BasicType::Integer));
+        external_types.insert(
+            "ExternalType".to_string(),
+            TypeExpression::Basic(BasicType::Integer),
+        );
 
         let mut type_definitions = HashMap::new();
-        type_definitions.insert("LocalType".to_string(), TypeDefinition {
-            name: "LocalType".to_string(),
-            type_expr: TypeExpression::Basic(BasicType::Boolean),
-            span: create_test_span(),
-        });
+        type_definitions.insert(
+            "LocalType".to_string(),
+            TypeDefinition {
+                name: "LocalType".to_string(),
+                type_expr: TypeExpression::Basic(BasicType::Boolean),
+                span: create_test_span(),
+            },
+        );
 
         let types_block = TypesBlock {
             definitions: type_definitions,
@@ -485,7 +501,7 @@ mod tests {
         doc.blocks.push(AispBlock::Types(types_block));
 
         analyzer.build_type_environment(&doc, &external_types)?;
-        
+
         assert!(analyzer.type_env.contains_key("ExternalType"));
         assert!(analyzer.type_env.contains_key("LocalType"));
 
@@ -502,7 +518,7 @@ mod tests {
     #[test]
     fn test_consistency_score_calculation() {
         let analyzer = RelationalAnalyzer::new();
-        
+
         let constraint_analysis = ConstraintAnalysisResult {
             constraints: vec![],
             satisfied: vec!["test_constraint".to_string()],
@@ -510,7 +526,7 @@ mod tests {
             conflicts: vec![],
             satisfaction_score: 0.9,
         };
-        
+
         let type_violations = vec![];
         let logical_contradictions = vec![];
         let conflict_analysis = ConflictDetectionResult {

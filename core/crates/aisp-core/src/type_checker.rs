@@ -22,12 +22,12 @@ impl TypeChecker {
             type_definitions: HashMap::new(),
             errors: Vec::new(),
         };
-        
+
         // Add built-in mathematical types
         type_checker.add_builtin_types();
         type_checker
     }
-    
+
     /// Add built-in AISP mathematical types
     fn add_builtin_types(&mut self) {
         // Vector space types commonly used in AISP
@@ -43,7 +43,7 @@ impl TypeChecker {
             "VectorSpace256".to_string(),
             TypeExpression::Basic(BasicType::VectorSpace(256)),
         );
-        
+
         // Mathematical structures
         self.type_definitions.insert(
             "RealVector".to_string(),
@@ -61,7 +61,7 @@ impl TypeChecker {
             "Composite".to_string(),
             TypeExpression::Basic(BasicType::MathematicalStructure("Composite".to_string())),
         );
-        
+
         // Dimension-specific real vector spaces (ℝⁿ notation)
         for n in [7, 8, 256, 512, 768] {
             self.type_definitions.insert(
@@ -69,7 +69,7 @@ impl TypeChecker {
                 TypeExpression::Basic(BasicType::VectorSpace(n)),
             );
         }
-        
+
         // Generic real vector space (ℝⁿ)
         self.type_definitions.insert(
             "ℝⁿ".to_string(),
@@ -81,16 +81,16 @@ impl TypeChecker {
     pub fn check_document(&mut self, document: &AispDocument) -> TypeCheckResult {
         // Extract type definitions
         self.extract_type_definitions(document);
-        
+
         // Validate type definitions are well-formed
         self.validate_type_definitions();
-        
+
         // Check function signatures
         self.check_function_types(document);
-        
+
         // Check meta value types
         self.check_meta_types(document);
-        
+
         TypeCheckResult {
             errors: self.errors.clone(),
             type_graph: self.build_type_dependency_graph(),
@@ -109,22 +109,33 @@ impl TypeChecker {
                             message: format!("Type '{}' redefined, using first definition", name),
                         });
                     } else {
-                        self.type_definitions.insert(name.clone(), definition.type_expr.clone());
+                        self.type_definitions
+                            .insert(name.clone(), definition.type_expr.clone());
                     }
                 }
             }
         }
     }
-    
+
     /// Check if a type is user-defined (not a built-in type)
     fn is_user_defined_type(&self, name: &str) -> bool {
         // Built-in mathematical types that should not be flagged as redefinitions
         let builtin_types = [
-            "VectorSpace768", "VectorSpace512", "VectorSpace256",
-            "RealVector", "DirectSum", "Structure", "Composite",
-            "ℝ7", "ℝ8", "ℝ256", "ℝ512", "ℝ768", "ℝⁿ"
+            "VectorSpace768",
+            "VectorSpace512",
+            "VectorSpace256",
+            "RealVector",
+            "DirectSum",
+            "Structure",
+            "Composite",
+            "ℝ7",
+            "ℝ8",
+            "ℝ256",
+            "ℝ512",
+            "ℝ768",
+            "ℝⁿ",
         ];
-        
+
         !builtin_types.contains(&name) && self.type_definitions.contains_key(name)
     }
 
@@ -139,9 +150,9 @@ impl TypeChecker {
 
     /// Validate a type expression recursively
     fn validate_type_expression(
-        &self, 
-        type_expr: &TypeExpression, 
-        visited: &mut HashSet<String>
+        &self,
+        type_expr: &TypeExpression,
+        visited: &mut HashSet<String>,
     ) -> AispResult<()> {
         match type_expr {
             TypeExpression::Basic(_) => Ok(()),
@@ -151,23 +162,24 @@ impl TypeChecker {
                         message: format!("Circular type reference detected: {}", name),
                     });
                 }
-                
+
                 if !self.type_definitions.contains_key(name) {
                     return Err(AispError::UndefinedSymbol {
                         symbol: name.clone(),
                     });
                 }
-                
+
                 visited.insert(name.clone());
                 let referenced_type = &self.type_definitions[name];
                 self.validate_type_expression(referenced_type, visited)?;
                 visited.remove(name);
-                
+
                 Ok(())
             }
-            TypeExpression::Array { element_type, size: _ } => {
-                self.validate_type_expression(element_type, visited)
-            }
+            TypeExpression::Array {
+                element_type,
+                size: _,
+            } => self.validate_type_expression(element_type, visited),
             TypeExpression::Function { input, output } => {
                 self.validate_type_expression(input, visited)?;
                 self.validate_type_expression(output, visited)
@@ -178,7 +190,7 @@ impl TypeChecker {
                         message: "Enumeration cannot be empty".to_string(),
                     });
                 }
-                
+
                 let mut unique_values = HashSet::new();
                 for value in values {
                     if !unique_values.insert(value) {
@@ -187,7 +199,7 @@ impl TypeChecker {
                         });
                     }
                 }
-                
+
                 Ok(())
             }
             TypeExpression::Tuple(elements) => {
@@ -224,7 +236,7 @@ impl TypeChecker {
                 message: format!("Function {} has no parameters", function.name),
             });
         }
-        
+
         // TODO: More sophisticated type checking of lambda expressions
         Ok(())
     }
@@ -266,25 +278,29 @@ impl TypeChecker {
                 // TODO: Validate logical constraints
             }
         }
-        
+
         Ok(())
     }
 
     /// Build dependency graph between types
     fn build_type_dependency_graph(&self) -> HashMap<String, Vec<String>> {
         let mut graph = HashMap::new();
-        
+
         for (name, type_expr) in &self.type_definitions {
             let mut dependencies = Vec::new();
             self.collect_type_dependencies(type_expr, &mut dependencies);
             graph.insert(name.clone(), dependencies);
         }
-        
+
         graph
     }
 
     /// Collect type dependencies recursively
-    fn collect_type_dependencies(&self, type_expr: &TypeExpression, dependencies: &mut Vec<String>) {
+    fn collect_type_dependencies(
+        &self,
+        type_expr: &TypeExpression,
+        dependencies: &mut Vec<String>,
+    ) {
         match type_expr {
             TypeExpression::Reference(name) => {
                 if !dependencies.contains(name) {
@@ -305,10 +321,10 @@ impl TypeChecker {
     /// Find undefined type references
     fn find_undefined_types(&self) -> HashSet<String> {
         let undefined = HashSet::new();
-        
+
         // TODO: Implement comprehensive undefined type detection
         // This would scan all type references and check if they're defined
-        
+
         undefined
     }
 }
@@ -330,19 +346,25 @@ mod tests {
 
     fn create_test_types_block() -> TypesBlock {
         let mut definitions = HashMap::new();
-        
-        definitions.insert("State".to_string(), TypeDefinition {
-            name: "State".to_string(),
-            type_expr: TypeExpression::Enumeration(vec!["A".to_string(), "B".to_string()]),
-            span: Span::new(1, 1, 1, 10),
-        });
-        
-        definitions.insert("Count".to_string(), TypeDefinition {
-            name: "Count".to_string(),
-            type_expr: TypeExpression::Basic(BasicType::Natural),
-            span: Span::new(2, 1, 2, 10),
-        });
-        
+
+        definitions.insert(
+            "State".to_string(),
+            TypeDefinition {
+                name: "State".to_string(),
+                type_expr: TypeExpression::Enumeration(vec!["A".to_string(), "B".to_string()]),
+                span: Span::new(1, 1, 1, 10),
+            },
+        );
+
+        definitions.insert(
+            "Count".to_string(),
+            TypeDefinition {
+                name: "Count".to_string(),
+                type_expr: TypeExpression::Basic(BasicType::Natural),
+                span: Span::new(2, 1, 2, 10),
+            },
+        );
+
         TypesBlock {
             definitions,
             span: Span::new(1, 1, 3, 1),
@@ -368,7 +390,7 @@ mod tests {
         };
 
         checker.extract_type_definitions(&document);
-        
+
         assert!(checker.type_definitions.contains_key("State"));
         assert!(checker.type_definitions.contains_key("Count"));
     }
@@ -377,33 +399,41 @@ mod tests {
     fn test_validate_enumeration() {
         let checker = TypeChecker::new();
         let mut visited = HashSet::new();
-        
+
         // Valid enumeration
         let valid_enum = TypeExpression::Enumeration(vec!["A".to_string(), "B".to_string()]);
-        assert!(checker.validate_type_expression(&valid_enum, &mut visited).is_ok());
-        
+        assert!(checker
+            .validate_type_expression(&valid_enum, &mut visited)
+            .is_ok());
+
         // Empty enumeration (invalid)
         let empty_enum = TypeExpression::Enumeration(vec![]);
-        assert!(checker.validate_type_expression(&empty_enum, &mut visited).is_err());
-        
+        assert!(checker
+            .validate_type_expression(&empty_enum, &mut visited)
+            .is_err());
+
         // Duplicate values (invalid)
         let dup_enum = TypeExpression::Enumeration(vec!["A".to_string(), "A".to_string()]);
-        assert!(checker.validate_type_expression(&dup_enum, &mut visited).is_err());
+        assert!(checker
+            .validate_type_expression(&dup_enum, &mut visited)
+            .is_err());
     }
 
     #[test]
     fn test_basic_type_validation() {
         let checker = TypeChecker::new();
         let mut visited = HashSet::new();
-        
+
         let basic_type = TypeExpression::Basic(BasicType::Natural);
-        assert!(checker.validate_type_expression(&basic_type, &mut visited).is_ok());
+        assert!(checker
+            .validate_type_expression(&basic_type, &mut visited)
+            .is_ok());
     }
 
     #[test]
     fn test_function_type_validation() {
         let mut checker = TypeChecker::new();
-        
+
         let function = FunctionDefinition {
             name: "test".to_string(),
             lambda: LambdaExpression {
@@ -413,9 +443,9 @@ mod tests {
             },
             span: Span::new(1, 1, 1, 15),
         };
-        
+
         assert!(checker.validate_function_signature(&function).is_ok());
-        
+
         // Function with no parameters (invalid)
         let invalid_function = FunctionDefinition {
             name: "invalid".to_string(),
@@ -426,7 +456,9 @@ mod tests {
             },
             span: Span::new(1, 1, 1, 15),
         };
-        
-        assert!(checker.validate_function_signature(&invalid_function).is_err());
+
+        assert!(checker
+            .validate_function_signature(&invalid_function)
+            .is_err());
     }
 }

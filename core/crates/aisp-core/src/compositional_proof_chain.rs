@@ -10,17 +10,17 @@
 
 use crate::{
     error::{AispError, AispResult},
-    pocket_architecture::{PocketArchitectureVerifier, PocketVerificationResult},
     ghost_intent_search::{GhostIntentSearchEngine, GhostSearchResult, SearchStatus},
-    vector_space_verifier::VectorSpaceVerifier,
-    tri_vector_validation::OrthogonalityResult,
-    mathematical_evaluator::{MathEvaluator, MathValue},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
+    mathematical_evaluator::{MathEvaluator, MathValue},
+    pocket_architecture::{PocketArchitectureVerifier, PocketVerificationResult},
+    tri_vector_validation::OrthogonalityResult,
+    vector_space_verifier::VectorSpaceVerifier,
     z3_verification::PropertyResult,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
-use serde::{Deserialize, Serialize};
 
 /// Complete compositional proof system for AISP layer integration
 pub struct CompositionalProofChain {
@@ -306,19 +306,19 @@ pub struct SystemGuarantees {
     /// Safety guarantee: system.⊢safe
     pub safety_guaranteed: bool,
     pub safety_proof: Option<String>,
-    
+
     /// Optimality guarantee: system.⊢optimal  
     pub optimality_guaranteed: bool,
     pub optimality_proof: Option<String>,
-    
+
     /// Termination guarantee: system.⊢terminates
     pub termination_guaranteed: bool,
     pub termination_proof: Option<String>,
-    
+
     /// Integrity guarantee: system.⊢integrity
     pub integrity_guaranteed: bool,
     pub integrity_proof: Option<String>,
-    
+
     /// Combined confidence score
     pub overall_confidence: f64,
 }
@@ -378,32 +378,29 @@ impl CompositionalProofChain {
     pub fn verify_compositional_chain(
         &mut self,
         l0_input: &VectorSpaceInput,
-        l1_input: &PocketInput, 
+        l1_input: &PocketInput,
         l2_input: &SearchInput,
     ) -> AispResult<CompositionalVerificationResult> {
         let verification_start = Instant::now();
-        
+
         // Phase 1: Verify Layer 0 properties
         let l0_results = self.verify_layer_0_properties(l0_input)?;
-        
+
         // Phase 2: Verify Layer 1 properties (dependent on L0)
         let l1_results = self.verify_layer_1_properties(l1_input, &l0_results)?;
-        
-        // Phase 3: Verify Layer 2 properties (dependent on L1)  
+
+        // Phase 3: Verify Layer 2 properties (dependent on L1)
         let l2_results = self.verify_layer_2_properties(l2_input, &l1_results)?;
-        
+
         // Phase 4: Verify compositional implications
-        let compositional_proofs = self.verify_compositional_implications(
-            &l0_results,
-            &l1_results,
-            &l2_results,
-        )?;
-        
+        let compositional_proofs =
+            self.verify_compositional_implications(&l0_results, &l1_results, &l2_results)?;
+
         // Phase 5: Derive system guarantees
         let system_guarantees = self.derive_system_guarantees(&compositional_proofs)?;
-        
+
         self.chain_stats.total_verification_time = verification_start.elapsed();
-        
+
         Ok(CompositionalVerificationResult {
             l0_results,
             l1_results,
@@ -416,10 +413,13 @@ impl CompositionalProofChain {
 
     /// Verify Layer 0 (Signal Theory) properties
     /// Proves: 𝕃₀.⊢stable ∧ 𝕃₀.⊢deterministic
-    fn verify_layer_0_properties(&mut self, input: &VectorSpaceInput) -> AispResult<LayerVerificationResult> {
+    fn verify_layer_0_properties(
+        &mut self,
+        input: &VectorSpaceInput,
+    ) -> AispResult<LayerVerificationResult> {
         let start_time = Instant::now();
         let mut properties = Vec::new();
-        
+
         // Property 1: Vector space stability
         let vs_input = crate::vector_space_verifier::VectorSpaceInput {
             semantic_vectors: vec![],
@@ -435,7 +435,7 @@ impl CompositionalProofChain {
             proof_certificate: Some(self.generate_stability_proof_certificate(&stability_result)?),
             verification_confidence: stability_result.confidence,
         });
-        
+
         // Property 2: Deterministic operations
         let det_input = crate::vector_space_verifier::VectorSpaceInput {
             semantic_vectors: vec![],
@@ -443,20 +443,26 @@ impl CompositionalProofChain {
             safety_vectors: vec![],
             verification_level: "determinism".to_string(),
         };
-        let determinism_result = self.l0_verifier.verify_deterministic_operations(&det_input)?;
+        let determinism_result = self
+            .l0_verifier
+            .verify_deterministic_operations(&det_input)?;
         properties.push(VerifiedProperty {
             property_name: "deterministic_operations".to_string(),
             property_statement: "∀f∈Ops: ∀x: f(x) = f(x) ∧ unique_result(f,x)".to_string(),
             verification_method: "operational_semantics".to_string(),
-            proof_certificate: Some(self.generate_determinism_proof_certificate(&determinism_result)?),
+            proof_certificate: Some(
+                self.generate_determinism_proof_certificate(&determinism_result)?,
+            ),
             verification_confidence: determinism_result.confidence,
         });
-        
+
         let verification_time = start_time.elapsed();
-        self.chain_stats.layer_verification_times.insert(LayerIdentifier::L0Signal, verification_time);
-        
+        self.chain_stats
+            .layer_verification_times
+            .insert(LayerIdentifier::L0Signal, verification_time);
+
         let verification_confidence = self.calculate_layer_confidence(&properties);
-        
+
         Ok(LayerVerificationResult {
             layer: LayerIdentifier::L0Signal,
             properties_verified: properties,
@@ -475,12 +481,12 @@ impl CompositionalProofChain {
         l0_results: &LayerVerificationResult,
     ) -> AispResult<LayerVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Check L0 prerequisites
         self.verify_l0_prerequisites_for_l1(l0_results)?;
-        
+
         let mut properties = Vec::new();
-        
+
         // Property 1: CAS integrity (depends on L0 determinism)
         let pocket_verification = self.l1_verifier.verify_pocket(&input.pocket)?;
         properties.push(VerifiedProperty {
@@ -490,21 +496,27 @@ impl CompositionalProofChain {
             proof_certificate: Some(self.generate_cas_integrity_proof(&pocket_verification)?),
             verification_confidence: pocket_verification.verification_confidence,
         });
-        
+
         // Property 2: Zero-copy learning isolation
         properties.push(VerifiedProperty {
             property_name: "zero_copy_learning".to_string(),
             property_statement: "∀p: ∂ℳ(p) ⇏ ∂ℋ.id(p)".to_string(),
             verification_method: "isolation_proof".to_string(),
             proof_certificate: Some(self.generate_isolation_proof(&pocket_verification)?),
-            verification_confidence: if pocket_verification.learning_isolation_verified { 1.0 } else { 0.0 },
+            verification_confidence: if pocket_verification.learning_isolation_verified {
+                1.0
+            } else {
+                0.0
+            },
         });
-        
+
         let verification_time = start_time.elapsed();
-        self.chain_stats.layer_verification_times.insert(LayerIdentifier::L1Pocket, verification_time);
-        
+        self.chain_stats
+            .layer_verification_times
+            .insert(LayerIdentifier::L1Pocket, verification_time);
+
         let verification_confidence = self.calculate_layer_confidence(&properties);
-        
+
         Ok(LayerVerificationResult {
             layer: LayerIdentifier::L1Pocket,
             properties_verified: properties,
@@ -523,27 +535,33 @@ impl CompositionalProofChain {
         l1_results: &LayerVerificationResult,
     ) -> AispResult<LayerVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Check L1 prerequisites
         self.verify_l1_prerequisites_for_l2(l1_results)?;
-        
+
         let mut properties = Vec::new();
-        
+
         // Property 1: Search termination (depends on L1 integrity)
-        let search_result = self.l2_verifier.execute_search(input.target_intent.clone())?;
-        let terminates = matches!(search_result.search_status, 
-            SearchStatus::OptimalFound | SearchStatus::SolutionFound);
-        
+        let search_result = self
+            .l2_verifier
+            .execute_search(input.target_intent.clone())?;
+        let terminates = matches!(
+            search_result.search_status,
+            SearchStatus::OptimalFound | SearchStatus::SolutionFound
+        );
+
         properties.push(VerifiedProperty {
             property_name: "search_termination".to_string(),
             property_statement: "∀ψ_*: ∃t∈ℕ: search(ψ_*) terminates at t".to_string(),
             verification_method: "termination_proof".to_string(),
-            proof_certificate: search_result.termination_proof.as_ref()
+            proof_certificate: search_result
+                .termination_proof
+                .as_ref()
                 .map(|proof| self.convert_termination_proof_to_certificate(proof))
                 .transpose()?,
             verification_confidence: if terminates { 0.95 } else { 0.0 },
         });
-        
+
         // Property 2: Bounded search space
         properties.push(VerifiedProperty {
             property_name: "bounded_search".to_string(),
@@ -552,12 +570,14 @@ impl CompositionalProofChain {
             proof_certificate: Some(self.generate_boundedness_proof(&search_result)?),
             verification_confidence: 0.9,
         });
-        
+
         let verification_time = start_time.elapsed();
-        self.chain_stats.layer_verification_times.insert(LayerIdentifier::L2Search, verification_time);
-        
+        self.chain_stats
+            .layer_verification_times
+            .insert(LayerIdentifier::L2Search, verification_time);
+
         let verification_confidence = self.calculate_layer_confidence(&properties);
-        
+
         Ok(LayerVerificationResult {
             layer: LayerIdentifier::L2Search,
             properties_verified: properties,
@@ -572,20 +592,20 @@ impl CompositionalProofChain {
     fn verify_compositional_implications(
         &mut self,
         l0_results: &LayerVerificationResult,
-        l1_results: &LayerVerificationResult, 
+        l1_results: &LayerVerificationResult,
         l2_results: &LayerVerificationResult,
     ) -> AispResult<Vec<CompositionalProofResult>> {
         let mut compositional_proofs = Vec::new();
-        
+
         // Implication 1: 𝕃₀.⊢stable∧𝕃₀.⊢deterministic ⇒ 𝕃₁.⊢integrity
         compositional_proofs.push(self.verify_l0_to_l1_implication(l0_results, l1_results)?);
-        
+
         // Implication 2: 𝕃₁.⊢integrity∧𝕃₁.⊢zero_copy ⇒ 𝕃₂.⊢bounded
         compositional_proofs.push(self.verify_l1_to_l2_implication(l1_results, l2_results)?);
-        
+
         // Implication 3: 𝕃₂.⊢terminates∧𝕃₂.⊢bounded ⇒ system.⊢safe∧system.⊢optimal
         compositional_proofs.push(self.verify_l2_to_system_implication(l2_results)?);
-        
+
         Ok(compositional_proofs)
     }
 
@@ -598,22 +618,30 @@ impl CompositionalProofChain {
         // Check premises: L0 stable ∧ deterministic
         let l0_stable = self.property_verified(l0_results, "vector_space_stability");
         let l0_deterministic = self.property_verified(l0_results, "deterministic_operations");
-        
+
         let premise_verification = PremiseVerification {
             required_premises: vec!["stable".to_string(), "deterministic".to_string()],
             verified_premises: {
                 let mut verified = Vec::new();
-                if l0_stable { verified.push("stable".to_string()); }
-                if l0_deterministic { verified.push("deterministic".to_string()); }
+                if l0_stable {
+                    verified.push("stable".to_string());
+                }
+                if l0_deterministic {
+                    verified.push("deterministic".to_string());
+                }
                 verified
             },
-            premise_satisfaction: if l0_stable && l0_deterministic { 1.0 } else { 0.5 },
+            premise_satisfaction: if l0_stable && l0_deterministic {
+                1.0
+            } else {
+                0.5
+            },
             unsatisfied_premises: Vec::new(),
         };
-        
+
         // Check conclusion: L1 integrity
         let l1_integrity = self.property_verified(l1_results, "cas_integrity");
-        
+
         let conclusion_verification = ConclusionVerification {
             conclusion_statement: "𝕃₁.⊢integrity".to_string(),
             verification_method: "cas_integrity_verification".to_string(),
@@ -625,25 +653,34 @@ impl CompositionalProofChain {
                 justification: "Deterministic operations ensure unique hash mappings".to_string(),
                 dependencies: vec![],
             }],
-            conclusion_validity: if l1_integrity { TruthValue::True } else { TruthValue::False },
+            conclusion_validity: if l1_integrity {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         };
-        
+
         // Verify logical implication
         let implication_valid = (l0_stable && l0_deterministic) == l1_integrity;
-        
+
         let implication_proof = ImplicationProof {
             implication_statement: "stable∧deterministic ⇒ integrity".to_string(),
             logical_validity: implication_valid,
-            soundness_proof: "Deterministic vector operations preserve content addressing invariants".to_string(),
+            soundness_proof:
+                "Deterministic vector operations preserve content addressing invariants".to_string(),
             model_validation: true,
         };
-        
+
         Ok(CompositionalProofResult {
             theorem_name: "L0_to_L1_implication".to_string(),
             premise_verification,
             conclusion_verification,
             implication_proof,
-            overall_validity: if implication_valid { TruthValue::True } else { TruthValue::False },
+            overall_validity: if implication_valid {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         })
     }
 
@@ -656,22 +693,30 @@ impl CompositionalProofChain {
         // Check premises: L1 integrity ∧ zero_copy
         let l1_integrity = self.property_verified(l1_results, "cas_integrity");
         let l1_zero_copy = self.property_verified(l1_results, "zero_copy_learning");
-        
+
         let premise_verification = PremiseVerification {
             required_premises: vec!["integrity".to_string(), "zero_copy".to_string()],
             verified_premises: {
                 let mut verified = Vec::new();
-                if l1_integrity { verified.push("integrity".to_string()); }
-                if l1_zero_copy { verified.push("zero_copy".to_string()); }
+                if l1_integrity {
+                    verified.push("integrity".to_string());
+                }
+                if l1_zero_copy {
+                    verified.push("zero_copy".to_string());
+                }
                 verified
             },
-            premise_satisfaction: if l1_integrity && l1_zero_copy { 1.0 } else { 0.5 },
+            premise_satisfaction: if l1_integrity && l1_zero_copy {
+                1.0
+            } else {
+                0.5
+            },
             unsatisfied_premises: Vec::new(),
         };
-        
+
         // Check conclusion: L2 bounded
         let l2_bounded = self.property_verified(l2_results, "bounded_search");
-        
+
         let conclusion_verification = ConclusionVerification {
             conclusion_statement: "𝕃₂.⊢bounded".to_string(),
             verification_method: "bounded_search_verification".to_string(),
@@ -680,27 +725,39 @@ impl CompositionalProofChain {
                 rule_name: "BOUNDED_FROM_INTEGRITY".to_string(),
                 premises: vec!["L1_integrity".to_string()],
                 conclusion: "L2_bounded".to_string(),
-                justification: "Content integrity ensures finite search space via unique addressing".to_string(),
+                justification:
+                    "Content integrity ensures finite search space via unique addressing"
+                        .to_string(),
                 dependencies: vec![],
             }],
-            conclusion_validity: if l2_bounded { TruthValue::True } else { TruthValue::False },
+            conclusion_validity: if l2_bounded {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         };
-        
+
         let implication_valid = (l1_integrity && l1_zero_copy) == l2_bounded;
-        
+
         let implication_proof = ImplicationProof {
             implication_statement: "integrity∧zero_copy ⇒ bounded".to_string(),
             logical_validity: implication_valid,
-            soundness_proof: "Integrity prevents infinite search loops; zero-copy ensures bounded state".to_string(),
+            soundness_proof:
+                "Integrity prevents infinite search loops; zero-copy ensures bounded state"
+                    .to_string(),
             model_validation: true,
         };
-        
+
         Ok(CompositionalProofResult {
             theorem_name: "L1_to_L2_implication".to_string(),
             premise_verification,
             conclusion_verification,
             implication_proof,
-            overall_validity: if implication_valid { TruthValue::True } else { TruthValue::False },
+            overall_validity: if implication_valid {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         })
     }
 
@@ -712,22 +769,30 @@ impl CompositionalProofChain {
         // Check premises: L2 terminates ∧ bounded
         let l2_terminates = self.property_verified(l2_results, "search_termination");
         let l2_bounded = self.property_verified(l2_results, "bounded_search");
-        
+
         let premise_verification = PremiseVerification {
             required_premises: vec!["terminates".to_string(), "bounded".to_string()],
             verified_premises: {
                 let mut verified = Vec::new();
-                if l2_terminates { verified.push("terminates".to_string()); }
-                if l2_bounded { verified.push("bounded".to_string()); }
+                if l2_terminates {
+                    verified.push("terminates".to_string());
+                }
+                if l2_bounded {
+                    verified.push("bounded".to_string());
+                }
                 verified
             },
-            premise_satisfaction: if l2_terminates && l2_bounded { 1.0 } else { 0.5 },
+            premise_satisfaction: if l2_terminates && l2_bounded {
+                1.0
+            } else {
+                0.5
+            },
             unsatisfied_premises: Vec::new(),
         };
-        
+
         // Conclusion: system safe ∧ optimal
         let system_safe_and_optimal = l2_terminates && l2_bounded;
-        
+
         let conclusion_verification = ConclusionVerification {
             conclusion_statement: "system.⊢safe∧system.⊢optimal".to_string(),
             verification_method: "system_guarantee_derivation".to_string(),
@@ -737,7 +802,9 @@ impl CompositionalProofChain {
                     rule_name: "SAFETY_FROM_TERMINATION".to_string(),
                     premises: vec!["L2_terminates".to_string()],
                     conclusion: "system_safe".to_string(),
-                    justification: "Terminating search prevents infinite loops and resource exhaustion".to_string(),
+                    justification:
+                        "Terminating search prevents infinite loops and resource exhaustion"
+                            .to_string(),
                     dependencies: vec![],
                 },
                 ProofStep {
@@ -745,26 +812,37 @@ impl CompositionalProofChain {
                     rule_name: "OPTIMALITY_FROM_BOUNDED_SEARCH".to_string(),
                     premises: vec!["L2_bounded".to_string(), "L2_terminates".to_string()],
                     conclusion: "system_optimal".to_string(),
-                    justification: "Bounded terminating search explores full space optimally".to_string(),
+                    justification: "Bounded terminating search explores full space optimally"
+                        .to_string(),
                     dependencies: vec![1],
                 },
             ],
-            conclusion_validity: if system_safe_and_optimal { TruthValue::True } else { TruthValue::False },
+            conclusion_validity: if system_safe_and_optimal {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         };
-        
+
         let implication_proof = ImplicationProof {
             implication_statement: "terminates∧bounded ⇒ safe∧optimal".to_string(),
             logical_validity: system_safe_and_optimal,
-            soundness_proof: "Termination ensures safety; bounded terminating search ensures optimality".to_string(),
+            soundness_proof:
+                "Termination ensures safety; bounded terminating search ensures optimality"
+                    .to_string(),
             model_validation: true,
         };
-        
+
         Ok(CompositionalProofResult {
             theorem_name: "L2_to_System_implication".to_string(),
             premise_verification,
             conclusion_verification,
             implication_proof,
-            overall_validity: if system_safe_and_optimal { TruthValue::True } else { TruthValue::False },
+            overall_validity: if system_safe_and_optimal {
+                TruthValue::True
+            } else {
+                TruthValue::False
+            },
         })
     }
 
@@ -773,23 +851,28 @@ impl CompositionalProofChain {
         &self,
         compositional_proofs: &[CompositionalProofResult],
     ) -> AispResult<SystemGuarantees> {
-        let all_implications_valid = compositional_proofs.iter()
+        let all_implications_valid = compositional_proofs
+            .iter()
             .all(|proof| proof.overall_validity == TruthValue::True);
-        
-        let confidence_scores: Vec<f64> = compositional_proofs.iter()
+
+        let confidence_scores: Vec<f64> = compositional_proofs
+            .iter()
             .map(|proof| proof.premise_verification.premise_satisfaction)
             .collect();
-        
+
         let overall_confidence = if confidence_scores.is_empty() {
             0.0
         } else {
             confidence_scores.iter().sum::<f64>() / confidence_scores.len() as f64
         };
-        
+
         Ok(SystemGuarantees {
             safety_guaranteed: all_implications_valid,
             safety_proof: if all_implications_valid {
-                Some("Safety follows from termination guarantee via compositional proof chain".to_string())
+                Some(
+                    "Safety follows from termination guarantee via compositional proof chain"
+                        .to_string(),
+                )
             } else {
                 None
             },
@@ -817,28 +900,38 @@ impl CompositionalProofChain {
 
     // Helper methods
 
-    fn verify_l0_prerequisites_for_l1(&self, l0_results: &LayerVerificationResult) -> AispResult<()> {
-        if !self.property_verified(l0_results, "vector_space_stability") ||
-           !self.property_verified(l0_results, "deterministic_operations") {
+    fn verify_l0_prerequisites_for_l1(
+        &self,
+        l0_results: &LayerVerificationResult,
+    ) -> AispResult<()> {
+        if !self.property_verified(l0_results, "vector_space_stability")
+            || !self.property_verified(l0_results, "deterministic_operations")
+        {
             return Err(AispError::VerificationFailed(
-                "L0 prerequisites not satisfied for L1 verification".to_string()
+                "L0 prerequisites not satisfied for L1 verification".to_string(),
             ));
         }
         Ok(())
     }
 
-    fn verify_l1_prerequisites_for_l2(&self, l1_results: &LayerVerificationResult) -> AispResult<()> {
-        if !self.property_verified(l1_results, "cas_integrity") ||
-           !self.property_verified(l1_results, "zero_copy_learning") {
+    fn verify_l1_prerequisites_for_l2(
+        &self,
+        l1_results: &LayerVerificationResult,
+    ) -> AispResult<()> {
+        if !self.property_verified(l1_results, "cas_integrity")
+            || !self.property_verified(l1_results, "zero_copy_learning")
+        {
             return Err(AispError::VerificationFailed(
-                "L1 prerequisites not satisfied for L2 verification".to_string()
+                "L1 prerequisites not satisfied for L2 verification".to_string(),
             ));
         }
         Ok(())
     }
 
     fn property_verified(&self, results: &LayerVerificationResult, property_name: &str) -> bool {
-        results.properties_verified.iter()
+        results
+            .properties_verified
+            .iter()
             .any(|prop| prop.property_name == property_name && prop.verification_confidence > 0.8)
     }
 
@@ -846,11 +939,18 @@ impl CompositionalProofChain {
         if properties.is_empty() {
             return 0.0;
         }
-        properties.iter().map(|p| p.verification_confidence).sum::<f64>() / properties.len() as f64
+        properties
+            .iter()
+            .map(|p| p.verification_confidence)
+            .sum::<f64>()
+            / properties.len() as f64
     }
 
     // Placeholder implementations for proof certificate generation
-    fn generate_stability_proof_certificate(&self, _result: &OrthogonalityResult) -> AispResult<ProofCertificate> {
+    fn generate_stability_proof_certificate(
+        &self,
+        _result: &OrthogonalityResult,
+    ) -> AispResult<ProofCertificate> {
         Ok(ProofCertificate {
             proof_method: ProofMethod::DirectProof,
             proof_steps: vec![],
@@ -860,7 +960,10 @@ impl CompositionalProofChain {
         })
     }
 
-    fn generate_determinism_proof_certificate(&self, _result: &OrthogonalityResult) -> AispResult<ProofCertificate> {
+    fn generate_determinism_proof_certificate(
+        &self,
+        _result: &OrthogonalityResult,
+    ) -> AispResult<ProofCertificate> {
         Ok(ProofCertificate {
             proof_method: ProofMethod::DirectProof,
             proof_steps: vec![],
@@ -870,7 +973,10 @@ impl CompositionalProofChain {
         })
     }
 
-    fn generate_cas_integrity_proof(&self, _result: &PocketVerificationResult) -> AispResult<ProofCertificate> {
+    fn generate_cas_integrity_proof(
+        &self,
+        _result: &PocketVerificationResult,
+    ) -> AispResult<ProofCertificate> {
         Ok(ProofCertificate {
             proof_method: ProofMethod::DirectProof,
             proof_steps: vec![],
@@ -880,7 +986,10 @@ impl CompositionalProofChain {
         })
     }
 
-    fn generate_isolation_proof(&self, _result: &PocketVerificationResult) -> AispResult<ProofCertificate> {
+    fn generate_isolation_proof(
+        &self,
+        _result: &PocketVerificationResult,
+    ) -> AispResult<ProofCertificate> {
         Ok(ProofCertificate {
             proof_method: ProofMethod::DirectProof,
             proof_steps: vec![],
@@ -903,7 +1012,10 @@ impl CompositionalProofChain {
         })
     }
 
-    fn generate_boundedness_proof(&self, _result: &GhostSearchResult) -> AispResult<ProofCertificate> {
+    fn generate_boundedness_proof(
+        &self,
+        _result: &GhostSearchResult,
+    ) -> AispResult<ProofCertificate> {
         Ok(ProofCertificate {
             proof_method: ProofMethod::DirectProof,
             proof_steps: vec![],
@@ -1004,7 +1116,7 @@ mod tests {
             integrity_proof: Some("Test proof".to_string()),
             overall_confidence: 0.95,
         };
-        
+
         assert!(guarantees.safety_guaranteed);
         assert!(guarantees.optimality_guaranteed);
         assert_eq!(guarantees.overall_confidence, 0.95);

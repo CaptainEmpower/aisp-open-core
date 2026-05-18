@@ -3,9 +3,7 @@
 //! This module defines the core types and structures used throughout
 //! the invariant discovery system.
 
-use crate::{
-    property_types::{PropertyFormula, SourceLocation},
-};
+use crate::property_types::{PropertyFormula, SourceLocation};
 use std::time::Duration;
 
 /// Discovered invariant with confidence scoring
@@ -181,14 +179,13 @@ impl DiscoveredInvariant {
 
     /// Get the highest evidence strength
     pub fn max_evidence_strength(&self) -> f64 {
-        self.evidence.iter()
-            .map(|e| e.strength)
-            .fold(0.0, f64::max)
+        self.evidence.iter().map(|e| e.strength).fold(0.0, f64::max)
     }
 
     /// Check if this invariant has evidence of a specific type
     pub fn has_evidence_type(&self, evidence_type: &EvidenceType) -> bool {
-        self.evidence.iter()
+        self.evidence
+            .iter()
             .any(|e| &e.evidence_type == evidence_type)
     }
 }
@@ -213,7 +210,7 @@ impl InvariantEvidence {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term};
+    use crate::property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term};
     use std::collections::HashSet;
 
     fn create_test_formula() -> PropertyFormula {
@@ -371,7 +368,13 @@ mod tests {
 
     #[test]
     fn test_evidence_type_equality() {
-        assert_eq!(EvidenceType::TypeSystemEnforcement, EvidenceType::TypeSystemEnforcement);
-        assert_ne!(EvidenceType::TypeSystemEnforcement, EvidenceType::PatternMatching);
+        assert_eq!(
+            EvidenceType::TypeSystemEnforcement,
+            EvidenceType::TypeSystemEnforcement
+        );
+        assert_ne!(
+            EvidenceType::TypeSystemEnforcement,
+            EvidenceType::PatternMatching
+        );
     }
 }

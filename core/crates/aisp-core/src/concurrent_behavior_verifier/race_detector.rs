@@ -454,26 +454,33 @@ impl RaceConditionDetector {
     }
 
     /// Detect race conditions in concurrent processes
-    pub fn detect_races(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    pub fn detect_races(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         let mut detected_races = Vec::new();
-        
+
         // Apply each detection algorithm
         for algorithm in &self.algorithms {
             let races = self.apply_algorithm(algorithm, processes)?;
             detected_races.extend(races);
         }
-        
+
         // Remove duplicates and merge similar races
         let merged_races = self.merge_duplicate_races(detected_races);
-        
+
         // Filter by confidence threshold
         let filtered_races = self.filter_by_confidence(merged_races);
-        
+
         Ok(filtered_races)
     }
 
     /// Apply specific detection algorithm
-    fn apply_algorithm(&self, algorithm: &DetectionAlgorithm, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn apply_algorithm(
+        &self,
+        algorithm: &DetectionAlgorithm,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         match algorithm.algorithm_type {
             AlgorithmType::Lockset => self.lockset_analysis(processes),
             AlgorithmType::HappensBefore => self.happens_before_analysis(processes),
@@ -485,50 +492,75 @@ impl RaceConditionDetector {
     }
 
     /// Lockset-based race detection
-    fn lockset_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn lockset_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Lockset algorithm implementation
         Ok(Vec::new())
     }
 
     /// Happens-before race detection
-    fn happens_before_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn happens_before_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Happens-before algorithm implementation
         Ok(Vec::new())
     }
 
     /// Vector clock based race detection
-    fn vector_clock_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn vector_clock_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Vector clock algorithm implementation
         Ok(Vec::new())
     }
 
     /// Dynamic race detection
-    fn dynamic_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn dynamic_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Dynamic analysis implementation
         Ok(Vec::new())
     }
 
     /// Static race detection
-    fn static_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn static_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Static analysis implementation
         Ok(Vec::new())
     }
 
     /// Hybrid race detection
-    fn hybrid_analysis(&self, processes: &[ConcurrentProcess]) -> AispResult<Vec<DetailedRaceCondition>> {
+    fn hybrid_analysis(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Hybrid algorithm implementation
         Ok(Vec::new())
     }
 
     /// Merge duplicate race conditions
-    fn merge_duplicate_races(&self, races: Vec<DetailedRaceCondition>) -> Vec<DetailedRaceCondition> {
+    fn merge_duplicate_races(
+        &self,
+        races: Vec<DetailedRaceCondition>,
+    ) -> Vec<DetailedRaceCondition> {
         // Duplicate merging implementation
         races
     }
 
     /// Filter races by confidence threshold
-    fn filter_by_confidence(&self, races: Vec<DetailedRaceCondition>) -> Vec<DetailedRaceCondition> {
-        races.into_iter()
+    fn filter_by_confidence(
+        &self,
+        races: Vec<DetailedRaceCondition>,
+    ) -> Vec<DetailedRaceCondition> {
+        races
+            .into_iter()
             .filter(|race| race.detection_metadata.confidence >= self.sensitivity.min_confidence)
             .collect()
     }
@@ -548,7 +580,10 @@ impl RaceConditionDetector {
                 algorithm_type: AlgorithmType::HappensBefore,
                 accuracy: 0.90,
                 overhead: 0.25,
-                memory_models: vec![MemoryModelType::Sequential, MemoryModelType::ReleaseConsistency],
+                memory_models: vec![
+                    MemoryModelType::Sequential,
+                    MemoryModelType::ReleaseConsistency,
+                ],
             },
             DetectionAlgorithm {
                 name: "Vector Clock".to_string(),
@@ -609,7 +644,10 @@ mod tests {
     fn test_detector_creation() {
         let detector = RaceConditionDetector::new();
         assert!(!detector.algorithms.is_empty());
-        assert_eq!(detector.memory_model.model_type, MemoryModelType::Sequential);
+        assert_eq!(
+            detector.memory_model.model_type,
+            MemoryModelType::Sequential
+        );
         assert_eq!(detector.sensitivity.min_confidence, 0.8);
     }
 
@@ -617,11 +655,11 @@ mod tests {
     fn test_default_algorithms() {
         let algorithms = RaceConditionDetector::default_algorithms();
         assert_eq!(algorithms.len(), 3);
-        
+
         let lockset = &algorithms[0];
         assert_eq!(lockset.algorithm_type, AlgorithmType::Lockset);
         assert!(lockset.accuracy > 0.8);
-        
+
         let happens_before = &algorithms[1];
         assert_eq!(happens_before.algorithm_type, AlgorithmType::HappensBefore);
         assert!(happens_before.accuracy > 0.85);
@@ -645,7 +683,7 @@ mod tests {
     #[test]
     fn test_confidence_filtering() {
         let detector = RaceConditionDetector::new();
-        
+
         let high_confidence_race = DetailedRaceCondition {
             base: RaceCondition {
                 id: "race1".to_string(),
@@ -681,7 +719,7 @@ mod tests {
                 },
             },
         };
-        
+
         let low_confidence_race = DetailedRaceCondition {
             base: RaceCondition {
                 id: "race2".to_string(),
@@ -717,10 +755,10 @@ mod tests {
                 },
             },
         };
-        
+
         let races = vec![high_confidence_race, low_confidence_race];
         let filtered = detector.filter_by_confidence(races);
-        
+
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].base.id, "race1");
     }

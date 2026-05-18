@@ -5,10 +5,12 @@
 
 use crate::ast::canonical::{CanonicalAispDocument as AispDocument, *};
 use crate::error::*;
-use crate::temporal_operator_analyzer::{TemporalOperatorAnalyzer, OperatorValidationResult};
-use crate::temporal_pattern_detector::{TemporalPatternDetector, PatternAnalysisResult};
-use crate::temporal_logic_solver::{TemporalLogicSolver, FormulaAnalysisResult, SolverConfig};
-use crate::temporal_model_checker::{TemporalModelChecker, ModelCheckingResult, ModelCheckerConfig};
+use crate::temporal_logic_solver::{FormulaAnalysisResult, SolverConfig, TemporalLogicSolver};
+use crate::temporal_model_checker::{
+    ModelCheckerConfig, ModelCheckingResult, TemporalModelChecker,
+};
+use crate::temporal_operator_analyzer::{OperatorValidationResult, TemporalOperatorAnalyzer};
+use crate::temporal_pattern_detector::{PatternAnalysisResult, TemporalPatternDetector};
 
 /// Comprehensive temporal analysis engine
 pub struct UnifiedTemporalAnalyzer {
@@ -153,7 +155,8 @@ impl UnifiedTemporalAnalyzer {
         let pattern_start = std::time::Instant::now();
         let pattern_analysis = if self.config.enable_pattern_detection {
             let document_size = self.estimate_document_size(document);
-            self.pattern_detector.detect_patterns(&operator_analysis.operators, document_size)
+            self.pattern_detector
+                .detect_patterns(&operator_analysis.operators, document_size)
         } else {
             PatternAnalysisResult::empty()
         };
@@ -258,25 +261,19 @@ impl UnifiedTemporalAnalyzer {
         let mut cross_references = 0;
 
         // Check consistency between operators and patterns
-        let operator_pattern_consistency = self.check_operator_pattern_consistency(
-            operator_analysis,
-            pattern_analysis,
-        );
+        let operator_pattern_consistency =
+            self.check_operator_pattern_consistency(operator_analysis, pattern_analysis);
         if operator_pattern_consistency < 0.8 {
-            integration_warnings.push(
-                "Low consistency between detected operators and patterns".to_string()
-            );
+            integration_warnings
+                .push("Low consistency between detected operators and patterns".to_string());
         }
 
         // Check formula-model consistency
-        let formula_model_consistency = self.check_formula_model_consistency(
-            formula_analysis,
-            model_checking,
-        );
+        let formula_model_consistency =
+            self.check_formula_model_consistency(formula_analysis, model_checking);
         if formula_model_consistency < 0.7 {
-            integration_warnings.push(
-                "Low consistency between formula analysis and model checking".to_string()
-            );
+            integration_warnings
+                .push("Low consistency between formula analysis and model checking".to_string());
         }
 
         // Count cross-references
@@ -285,7 +282,8 @@ impl UnifiedTemporalAnalyzer {
         cross_references += formula_analysis.formulas.len();
 
         // Calculate cross-analyzer consistency
-        let cross_consistency_score = (operator_pattern_consistency + formula_model_consistency) / 2.0;
+        let cross_consistency_score =
+            (operator_pattern_consistency + formula_model_consistency) / 2.0;
 
         // Calculate coverage percentage
         let coverage_percentage = self.calculate_coverage_percentage(
@@ -315,7 +313,7 @@ impl UnifiedTemporalAnalyzer {
         // Check if detected patterns align with operators
         let operator_count = operator_analysis.operators.len();
         let pattern_count = pattern_analysis.patterns.len();
-        
+
         // Simple heuristic: patterns should be proportional to operators
         let ratio = pattern_count as f64 / operator_count as f64;
         if ratio >= 0.3 && ratio <= 3.0 {
@@ -338,14 +336,26 @@ impl UnifiedTemporalAnalyzer {
         }
 
         // Check if satisfiable formulas align with verified properties
-        let satisfiable_count = formula_analysis.formulas
+        let satisfiable_count = formula_analysis
+            .formulas
             .iter()
-            .filter(|f| matches!(f.result.satisfiable, crate::temporal_logic_solver::SatisfiabilityStatus::Satisfiable))
+            .filter(|f| {
+                matches!(
+                    f.result.satisfiable,
+                    crate::temporal_logic_solver::SatisfiabilityStatus::Satisfiable
+                )
+            })
             .count();
 
-        let verified_count = model_checking.verified_properties
+        let verified_count = model_checking
+            .verified_properties
             .iter()
-            .filter(|p| matches!(p.status, crate::temporal_model_checker::VerificationStatus::Verified))
+            .filter(|p| {
+                matches!(
+                    p.status,
+                    crate::temporal_model_checker::VerificationStatus::Verified
+                )
+            })
             .count();
 
         if satisfiable_count == 0 && verified_count == 0 {
@@ -355,14 +365,14 @@ impl UnifiedTemporalAnalyzer {
         // Calculate consistency based on alignment
         let total_formulas = formula_analysis.formulas.len();
         let total_properties = model_checking.verified_properties.len();
-        
+
         if total_formulas == 0 || total_properties == 0 {
             return 0.8; // Partial analysis
         }
 
         let formula_satisfaction_rate = satisfiable_count as f64 / total_formulas as f64;
         let property_verification_rate = verified_count as f64 / total_properties as f64;
-        
+
         let rate_difference = (formula_satisfaction_rate - property_verification_rate).abs();
         1.0 - rate_difference
     }
@@ -431,20 +441,26 @@ impl UnifiedTemporalAnalyzer {
 
         // Formula analysis contribution
         match formula_analysis.overall_status {
-            crate::temporal_logic_solver::SatisfiabilityStatus::Satisfiable |
-            crate::temporal_logic_solver::SatisfiabilityStatus::Valid => scores.push(0.9),
+            crate::temporal_logic_solver::SatisfiabilityStatus::Satisfiable
+            | crate::temporal_logic_solver::SatisfiabilityStatus::Valid => scores.push(0.9),
             crate::temporal_logic_solver::SatisfiabilityStatus::Unknown => scores.push(0.6),
-            crate::temporal_logic_solver::SatisfiabilityStatus::Unsatisfiable |
-            crate::temporal_logic_solver::SatisfiabilityStatus::Contradiction => scores.push(0.2),
+            crate::temporal_logic_solver::SatisfiabilityStatus::Unsatisfiable
+            | crate::temporal_logic_solver::SatisfiabilityStatus::Contradiction => scores.push(0.2),
         }
 
         // Model checking contribution
-        let verified_count = model_checking.verified_properties
+        let verified_count = model_checking
+            .verified_properties
             .iter()
-            .filter(|p| matches!(p.status, crate::temporal_model_checker::VerificationStatus::Verified))
+            .filter(|p| {
+                matches!(
+                    p.status,
+                    crate::temporal_model_checker::VerificationStatus::Verified
+                )
+            })
             .count();
         let total_properties = model_checking.verified_properties.len();
-        
+
         if total_properties > 0 {
             let verification_rate = verified_count as f64 / total_properties as f64;
             scores.push(verification_rate);
@@ -482,10 +498,13 @@ impl UnifiedTemporalAnalyzer {
         }
 
         // Model checking should not have critical violations
-        let has_critical_violations = model_checking.verified_properties
-            .iter()
-            .any(|p| matches!(p.status, crate::temporal_model_checker::VerificationStatus::Error(_)));
-        
+        let has_critical_violations = model_checking.verified_properties.iter().any(|p| {
+            matches!(
+                p.status,
+                crate::temporal_model_checker::VerificationStatus::Error(_)
+            )
+        });
+
         if has_critical_violations {
             return false;
         }
@@ -516,7 +535,7 @@ impl UnifiedTemporalAnalyzer {
         4096 + // Operator analyzer
         4096 + // Pattern detector
         8192 + // Logic solver (formula cache)
-        16384  // Model checker (state space)
+        16384 // Model checker (state space)
     }
 
     /// Count total elements analyzed
@@ -543,7 +562,9 @@ impl UnifiedTemporalAnalyzer {
                 integration_warnings: vec!["Analysis timed out".to_string()],
                 coverage_percentage: 0.0,
             },
-            warnings: vec![AispWarning::warning("Temporal analysis timed out".to_string())],
+            warnings: vec![AispWarning::warning(
+                "Temporal analysis timed out".to_string(),
+            )],
             performance_summary: PerformanceSummary {
                 total_time_ms: self.config.max_analysis_time_ms,
                 time_breakdown: AnalysisTimeBreakdown {
@@ -583,7 +604,7 @@ impl EmptyResult for OperatorValidationResult {
     fn empty() -> Self {
         use crate::temporal_operator_analyzer::OperatorComplexity;
         use std::collections::HashMap;
-        
+
         Self {
             operators: Vec::new(),
             path_quantifiers: Vec::new(),
@@ -603,9 +624,11 @@ impl EmptyResult for OperatorValidationResult {
 
 impl EmptyResult for PatternAnalysisResult {
     fn empty() -> Self {
-        use crate::temporal_pattern_detector::{PatternStatistics, QualitySummary, CoverageMetrics};
+        use crate::temporal_pattern_detector::{
+            CoverageMetrics, PatternStatistics, QualitySummary,
+        };
         use std::collections::HashMap;
-        
+
         Self {
             patterns: Vec::new(),
             statistics: PatternStatistics {
@@ -633,9 +656,9 @@ impl EmptyResult for PatternAnalysisResult {
 
 impl EmptyResult for FormulaAnalysisResult {
     fn empty() -> Self {
-        use crate::temporal_logic_solver::{SatisfiabilityStatus, PerformanceSummary};
+        use crate::temporal_logic_solver::{PerformanceSummary, SatisfiabilityStatus};
         use std::collections::HashMap;
-        
+
         Self {
             formulas: Vec::new(),
             overall_status: SatisfiabilityStatus::Valid,
@@ -655,7 +678,7 @@ impl EmptyResult for ModelCheckingResult {
     fn empty() -> Self {
         use crate::temporal_model_checker::*;
         use std::collections::{HashMap, HashSet};
-        
+
         Self {
             verified_properties: Vec::new(),
             state_space_analysis: StateSpaceAnalysis {
@@ -752,7 +775,7 @@ mod tests {
     #[test]
     fn test_document_size_estimation() {
         let analyzer = UnifiedTemporalAnalyzer::new();
-        
+
         // Empty document
         let empty_doc = AispDocument {
             header: DocumentHeader {
@@ -768,7 +791,7 @@ mod tests {
             blocks: Vec::new(),
             span: Some(Span::new(1, 1, 1, 1)),
         };
-        
+
         let size = analyzer.estimate_document_size(&empty_doc);
         assert_eq!(size, 100); // Minimum size
     }
@@ -776,7 +799,7 @@ mod tests {
     #[test]
     fn test_consistency_calculation() {
         let analyzer = UnifiedTemporalAnalyzer::new();
-        
+
         // Create mock analysis results
         let operator_analysis = OperatorValidationResult::empty();
         let pattern_analysis = PatternAnalysisResult::empty();

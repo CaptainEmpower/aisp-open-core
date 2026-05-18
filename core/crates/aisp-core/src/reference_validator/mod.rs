@@ -1,18 +1,22 @@
 //! Reference.md Formal Verification System
-//! 
+//!
 //! This module provides comprehensive formal verification of AISP documents
 //! against the mathematical specifications in reference.md. The verification
 //! system is split into focused modules for maintainability.
 
 pub mod ambiguity_verification;
-pub mod feature_verification;  
+pub mod feature_verification;
 pub mod pipeline_verification;
 pub mod trivector_verification;
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
-use crate::error::{AispResult};
-use crate::incompleteness_handler::{IncompletenessHandler, TruthValue, IncompletenessResult, UndecidabilityReason};
-use crate::semantic::{DeepVerificationResult};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
+use crate::error::AispResult;
+use crate::incompleteness_handler::{
+    IncompletenessHandler, IncompletenessResult, TruthValue, UndecidabilityReason,
+};
+use crate::semantic::DeepVerificationResult;
 use crate::z3_verification::{PropertyResult, Z3VerificationFacade};
 
 use std::collections::HashMap;
@@ -67,7 +71,7 @@ pub struct IncompletenessAnalysisResult {
 pub enum ComplianceLevel {
     FullCompliance,
     PartialCompliance,
-    MinimalCompliance, 
+    MinimalCompliance,
     Failed,
 }
 
@@ -75,7 +79,7 @@ impl ReferenceValidator {
     /// Create new reference validator
     pub fn new() -> AispResult<Self> {
         let z3_verifier = Z3VerificationFacade::new()?;
-        
+
         Ok(Self {
             z3_verifier,
             incompleteness_handler: IncompletenessHandler::new(),
@@ -87,7 +91,7 @@ impl ReferenceValidator {
             },
         })
     }
-    
+
     /// Validate an AISP document against reference.md specifications
     pub fn validate_document(
         &mut self,
@@ -95,26 +99,28 @@ impl ReferenceValidator {
         semantic_result: &DeepVerificationResult,
     ) -> AispResult<ReferenceValidationResult> {
         let start_time = Instant::now();
-        
+
         // Run all verification modules
-        let mathematical_foundations = self.verify_mathematical_foundations(document, semantic_result)?;
-        let trivector_orthogonality = self.verify_trivector_orthogonality(document, semantic_result)?;
+        let mathematical_foundations =
+            self.verify_mathematical_foundations(document, semantic_result)?;
+        let trivector_orthogonality =
+            self.verify_trivector_orthogonality(document, semantic_result)?;
         let feature_compliance = self.verify_feature_compliance(document)?;
         let pipeline_verification = self.verify_pipeline_success_rates()?;
         let incompleteness_analysis = self.verify_incompleteness_claims(document)?;
-        
+
         // Calculate overall compliance
         let compliance_score = self.calculate_compliance_score(
             &mathematical_foundations,
-            &trivector_orthogonality, 
+            &trivector_orthogonality,
             &feature_compliance,
             &pipeline_verification,
         );
-        
+
         let overall_compliance = self.determine_compliance_level(compliance_score);
-        
+
         self.verification_stats.total_time += start_time.elapsed();
-        
+
         Ok(ReferenceValidationResult {
             mathematical_foundations,
             trivector_orthogonality,
@@ -125,7 +131,7 @@ impl ReferenceValidator {
             compliance_score,
         })
     }
-    
+
     /// Get current verification statistics
     pub fn get_stats(&self) -> &VerificationStats {
         &self.verification_stats
@@ -142,7 +148,7 @@ impl ReferenceValidator {
         let mut ambiguity_verifier = AmbiguityVerifier::new(&mut self.z3_verifier);
         ambiguity_verifier.verify_ambiguity_calculation("", semantic_result)
     }
-    
+
     fn verify_trivector_orthogonality(
         &mut self,
         document: &AispDocument,
@@ -151,7 +157,7 @@ impl ReferenceValidator {
         let mut trivector_verifier = TriVectorVerifier::new(&mut self.z3_verifier);
         trivector_verifier.verify_orthogonality(document, semantic_result)
     }
-    
+
     fn verify_feature_compliance(
         &mut self,
         document: &AispDocument,
@@ -159,17 +165,20 @@ impl ReferenceValidator {
         let mut feature_verifier = FeatureVerifier::new(&mut self.z3_verifier);
         feature_verifier.verify_all_features(document)
     }
-    
+
     fn verify_pipeline_success_rates(&mut self) -> AispResult<PipelineVerificationResult> {
         let mut pipeline_verifier = PipelineVerifier::new(&mut self.z3_verifier);
         pipeline_verifier.verify_success_rates()
     }
-    
+
     /// Verify claims about mathematical completeness and consistency against Gödel's theorems
-    fn verify_incompleteness_claims(&mut self, _document: &AispDocument) -> AispResult<IncompletenessAnalysisResult> {
+    fn verify_incompleteness_claims(
+        &mut self,
+        _document: &AispDocument,
+    ) -> AispResult<IncompletenessAnalysisResult> {
         let mut godel_sentences_detected = Vec::new();
         let mut undecidable_statements = Vec::new();
-        
+
         // Test key claims from reference.md that violate incompleteness theorems
         let test_statements = vec![
             "AISP 5.1 formal verification system is mathematically complete",
@@ -178,38 +187,40 @@ impl ReferenceValidator {
             "The 20 features are provably sound and complete",
             "This statement cannot be proven within AISP 5.1", // Direct Gödel sentence
         ];
-        
+
         for statement in test_statements {
             let result = self.incompleteness_handler.verify_statement(statement);
-            
+
             // Collect Gödel sentences
             if let Some(UndecidabilityReason::GoedelSentence) = result.undecidability_reason {
                 godel_sentences_detected.push(statement.to_string());
             }
-            
+
             // Collect undecidable statements
             if result.truth_value == TruthValue::Unknown {
                 undecidable_statements.push(result);
             }
         }
-        
+
         // Check system consistency using incompleteness handler
-        let system_is_consistent = self.incompleteness_handler.check_consistency()
+        let system_is_consistent = self
+            .incompleteness_handler
+            .check_consistency()
             .unwrap_or(false);
-        
+
         // A complete system would be able to prove/disprove every statement
         // But Gödel's theorem shows this is impossible for consistent systems
         let system_is_complete = undecidable_statements.is_empty();
-        
+
         // Verify specific claims against incompleteness theorems
-        let completeness_claim = self.incompleteness_handler.verify_statement(
-            "AISP 5.1 formal verification system is mathematically complete"
-        );
-        
-        let consistency_claim = self.incompleteness_handler.verify_statement(
-            "AISP 5.1 formal verification system is consistent"
-        );
-        
+        let completeness_claim = self
+            .incompleteness_handler
+            .verify_statement("AISP 5.1 formal verification system is mathematically complete");
+
+        let consistency_claim = self
+            .incompleteness_handler
+            .verify_statement("AISP 5.1 formal verification system is consistent");
+
         Ok(IncompletenessAnalysisResult {
             completeness_claim_verified: completeness_claim.truth_value,
             consistency_claim_verified: consistency_claim.truth_value,
@@ -219,7 +230,7 @@ impl ReferenceValidator {
             system_is_consistent,
         })
     }
-    
+
     fn calculate_compliance_score(
         &self,
         math: &MathematicalFoundationsResult,
@@ -231,13 +242,21 @@ impl ReferenceValidator {
         let mut weight = 0.0;
 
         // Mathematical foundations (25% weight)
-        if math.ambiguity_verified { score += 0.125; }
-        if math.token_efficiency.meets_spec { score += 0.125; }
+        if math.ambiguity_verified {
+            score += 0.125;
+        }
+        if math.token_efficiency.meets_spec {
+            score += 0.125;
+        }
         weight += 0.25;
 
         // Tri-vector orthogonality (25% weight)
-        if trivector.vh_vs_orthogonal { score += 0.125; }
-        if trivector.vl_vs_orthogonal { score += 0.125; }
+        if trivector.vh_vs_orthogonal {
+            score += 0.125;
+        }
+        if trivector.vl_vs_orthogonal {
+            score += 0.125;
+        }
         weight += 0.25;
 
         // Feature compliance (35% weight)
@@ -245,12 +264,18 @@ impl ReferenceValidator {
         weight += 0.35;
 
         // Pipeline verification (15% weight)
-        if pipeline.mathematical_proof_valid { score += 0.15; }
+        if pipeline.mathematical_proof_valid {
+            score += 0.15;
+        }
         weight += 0.15;
 
-        if weight > 0.0 { score / weight } else { 0.0 }
+        if weight > 0.0 {
+            score / weight
+        } else {
+            0.0
+        }
     }
-    
+
     fn determine_compliance_level(&self, score: f64) -> ComplianceLevel {
         match score {
             s if s >= 0.95 => ComplianceLevel::FullCompliance,
@@ -282,8 +307,10 @@ impl Default for ReferenceValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span};
-    
+    use crate::ast::canonical::{
+        CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
+    };
+
     fn create_test_document() -> AispDocument {
         AispDocument {
             header: DocumentHeader {
@@ -300,46 +327,58 @@ mod tests {
             span: Some(Span::new(0, 0, 1, 1)),
         }
     }
-    
+
     fn create_test_semantic_result() -> DeepVerificationResult {
         DeepVerificationResult::test_default()
     }
-    
+
     #[test]
     fn test_validator_creation() {
         let validator = ReferenceValidator::new();
         assert!(validator.is_ok());
     }
-    
-    #[test] 
+
+    #[test]
     fn test_compliance_level_determination() {
         let validator = ReferenceValidator::default();
-        
-        assert_eq!(validator.determine_compliance_level(0.99), ComplianceLevel::FullCompliance);
-        assert_eq!(validator.determine_compliance_level(0.85), ComplianceLevel::PartialCompliance);
-        assert_eq!(validator.determine_compliance_level(0.65), ComplianceLevel::MinimalCompliance);
-        assert_eq!(validator.determine_compliance_level(0.30), ComplianceLevel::Failed);
+
+        assert_eq!(
+            validator.determine_compliance_level(0.99),
+            ComplianceLevel::FullCompliance
+        );
+        assert_eq!(
+            validator.determine_compliance_level(0.85),
+            ComplianceLevel::PartialCompliance
+        );
+        assert_eq!(
+            validator.determine_compliance_level(0.65),
+            ComplianceLevel::MinimalCompliance
+        );
+        assert_eq!(
+            validator.determine_compliance_level(0.30),
+            ComplianceLevel::Failed
+        );
     }
-    
+
     #[test]
     fn test_document_validation() {
         let mut validator = ReferenceValidator::default();
         let document = create_test_document();
         let semantic_result = create_test_semantic_result();
-        
+
         let result = validator.validate_document(&document, &semantic_result);
         assert!(result.is_ok());
-        
+
         let validation_result = result.unwrap();
         assert!(validation_result.compliance_score >= 0.0);
         assert!(validation_result.compliance_score <= 1.0);
     }
-    
+
     #[test]
     fn test_verification_stats_tracking() {
         let validator = ReferenceValidator::default();
         let stats = validator.get_stats();
-        
+
         assert_eq!(stats.features_verified, 0);
         assert_eq!(stats.features_failed, 0);
         assert_eq!(stats.smt_queries, 0);

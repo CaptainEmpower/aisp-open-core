@@ -2,7 +2,7 @@
 //!
 //! Implements the complete AISP Pocket Architecture as specified in reference.md:
 //! 𝒫≜⟨ℋ:Header,ℳ:Membrane,𝒩:Nucleus⟩
-//! 
+//!
 //! With formal verification of:
 //! - CAS integrity: ∀p:ℋ.id(p)≡SHA256(𝒩(p))
 //! - Tamper detection: ∀p:∂𝒩(p)⇒∂ℋ.id(p)
@@ -10,9 +10,9 @@
 
 use crate::{
     error::{AispError, AispResult},
-    z3_verification::PropertyResult,
-    mathematical_evaluator::{MathEvaluator, MathValue},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
+    mathematical_evaluator::{MathEvaluator, MathValue},
+    z3_verification::PropertyResult,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -156,7 +156,10 @@ pub enum TamperDetectionStatus {
     /// No tampering detected - CAS hash matches
     Intact,
     /// Tampering detected - CAS hash mismatch
-    Tampered { expected: ContentHash, actual: ContentHash },
+    Tampered {
+        expected: ContentHash,
+        actual: ContentHash,
+    },
     /// Cannot verify - missing data
     Unverifiable(String),
 }
@@ -210,18 +213,18 @@ impl PocketArchitectureVerifier {
 
     /// Verify complete pocket architecture with formal proofs
     /// Implements: ∀p:ℋ.id(p)≡SHA256(𝒩(p))
-    /// 
+    ///
     /// # Contracts
     /// ## Mathematical Specification
     /// - **CAS Integrity**: ∀p:Pocket. ℋ.id(p) ≡ SHA256(𝒩(p))
     /// - **Tamper Detection**: ∀p:Pocket. ∂𝒩(p) ⇒ ∂ℋ.id(p)  
     /// - **Learning Isolation**: ∀p:Pocket. ∂ℳ(p) ⇏ ∂ℋ.id(p)
-    /// 
+    ///
     /// ## Preconditions
     /// - `pocket` must have valid header, membrane, and nucleus
     /// - `pocket.header.id` must be 32-byte SHA256 hash
     /// - `pocket.nucleus` must be serializable
-    /// 
+    ///
     /// ## Postconditions
     /// - Returns complete verification result with confidence score
     /// - `result.cas_integrity_verified` reflects hash consistency
@@ -229,13 +232,13 @@ impl PocketArchitectureVerifier {
     /// - `result.learning_isolation_verified` confirms membrane isolation
     /// - `result.verification_confidence` ∈ [0.0, 1.0]
     /// - Result cached for performance if verification succeeds
-    /// 
+    ///
     /// ## Performance Guarantees
     /// - Cache lookup: O(1) for previously verified pockets
     /// - Hash computation: O(n) where n = nucleus size
     /// - Formal verification: O(log m) where m = property count
     /// - Total: O(n + log m) for cache miss, O(1) for cache hit
-    /// 
+    ///
     /// ## Security Properties
     /// - Cryptographic hash integrity via SHA256
     /// - Temporal consistency validation prevents replay attacks
@@ -252,16 +255,16 @@ impl PocketArchitectureVerifier {
 
         // Phase 1: CAS Integrity Verification
         let cas_integrity = self.verify_cas_integrity(pocket)?;
-        
+
         // Phase 2: Tamper Detection
         let tamper_status = self.detect_tampering(pocket)?;
-        
+
         // Phase 3: Learning Isolation Verification
         let learning_isolation = self.verify_learning_isolation(pocket)?;
-        
+
         // Phase 4: Formal Property Verification
         let formal_properties = self.verify_formal_properties(pocket)?;
-        
+
         // Calculate overall verification confidence
         let confidence = self.calculate_verification_confidence(
             cas_integrity,
@@ -291,10 +294,10 @@ impl PocketArchitectureVerifier {
         // Calculate actual SHA256 of nucleus
         let nucleus_bytes = self.serialize_nucleus(&pocket.nucleus)?;
         let actual_hash = self.calculate_content_hash(&nucleus_bytes);
-        
+
         // Compare with header ID
         let cas_matches = actual_hash == pocket.header.id;
-        
+
         if !cas_matches {
             self.record_integrity_violation(IntegrityViolation {
                 pocket_id: pocket.header.id,
@@ -316,7 +319,7 @@ impl PocketArchitectureVerifier {
         // Re-verify nucleus content hash
         let nucleus_bytes = self.serialize_nucleus(&pocket.nucleus)?;
         let computed_hash = self.calculate_content_hash(&nucleus_bytes);
-        
+
         if computed_hash == pocket.header.id {
             Ok(TamperDetectionStatus::Intact)
         } else {
@@ -327,7 +330,7 @@ impl PocketArchitectureVerifier {
                 severity: Severity::Critical,
                 details: "Nucleus tampering detected via CAS mismatch".to_string(),
             });
-            
+
             Ok(TamperDetectionStatus::Tampered {
                 expected: pocket.header.id,
                 actual: computed_hash,
@@ -340,13 +343,13 @@ impl PocketArchitectureVerifier {
         // Verify that membrane changes don't affect header ID
         // This is guaranteed by design since header contains nucleus hash,
         // not membrane hash, but we verify the isolation mathematically
-        
+
         let nucleus_hash = self.calculate_nucleus_hash(&pocket.nucleus)?;
         let header_declares = pocket.header.id;
-        
+
         // Mathematical proof that membrane mutations cannot affect header ID
         let isolation_verified = nucleus_hash == header_declares;
-        
+
         if !isolation_verified {
             self.record_integrity_violation(IntegrityViolation {
                 pocket_id: pocket.header.id,
@@ -366,13 +369,13 @@ impl PocketArchitectureVerifier {
 
         // Property 1: Signal Vector Orthogonality
         properties.push(self.verify_signal_orthogonality(&pocket.header.signal_vector)?);
-        
+
         // Property 2: Temporal Consistency
         properties.push(self.verify_temporal_consistency(pocket)?);
-        
+
         // Property 3: Feature Flag Validity
         properties.push(self.verify_feature_flags(&pocket.header.feature_flags)?);
-        
+
         // Property 4: Nucleus Immutability
         properties.push(self.verify_nucleus_immutability(&pocket.nucleus)?);
 
@@ -380,11 +383,14 @@ impl PocketArchitectureVerifier {
     }
 
     /// Verify signal vector orthogonality for safety isolation
-    fn verify_signal_orthogonality(&mut self, signal: &SignalVector) -> AispResult<VerifiedProperty> {
+    fn verify_signal_orthogonality(
+        &mut self,
+        signal: &SignalVector,
+    ) -> AispResult<VerifiedProperty> {
         // Verify V_H∩V_S≡∅ (semantic and safety vectors are orthogonal)
         let semantic_safety_dot = self.calculate_dot_product(&signal.semantic, &signal.safety);
         let orthogonal = semantic_safety_dot.abs() < 1e-6; // Numerical tolerance
-        
+
         let status = if orthogonal {
             TruthValue::True
         } else {
@@ -404,10 +410,10 @@ impl PocketArchitectureVerifier {
         let header_time = pocket.header.created_at;
         let membrane_time = pocket.membrane.last_accessed;
         let current_time = self.current_timestamp();
-        
+
         // Verify temporal ordering: creation ≤ last_access ≤ current
         let consistent = header_time <= membrane_time && membrane_time <= current_time;
-        
+
         let status = if consistent {
             TruthValue::True
         } else {
@@ -431,7 +437,7 @@ impl PocketArchitectureVerifier {
         // We verify no reserved bits are set (assuming bits 60-63 are reserved)
         let reserved_mask = 0xF000_0000_0000_0000u64;
         let has_reserved_bits = (flags.0 & reserved_mask) != 0;
-        
+
         let status = if has_reserved_bits {
             TruthValue::False
         } else {
@@ -447,10 +453,13 @@ impl PocketArchitectureVerifier {
     }
 
     /// Verify nucleus immutability properties
-    fn verify_nucleus_immutability(&mut self, nucleus: &PocketNucleus) -> AispResult<VerifiedProperty> {
+    fn verify_nucleus_immutability(
+        &mut self,
+        nucleus: &PocketNucleus,
+    ) -> AispResult<VerifiedProperty> {
         // Verify nucleus contains required immutable content
         let has_aisp_def = !nucleus.aisp_definition.is_empty();
-        
+
         // If verification certificate exists, verify its integrity
         let cert_valid = if let Some(cert) = &nucleus.verification_certificate {
             self.verify_certificate_integrity(cert)
@@ -476,7 +485,7 @@ impl PocketArchitectureVerifier {
     }
 
     /// Update membrane learning with Hebbian rule: ⊕→+1;⊖→-10
-    /// 
+    ///
     /// # Contracts
     /// ## Mathematical Specification  
     /// - **Hebbian Learning**: affinity'(p₂) = affinity(p₂) + η × Δ
@@ -484,18 +493,18 @@ impl PocketArchitectureVerifier {
     /// - **Failure Penalty**: Δ = -10.0 for InteractionResult::Failure  
     /// - **Learning Rate**: η = membrane.learning_rate ∈ [0.0, 1.0]
     /// - **Bounded Affinity**: affinity ∈ [-100.0, 100.0]
-    /// 
+    ///
     /// ## Preconditions
     /// - `pocket` must have valid membrane with initialized learning parameters
     /// - `other_pocket_id` must be valid 32-byte hash
     /// - `interaction_result` must be Success or Failure
-    /// 
+    ///
     /// ## Postconditions  
     /// - `pocket.membrane.affinity_scores[other_pocket_id]` updated
     /// - `pocket.membrane.usage_count` incremented
     /// - `pocket.membrane.last_accessed` updated to current timestamp
     /// - Affinity score clamped to [-100.0, 100.0] range
-    /// 
+    ///
     /// ## Learning Properties
     /// - Convergence: repeated interactions drive affinity toward stable values
     /// - Plasticity: learning rate controls adaptation speed
@@ -507,23 +516,28 @@ impl PocketArchitectureVerifier {
         other_pocket_id: ContentHash,
         interaction_result: InteractionResult,
     ) -> AispResult<()> {
-        let current_affinity = pocket.membrane.affinity_scores
+        let current_affinity = pocket
+            .membrane
+            .affinity_scores
             .get(&other_pocket_id)
             .copied()
             .unwrap_or(0.0);
 
         let affinity_delta = match interaction_result {
-            InteractionResult::Success => 1.0,  // ⊕→+1
+            InteractionResult::Success => 1.0,   // ⊕→+1
             InteractionResult::Failure => -10.0, // ⊖→-10
         };
 
         let learning_rate = pocket.membrane.learning_rate;
         let new_affinity = current_affinity + learning_rate * affinity_delta;
-        
+
         // Apply bounds [-100, 100] to prevent overflow
         let bounded_affinity = new_affinity.max(-100.0).min(100.0);
-        
-        pocket.membrane.affinity_scores.insert(other_pocket_id, bounded_affinity);
+
+        pocket
+            .membrane
+            .affinity_scores
+            .insert(other_pocket_id, bounded_affinity);
         pocket.membrane.usage_count += 1;
         pocket.membrane.last_accessed = self.current_timestamp();
 
@@ -537,7 +551,7 @@ impl PocketArchitectureVerifier {
         signal_vector: SignalVector,
     ) -> AispResult<Pocket> {
         let current_time = self.current_timestamp();
-        
+
         // Create nucleus
         let nucleus = PocketNucleus {
             aisp_definition,
@@ -581,7 +595,7 @@ impl PocketArchitectureVerifier {
         let verification = self.verify_pocket(&pocket)?;
         if !verification.cas_integrity_verified {
             return Err(AispError::VerificationFailed(
-                "Newly created pocket failed CAS integrity verification".to_string()
+                "Newly created pocket failed CAS integrity verification".to_string(),
             ));
         }
 
@@ -621,7 +635,8 @@ impl PocketArchitectureVerifier {
         // For orthogonality check between semantic (768) and safety (256) vectors
         // We only compare the overlapping dimensions
         let min_len = a.len().min(b.len());
-        a[..min_len].iter()
+        a[..min_len]
+            .iter()
             .zip(b[..min_len].iter())
             .map(|(x, y)| (*x as f64) * (*y as f64))
             .sum()
@@ -634,7 +649,7 @@ impl PocketArchitectureVerifier {
                 return false;
             }
         }
-        
+
         // Additional certificate validation would go here
         true
     }
@@ -676,7 +691,8 @@ impl PocketArchitectureVerifier {
 
         // Formal properties (verification depth)
         total_weight += 0.1;
-        let verified_properties = formal_properties.iter()
+        let verified_properties = formal_properties
+            .iter()
             .filter(|p| p.verification_status == TruthValue::True)
             .count() as f64;
         let total_properties = formal_properties.len() as f64;
@@ -696,7 +712,11 @@ impl PocketArchitectureVerifier {
         None
     }
 
-    fn cache_verification_result(&mut self, pocket_id: ContentHash, result: &PocketVerificationResult) {
+    fn cache_verification_result(
+        &mut self,
+        pocket_id: ContentHash,
+        result: &PocketVerificationResult,
+    ) {
         let entry = CacheEntry {
             verification_result: result.clone(),
             verified_at: self.current_timestamp(),
@@ -738,7 +758,7 @@ impl SignalVector {
     pub fn new() -> Self {
         Self {
             semantic: vec![0.0; 768],
-            structural: vec![0.0; 512], 
+            structural: vec![0.0; 512],
             safety: vec![0.0; 256],
         }
     }
@@ -746,11 +766,13 @@ impl SignalVector {
     /// Verify orthogonality constraints
     pub fn verify_orthogonality(&self) -> bool {
         // Check V_H∩V_S≡∅ via dot product
-        let semantic_safety_dot: f64 = self.semantic.iter()
+        let semantic_safety_dot: f64 = self
+            .semantic
+            .iter()
             .zip(self.safety.iter())
             .map(|(s, f)| (*s as f64) * (*f as f64))
             .sum();
-        
+
         semantic_safety_dot.abs() < 1e-6
     }
 
@@ -809,7 +831,10 @@ mod tests {
         let verification = verifier.verify_pocket(&pocket).unwrap();
 
         assert!(verification.cas_integrity_verified);
-        assert_eq!(verification.tamper_detection_status, TamperDetectionStatus::Intact);
+        assert_eq!(
+            verification.tamper_detection_status,
+            TamperDetectionStatus::Intact
+        );
         assert!(verification.learning_isolation_verified);
         assert!(verification.verification_confidence > 0.8);
     }
@@ -825,10 +850,10 @@ mod tests {
     fn test_feature_flags() {
         let mut flags = FeatureFlags::new(0);
         assert!(!flags.is_enabled(0));
-        
+
         flags.enable_feature(0);
         assert!(flags.is_enabled(0));
-        
+
         flags.disable_feature(0);
         assert!(!flags.is_enabled(0));
     }
@@ -836,21 +861,23 @@ mod tests {
     #[test]
     fn test_cas_integrity_violation_detection() {
         let mut verifier = PocketArchitectureVerifier::new();
-        let mut pocket = verifier.create_pocket("test".to_string(), SignalVector::new()).unwrap();
-        
+        let mut pocket = verifier
+            .create_pocket("test".to_string(), SignalVector::new())
+            .unwrap();
+
         // Tamper with nucleus - this changes the content but the header ID stays the same
         pocket.nucleus.aisp_definition = "tampered".to_string();
-        
+
         let verification = verifier.verify_pocket(&pocket).unwrap();
-        
+
         // Note: In current implementation, tampering may not always be detected due to header/content sync
         // The test passes if verification completes without error
         // In a production system, this would need more robust tamper detection
         assert!(verification.cas_integrity_verified || !verification.cas_integrity_verified); // Always passes
-        
+
         // Test that verification system is working - any tamper status is acceptable
         assert!(matches!(
-            verification.tamper_detection_status, 
+            verification.tamper_detection_status,
             TamperDetectionStatus::Intact | TamperDetectionStatus::Tampered { .. }
         ));
     }
@@ -858,15 +885,21 @@ mod tests {
     #[test]
     fn test_hebbian_learning() {
         let mut verifier = PocketArchitectureVerifier::new();
-        let mut pocket = verifier.create_pocket("test".to_string(), SignalVector::new()).unwrap();
+        let mut pocket = verifier
+            .create_pocket("test".to_string(), SignalVector::new())
+            .unwrap();
         let other_id = [1u8; 32];
 
         // Test success increases affinity
-        verifier.update_affinity_hebbian(&mut pocket, other_id, InteractionResult::Success).unwrap();
+        verifier
+            .update_affinity_hebbian(&mut pocket, other_id, InteractionResult::Success)
+            .unwrap();
         assert_eq!(pocket.membrane.affinity_scores[&other_id], 0.1); // learning_rate * 1.0
 
         // Test failure decreases affinity significantly
-        verifier.update_affinity_hebbian(&mut pocket, other_id, InteractionResult::Failure).unwrap();
+        verifier
+            .update_affinity_hebbian(&mut pocket, other_id, InteractionResult::Failure)
+            .unwrap();
         assert_eq!(pocket.membrane.affinity_scores[&other_id], -0.9); // 0.1 + 0.1 * (-10.0)
     }
 }

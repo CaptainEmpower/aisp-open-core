@@ -3,11 +3,11 @@
 //! This module provides the main theorem prover that coordinates
 //! proof search strategies and manages the overall proving process.
 
-use crate::error::*;
-use crate::property_types::*;
-use crate::proof_types::*;
 use crate::axiom_system::*;
+use crate::error::*;
 use crate::proof_search::*;
+use crate::proof_types::*;
+use crate::property_types::*;
 use std::time::{Duration, Instant};
 
 /// Automated theorem prover for AISP properties
@@ -30,16 +30,16 @@ impl TheoremProver {
     /// Create new theorem prover with default configuration
     pub fn new() -> Self {
         let mut builder = AxiomSystemBuilder::new();
-        
+
         // Initialize standard axioms and rules
         builder.add_propositional_axioms();
         builder.add_predicate_axioms();
         builder.add_temporal_axioms();
         builder.add_aisp_axioms();
-        
+
         let (axioms, inference_rules) = builder.build();
         let search_engine = ProofSearchEngine::new(axioms.clone(), inference_rules.clone());
-        
+
         Self {
             axioms,
             inference_rules,
@@ -51,16 +51,12 @@ impl TheoremProver {
     }
 
     /// Create theorem prover with custom configuration
-    pub fn with_config(
-        strategy: ProofSearchStrategy,
-        max_depth: usize,
-        timeout: Duration,
-    ) -> Self {
+    pub fn with_config(strategy: ProofSearchStrategy, max_depth: usize, timeout: Duration) -> Self {
         let mut prover = Self::new();
         prover.strategy = strategy;
         prover.max_depth = max_depth;
         prover.timeout = timeout;
-        
+
         // Update search engine config
         let config = SearchConfig {
             max_depth,
@@ -76,7 +72,7 @@ impl TheoremProver {
     /// Prove a formula using the configured proof search strategy
     pub fn prove_formula(&mut self, formula: &PropertyFormula) -> AispResult<ProofTree> {
         let goal = &formula.structure;
-        
+
         // Execute proof search
         let outcome = match self.strategy {
             ProofSearchStrategy::NaturalDeduction => {
@@ -88,12 +84,14 @@ impl TheoremProver {
             ProofSearchStrategy::ForwardChaining => {
                 self.search_engine.forward_chaining_search(goal)?
             }
-            ProofSearchStrategy::Resolution => {
-                self.search_engine.resolution_search(goal)?
+            ProofSearchStrategy::Resolution => self.search_engine.resolution_search(goal)?,
+            _ => {
+                return Err(AispError::validation_error(
+                    "Proof strategy not implemented".to_string(),
+                ))
             }
-            _ => return Err(AispError::validation_error("Proof strategy not implemented".to_string())),
         };
-        
+
         // Convert proof outcome to ProofTree
         match outcome {
             ProofOutcome::Proven => {
@@ -106,7 +104,9 @@ impl TheoremProver {
                 })
             }
             ProofOutcome::Error(reason) => Err(AispError::validation_error(reason)),
-            ProofOutcome::Timeout => Err(AispError::validation_error("Proof search timeout".to_string())),
+            ProofOutcome::Timeout => Err(AispError::validation_error(
+                "Proof search timeout".to_string(),
+            )),
             _ => Err(AispError::validation_error("Proof not found".to_string())),
         }
     }
@@ -114,7 +114,7 @@ impl TheoremProver {
     /// Prove a property using the configured proof search strategy
     pub fn prove_property(&mut self, property: &ExtractedProperty) -> AispResult<ProofResult> {
         let start_time = Instant::now();
-        
+
         // Convert property to goal formula
         let goal = &property.formula.structure;
 
@@ -129,10 +129,12 @@ impl TheoremProver {
             ProofSearchStrategy::ForwardChaining => {
                 self.search_engine.forward_chaining_search(goal)?
             }
-            ProofSearchStrategy::Resolution => {
-                self.search_engine.resolution_search(goal)?
+            ProofSearchStrategy::Resolution => self.search_engine.resolution_search(goal)?,
+            _ => {
+                return Err(AispError::validation_error(
+                    "Proof strategy not implemented".to_string(),
+                ))
             }
-            _ => return Err(AispError::validation_error("Proof strategy not implemented".to_string())),
         };
 
         let search_time = start_time.elapsed();
@@ -173,13 +175,16 @@ impl TheoremProver {
     }
 
     /// Prove multiple properties efficiently
-    pub fn prove_properties(&mut self, properties: &[ExtractedProperty]) -> AispResult<Vec<ProofResult>> {
+    pub fn prove_properties(
+        &mut self,
+        properties: &[ExtractedProperty],
+    ) -> AispResult<Vec<ProofResult>> {
         let mut results = Vec::new();
-        
+
         for property in properties {
             let result = self.prove_property(property)?;
             results.push(result);
-            
+
             // Early termination if too many failures
             let failures = results.iter().filter(|r| !r.is_conclusive()).count();
             if failures > properties.len() / 2 {
@@ -187,7 +192,7 @@ impl TheoremProver {
                 break;
             }
         }
-        
+
         Ok(results)
     }
 
@@ -195,20 +200,16 @@ impl TheoremProver {
     pub fn add_axiom(&mut self, axiom: Axiom) {
         self.axioms.push(axiom);
         // Recreate search engine with updated axioms
-        self.search_engine = ProofSearchEngine::new(
-            self.axioms.clone(),
-            self.inference_rules.clone(),
-        );
+        self.search_engine =
+            ProofSearchEngine::new(self.axioms.clone(), self.inference_rules.clone());
     }
 
     /// Add custom inference rule to the system
     pub fn add_inference_rule(&mut self, rule: InferenceRule) {
         self.inference_rules.push(rule);
         // Recreate search engine with updated rules
-        self.search_engine = ProofSearchEngine::new(
-            self.axioms.clone(),
-            self.inference_rules.clone(),
-        );
+        self.search_engine =
+            ProofSearchEngine::new(self.axioms.clone(), self.inference_rules.clone());
     }
 
     /// Set proof search strategy
@@ -241,9 +242,18 @@ impl TheoremProver {
         let total_properties = results.len();
         let proven_count = results.iter().filter(|r| r.is_proven()).count();
         let disproven_count = results.iter().filter(|r| r.is_disproven()).count();
-        let timeout_count = results.iter().filter(|r| matches!(r.outcome, ProofOutcome::Timeout)).count();
-        let unknown_count = results.iter().filter(|r| matches!(r.outcome, ProofOutcome::Unknown)).count();
-        let error_count = results.iter().filter(|r| matches!(r.outcome, ProofOutcome::Error(_))).count();
+        let timeout_count = results
+            .iter()
+            .filter(|r| matches!(r.outcome, ProofOutcome::Timeout))
+            .count();
+        let unknown_count = results
+            .iter()
+            .filter(|r| matches!(r.outcome, ProofOutcome::Unknown))
+            .count();
+        let error_count = results
+            .iter()
+            .filter(|r| matches!(r.outcome, ProofOutcome::Error(_)))
+            .count();
 
         let total_search_time: Duration = results.iter().map(|r| r.search_time).sum();
         let avg_search_time = if total_properties > 0 {
@@ -266,7 +276,11 @@ impl TheoremProver {
             timeout_count,
             unknown_count,
             error_count,
-            success_rate: if total_properties > 0 { proven_count as f64 / total_properties as f64 } else { 0.0 },
+            success_rate: if total_properties > 0 {
+                proven_count as f64 / total_properties as f64
+            } else {
+                0.0
+            },
             total_search_time,
             avg_search_time,
             avg_steps_explored,
@@ -275,7 +289,11 @@ impl TheoremProver {
     }
 
     // Private helper methods
-    fn construct_formal_proof(&self, property: &ExtractedProperty, goal: &FormulaStructure) -> AispResult<FormalProof> {
+    fn construct_formal_proof(
+        &self,
+        property: &ExtractedProperty,
+        goal: &FormulaStructure,
+    ) -> AispResult<FormalProof> {
         let mut proof = FormalProof {
             conclusion: property.formula.clone(),
             steps: vec![],
@@ -295,17 +313,17 @@ impl TheoremProver {
 
         // Calculate complexity metrics
         proof.calculate_complexity();
-        
+
         Ok(proof)
     }
 
     fn generate_counterexample(&self, _property: &ExtractedProperty) -> AispResult<Counterexample> {
         let mut counterexample = Counterexample::new();
-        
+
         // Simple counterexample generation (would be more sophisticated in practice)
         counterexample.assign_variable("x".to_string(), "42".to_string());
         counterexample.validate();
-        
+
         Ok(counterexample)
     }
 
@@ -394,7 +412,7 @@ mod tests {
     fn test_add_axiom() {
         let mut prover = TheoremProver::new();
         let initial_count = prover.axioms.len();
-        
+
         let axiom = Axiom::new(
             "test_axiom".to_string(),
             FormulaStructure::Atomic(AtomicFormula {
@@ -405,7 +423,7 @@ mod tests {
             AxiomType::Domain,
             5,
         );
-        
+
         prover.add_axiom(axiom);
         assert_eq!(prover.axioms.len(), initial_count + 1);
     }
@@ -418,7 +436,7 @@ mod tests {
             ProofResult::new(ProofOutcome::Proven),
             ProofResult::new(ProofOutcome::Unknown),
         ];
-        
+
         let summary = prover.generate_summary(&results);
         assert_eq!(summary.total_properties, 3);
         assert_eq!(summary.proven_count, 2);
@@ -441,7 +459,7 @@ mod tests {
             avg_steps_explored: 50,
             strategy_used: ProofSearchStrategy::NaturalDeduction,
         };
-        
+
         assert!(summary.is_successful());
         assert_eq!(summary.efficiency(), 2.0); // 8 proven / 4 seconds = 2 per second
     }

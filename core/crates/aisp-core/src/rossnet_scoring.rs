@@ -14,7 +14,7 @@
 //! of AISP implementations across different domains and contexts.
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
     error::*,
     semantic::DeepVerificationResult,
 };
@@ -167,30 +167,34 @@ impl RossNetValidator {
     }
 
     /// Validate RossNet scoring for AISP document
-    pub fn validate_rossnet_scoring(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<RossNetValidationResult> {
+    pub fn validate_rossnet_scoring(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<RossNetValidationResult> {
         let start_time = Instant::now();
-        
+
         // Calculate similarity score (sim)
         let similarity_metrics = self.calculate_similarity_metrics(document, semantic_result)?;
         let similarity_score = self.compute_similarity_score(&similarity_metrics)?;
-        
+
         // Calculate fitness score (fit)
         let fitness_metrics = self.calculate_fitness_metrics(document, semantic_result)?;
         let fitness_score = self.compute_fitness_score(&fitness_metrics)?;
-        
+
         // Calculate affinity score (aff)
         let affinity_metrics = self.calculate_affinity_metrics(document, semantic_result)?;
         let affinity_score = self.compute_affinity_score(&affinity_metrics)?;
-        
+
         // Compute weighted RossNet score
-        let rossnet_score = (similarity_score * self.config.similarity_weight) +
-                           (fitness_score * self.config.fitness_weight) +
-                           (affinity_score * self.config.affinity_weight);
-        
+        let rossnet_score = (similarity_score * self.config.similarity_weight)
+            + (fitness_score * self.config.fitness_weight)
+            + (affinity_score * self.config.affinity_weight);
+
         // Update statistics
         self.stats.analysis_time = start_time.elapsed();
         self.stats.comparisons_performed += 1;
-        
+
         Ok(RossNetValidationResult {
             valid: rossnet_score >= self.config.min_rossnet_score,
             rossnet_score,
@@ -209,21 +213,25 @@ impl RossNetValidator {
     }
 
     /// Calculate similarity metrics (sim component)
-    fn calculate_similarity_metrics(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<SimilarityMetrics> {
+    fn calculate_similarity_metrics(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<SimilarityMetrics> {
         // Calculate semantic vector distance
         let semantic_distance = self.calculate_semantic_distance(document, semantic_result)?;
-        
+
         // Calculate structural similarity
         let structural_similarity = self.calculate_structural_similarity(document)?;
-        
+
         // Calculate content overlap
         let content_overlap = self.calculate_content_overlap(document)?;
-        
+
         // Calculate type compatibility
         let type_compatibility = self.calculate_type_compatibility(document)?;
-        
+
         self.stats.vector_calculations += 4;
-        
+
         Ok(SimilarityMetrics {
             semantic_distance,
             structural_similarity,
@@ -233,21 +241,26 @@ impl RossNetValidator {
     }
 
     /// Calculate fitness metrics (fit component)
-    fn calculate_fitness_metrics(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<FitnessMetrics> {
+    fn calculate_fitness_metrics(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<FitnessMetrics> {
         // Calculate behavioral adaptation
         let behavioral_adaptation = self.calculate_behavioral_adaptation(document)?;
-        
+
         // Calculate performance efficiency
-        let performance_efficiency = self.calculate_performance_efficiency(document, semantic_result)?;
-        
+        let performance_efficiency =
+            self.calculate_performance_efficiency(document, semantic_result)?;
+
         // Calculate resource utilization
         let resource_utilization = self.calculate_resource_utilization(document)?;
-        
+
         // Calculate temporal consistency
         let temporal_consistency = self.calculate_temporal_consistency(document)?;
-        
+
         self.stats.vector_calculations += 4;
-        
+
         Ok(FitnessMetrics {
             behavioral_adaptation,
             performance_efficiency,
@@ -257,21 +270,25 @@ impl RossNetValidator {
     }
 
     /// Calculate affinity metrics (aff component)
-    fn calculate_affinity_metrics(&mut self, document: &AispDocument, _semantic_result: &DeepVerificationResult) -> AispResult<AffinityMetrics> {
+    fn calculate_affinity_metrics(
+        &mut self,
+        document: &AispDocument,
+        _semantic_result: &DeepVerificationResult,
+    ) -> AispResult<AffinityMetrics> {
         // Calculate domain compatibility
         let domain_compatibility = self.calculate_domain_compatibility(document)?;
-        
+
         // Calculate protocol alignment
         let protocol_alignment = self.calculate_protocol_alignment(document)?;
-        
+
         // Calculate interface compatibility
         let interface_compatibility = self.calculate_interface_compatibility(document)?;
-        
+
         // Calculate context adaptation
         let context_adaptation = self.calculate_context_adaptation(document)?;
-        
+
         self.stats.vector_calculations += 4;
-        
+
         Ok(AffinityMetrics {
             domain_compatibility,
             protocol_alignment,
@@ -281,27 +298,31 @@ impl RossNetValidator {
     }
 
     /// Calculate semantic vector distance
-    fn calculate_semantic_distance(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<f64> {
+    fn calculate_semantic_distance(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<f64> {
         let cache_key = format!("semantic_{}", document.header.name);
-        
+
         if let Some(&cached_distance) = self.similarity_cache.get(&cache_key) {
             self.stats.cache_hits += 1;
             return Ok(cached_distance);
         }
-        
+
         self.stats.cache_misses += 1;
-        
+
         // Calculate semantic distance based on delta and ambiguity
         let distance = if semantic_result.delta() > 0.0 {
             1.0 - semantic_result.ambiguity().min(1.0)
         } else {
             0.0
         };
-        
+
         if self.config.enable_caching {
             self.similarity_cache.insert(cache_key, distance);
         }
-        
+
         Ok(distance)
     }
 
@@ -310,17 +331,17 @@ impl RossNetValidator {
         // Base structural similarity on block completeness
         let expected_blocks = 5; // Meta, Types, Rules, Functions, Evidence
         let actual_blocks = document.blocks.len();
-        
+
         let completeness_ratio = (actual_blocks as f64 / expected_blocks as f64).min(1.0);
-        
+
         // Weight by block type diversity
         let mut block_types = std::collections::HashSet::new();
         for block in &document.blocks {
             block_types.insert(block.block_type());
         }
-        
+
         let type_diversity = block_types.len() as f64 / expected_blocks as f64;
-        
+
         Ok((completeness_ratio + type_diversity) / 2.0)
     }
 
@@ -329,7 +350,7 @@ impl RossNetValidator {
         // Calculate overlap based on meta entries and function definitions
         let mut total_entries = 0;
         let mut non_empty_entries = 0;
-        
+
         for block in &document.blocks {
             match block {
                 AispBlock::Meta(meta_block) => {
@@ -343,7 +364,7 @@ impl RossNetValidator {
                 _ => continue,
             }
         }
-        
+
         if total_entries == 0 {
             Ok(0.0)
         } else {
@@ -359,13 +380,13 @@ impl RossNetValidator {
                 if types_block.definitions.is_empty() {
                     return Ok(0.5); // Partial compatibility for empty types
                 }
-                
+
                 // Higher compatibility for more type definitions
                 let type_count = types_block.definitions.len() as f64;
                 return Ok((type_count / (type_count + 5.0)).min(1.0));
             }
         }
-        
+
         Ok(0.3) // Lower compatibility if no types block
     }
 
@@ -374,7 +395,7 @@ impl RossNetValidator {
         // Base adaptation on rules and functions complexity
         let mut adaptation_score = 0.0;
         let mut score_components = 0;
-        
+
         for block in &document.blocks {
             match block {
                 AispBlock::Rules(rules_block) => {
@@ -384,13 +405,14 @@ impl RossNetValidator {
                 }
                 AispBlock::Functions(functions_block) => {
                     let functions_complexity = functions_block.functions.len() as f64;
-                    adaptation_score += (functions_complexity / (functions_complexity + 5.0)).min(1.0);
+                    adaptation_score +=
+                        (functions_complexity / (functions_complexity + 5.0)).min(1.0);
                     score_components += 1;
                 }
                 _ => continue,
             }
         }
-        
+
         if score_components == 0 {
             Ok(0.0)
         } else {
@@ -399,18 +421,22 @@ impl RossNetValidator {
     }
 
     /// Calculate performance efficiency ratio
-    fn calculate_performance_efficiency(&self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<f64> {
+    fn calculate_performance_efficiency(
+        &self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<f64> {
         // Base efficiency on delta (semantic density)
         let delta_efficiency = semantic_result.delta().min(1.0);
-        
+
         // Factor in document size efficiency
         let size_factor = match document.blocks.len() {
-            0..=3 => 0.6,     // Too small
-            4..=6 => 1.0,     // Optimal size
-            7..=10 => 0.9,    // Good size
-            _ => 0.7,         // Too large
+            0..=3 => 0.6,  // Too small
+            4..=6 => 1.0,  // Optimal size
+            7..=10 => 0.9, // Good size
+            _ => 0.7,      // Too large
         };
-        
+
         Ok(delta_efficiency * size_factor)
     }
 
@@ -419,30 +445,32 @@ impl RossNetValidator {
         // Estimate resource usage based on complexity
         let mut complexity_score = 0.0;
         let mut utilization_components = 0;
-        
+
         for block in &document.blocks {
             let block_complexity = match block {
                 AispBlock::Meta(meta_block) => meta_block.entries.len() as f64 * 0.1,
                 AispBlock::Types(types_block) => types_block.definitions.len() as f64 * 0.2,
                 AispBlock::Rules(rules_block) => rules_block.rules.len() as f64 * 0.3,
-                AispBlock::Functions(functions_block) => functions_block.functions.len() as f64 * 0.4,
+                AispBlock::Functions(functions_block) => {
+                    functions_block.functions.len() as f64 * 0.4
+                }
                 AispBlock::Evidence(_) => 0.1,
             };
-            
+
             complexity_score += block_complexity;
             utilization_components += 1;
         }
-        
+
         // Normalize to 0-1 range
         let normalized_complexity = (complexity_score / 10.0).min(1.0);
-        
+
         // Optimal utilization is around 0.7
         let utilization_score = if normalized_complexity < 0.7 {
             normalized_complexity / 0.7
         } else {
             1.0 - ((normalized_complexity - 0.7) / 0.3)
         };
-        
+
         Ok(utilization_score.max(0.0))
     }
 
@@ -451,20 +479,23 @@ impl RossNetValidator {
         // Base consistency on temporal operators in rules
         let mut temporal_operators = 0;
         let mut total_expressions = 0;
-        
+
         for block in &document.blocks {
             if let AispBlock::Rules(rules_block) = block {
                 for rule in &rules_block.rules {
                     total_expressions += 1;
                     // Note: canonical rules are strings, not structured expressions
                     // Use simple heuristic for temporal operators
-                    if rule.raw_text.contains('□') || rule.raw_text.contains('◊') || rule.raw_text.contains('X') {
+                    if rule.raw_text.contains('□')
+                        || rule.raw_text.contains('◊')
+                        || rule.raw_text.contains('X')
+                    {
                         temporal_operators += 1;
                     }
                 }
             }
         }
-        
+
         if total_expressions == 0 {
             Ok(0.8) // Default consistency for documents without temporal logic
         } else {
@@ -475,8 +506,12 @@ impl RossNetValidator {
 
     /// Check if rule string contains temporal operators (simplified heuristic)
     fn rule_has_temporal_operators(&self, rule: &str) -> bool {
-        rule.contains('□') || rule.contains('◊') || rule.contains('X') ||
-        rule.contains("always") || rule.contains("eventually") || rule.contains("next")
+        rule.contains('□')
+            || rule.contains('◊')
+            || rule.contains('X')
+            || rule.contains("always")
+            || rule.contains("eventually")
+            || rule.contains("next")
     }
 
     /// Calculate domain compatibility percentage
@@ -507,13 +542,13 @@ impl RossNetValidator {
         } else {
             0.5
         };
-        
+
         let protocol_alignment = if document.metadata.protocol.is_some() {
             0.9
         } else {
             0.7
         };
-        
+
         Ok((version_alignment + protocol_alignment) / 2.0)
     }
 
@@ -523,7 +558,7 @@ impl RossNetValidator {
         let mut has_types = false;
         let mut has_functions = false;
         let mut has_evidence = false;
-        
+
         for block in &document.blocks {
             match block {
                 AispBlock::Types(_) => has_types = true,
@@ -532,15 +567,15 @@ impl RossNetValidator {
                 _ => continue,
             }
         }
-        
+
         let compatibility_score = match (has_types, has_functions, has_evidence) {
-            (true, true, true) => 1.0,    // Full interface compatibility
-            (true, true, false) => 0.8,   // Missing evidence
-            (true, false, true) => 0.7,   // Missing functions
-            (false, true, true) => 0.6,   // Missing types
-            _ => 0.4,                     // Minimal compatibility
+            (true, true, true) => 1.0,  // Full interface compatibility
+            (true, true, false) => 0.8, // Missing evidence
+            (true, false, true) => 0.7, // Missing functions
+            (false, true, true) => 0.6, // Missing types
+            _ => 0.4,                   // Minimal compatibility
         };
-        
+
         Ok(compatibility_score)
     }
 
@@ -549,73 +584,78 @@ impl RossNetValidator {
         // Base adaptation on meta block context information
         for block in &document.blocks {
             if let AispBlock::Meta(meta_block) = block {
-                let context_entries = meta_block.entries.iter()
-                    .filter(|(_, entry)| entry.key.contains("context") || entry.key.contains("adapt"))
+                let context_entries = meta_block
+                    .entries
+                    .iter()
+                    .filter(|(_, entry)| {
+                        entry.key.contains("context") || entry.key.contains("adapt")
+                    })
                     .count();
-                
+
                 let total_entries = meta_block.entries.len();
-                
+
                 if total_entries == 0 {
                     return Ok(0.5);
                 }
-                
+
                 let adaptation_ratio = context_entries as f64 / total_entries as f64;
                 return Ok(0.6 + (adaptation_ratio * 0.4)); // Scale to 0.6-1.0
             }
         }
-        
+
         Ok(0.5) // Default adaptation for missing meta block
     }
 
     /// Compute weighted similarity score
     fn compute_similarity_score(&self, metrics: &SimilarityMetrics) -> AispResult<f64> {
-        let score = (metrics.semantic_distance * 0.4) +
-                   (metrics.structural_similarity * 0.3) +
-                   (metrics.content_overlap * 0.2) +
-                   (metrics.type_compatibility * 0.1);
-        
+        let score = (metrics.semantic_distance * 0.4)
+            + (metrics.structural_similarity * 0.3)
+            + (metrics.content_overlap * 0.2)
+            + (metrics.type_compatibility * 0.1);
+
         Ok(score.min(1.0))
     }
 
     /// Compute weighted fitness score
     fn compute_fitness_score(&self, metrics: &FitnessMetrics) -> AispResult<f64> {
-        let score = (metrics.behavioral_adaptation * 0.3) +
-                   (metrics.performance_efficiency * 0.3) +
-                   (metrics.resource_utilization * 0.25) +
-                   (metrics.temporal_consistency * 0.15);
-        
+        let score = (metrics.behavioral_adaptation * 0.3)
+            + (metrics.performance_efficiency * 0.3)
+            + (metrics.resource_utilization * 0.25)
+            + (metrics.temporal_consistency * 0.15);
+
         Ok(score.min(1.0))
     }
 
     /// Compute weighted affinity score
     fn compute_affinity_score(&self, metrics: &AffinityMetrics) -> AispResult<f64> {
-        let score = (metrics.domain_compatibility * 0.4) +
-                   (metrics.protocol_alignment * 0.3) +
-                   (metrics.interface_compatibility * 0.2) +
-                   (metrics.context_adaptation * 0.1);
-        
+        let score = (metrics.domain_compatibility * 0.4)
+            + (metrics.protocol_alignment * 0.3)
+            + (metrics.interface_compatibility * 0.2)
+            + (metrics.context_adaptation * 0.1);
+
         Ok(score.min(1.0))
     }
 
     /// Generate analysis warnings
     fn generate_warnings(&self, rossnet_score: f64) -> Vec<String> {
         let mut warnings = Vec::new();
-        
+
         if rossnet_score < self.config.min_rossnet_score {
             warnings.push(format!(
                 "RossNet score {:.3} is below minimum threshold {:.3}",
                 rossnet_score, self.config.min_rossnet_score
             ));
         }
-        
+
         if rossnet_score < 0.5 {
-            warnings.push("Low RossNet score indicates significant compatibility issues".to_string());
+            warnings
+                .push("Low RossNet score indicates significant compatibility issues".to_string());
         }
-        
+
         if self.stats.analysis_time > self.config.max_analysis_time {
             warnings.push("RossNet analysis exceeded maximum time limit".to_string());
         }
-        
+
         warnings
     }
 
@@ -642,7 +682,7 @@ mod tests {
     fn test_rossnet_validator_creation() {
         let config = RossNetConfig::default();
         let validator = RossNetValidator::new(config);
-        
+
         assert_eq!(validator.stats.comparisons_performed, 0);
         assert_eq!(validator.stats.vector_calculations, 0);
     }
@@ -652,7 +692,7 @@ mod tests {
         let config = RossNetConfig::default();
         let validator = RossNetValidator::new(config);
         let document = create_test_document();
-        
+
         let compatibility = validator.calculate_domain_compatibility(&document).unwrap();
         assert_eq!(compatibility, 0.5); // Unspecified domain should have partial compatibility
     }
@@ -662,11 +702,15 @@ mod tests {
         let config = RossNetConfig::default();
         let validator = RossNetValidator::new(config);
         let document = create_test_document();
-        
+
         let alignment = validator.calculate_protocol_alignment(&document).unwrap();
-        
+
         // Version 5.1 basic document should have reasonable alignment
-        assert!(alignment >= 0.8, "Expected alignment >= 0.8, got {}", alignment);
+        assert!(
+            alignment >= 0.8,
+            "Expected alignment >= 0.8, got {}",
+            alignment
+        );
     }
 
     #[test]
@@ -674,8 +718,10 @@ mod tests {
         let config = RossNetConfig::default();
         let validator = RossNetValidator::new(config);
         let document = create_test_document();
-        
-        let similarity = validator.calculate_structural_similarity(&document).unwrap();
+
+        let similarity = validator
+            .calculate_structural_similarity(&document)
+            .unwrap();
         assert!(similarity >= 0.0 && similarity <= 1.0);
     }
 
@@ -688,14 +734,18 @@ mod tests {
         let mut validator = RossNetValidator::new(config);
         let document = create_test_document();
         let semantic_result = create_test_semantic_result();
-        
+
         // First call should miss cache
-        let distance1 = validator.calculate_semantic_distance(&document, &semantic_result).unwrap();
+        let distance1 = validator
+            .calculate_semantic_distance(&document, &semantic_result)
+            .unwrap();
         assert_eq!(validator.stats.cache_misses, 1);
         assert_eq!(validator.stats.cache_hits, 0);
-        
+
         // Second call should hit cache
-        let distance2 = validator.calculate_semantic_distance(&document, &semantic_result).unwrap();
+        let distance2 = validator
+            .calculate_semantic_distance(&document, &semantic_result)
+            .unwrap();
         assert_eq!(validator.stats.cache_misses, 1);
         assert_eq!(validator.stats.cache_hits, 1);
         assert_eq!(distance1, distance2);
@@ -726,12 +776,12 @@ mod tests {
                 context_adaptation: 0.9,
             },
         };
-        
+
         let config = RossNetConfig::default();
-        let expected_score = (0.8 * config.similarity_weight) +
-                           (0.7 * config.fitness_weight) +
-                           (0.9 * config.affinity_weight);
-        
+        let expected_score = (0.8 * config.similarity_weight)
+            + (0.7 * config.fitness_weight)
+            + (0.9 * config.affinity_weight);
+
         // Expected: (0.8 * 0.4) + (0.7 * 0.35) + (0.9 * 0.25) = 0.32 + 0.245 + 0.225 = 0.79
         assert!((expected_score - 0.79).abs() < 0.01);
     }
@@ -743,11 +793,13 @@ mod tests {
             ..Default::default()
         };
         let validator = RossNetValidator::new(config);
-        
+
         let warnings_low = validator.generate_warnings(0.6);
         assert!(warnings_low.len() >= 1);
-        assert!(warnings_low.iter().any(|w| w.contains("below minimum threshold")));
-        
+        assert!(warnings_low
+            .iter()
+            .any(|w| w.contains("below minimum threshold")));
+
         let warnings_high = validator.generate_warnings(0.9);
         assert!(warnings_high.is_empty());
     }

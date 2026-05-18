@@ -1,5 +1,5 @@
 //! AISP symbol definitions and Unicode handling
-//! 
+//!
 //! This module provides efficient lookup and parsing of AISP's special
 //! Unicode symbols with compile-time verification.
 
@@ -65,22 +65,33 @@ impl Symbol {
 /// Complete AISP symbol set (Σ_512 subset)
 pub static AISP_SYMBOLS: &[Symbol] = &[
     // Block delimiters
-    Symbol::new('⟦', SymbolCategory::BlockDelimiter, "LEFT_DOUBLE_BRACKET", Some("((")),
-    Symbol::new('⟧', SymbolCategory::BlockDelimiter, "RIGHT_DOUBLE_BRACKET", Some("))")),
-
+    Symbol::new(
+        '⟦',
+        SymbolCategory::BlockDelimiter,
+        "LEFT_DOUBLE_BRACKET",
+        Some("(("),
+    ),
+    Symbol::new(
+        '⟧',
+        SymbolCategory::BlockDelimiter,
+        "RIGHT_DOUBLE_BRACKET",
+        Some("))"),
+    ),
     // Definition operators
     Symbol::new('≜', SymbolCategory::Definition, "DEFINED_AS", Some("::=")),
     Symbol::new('≔', SymbolCategory::Definition, "ASSIGNMENT", Some(":=")),
     Symbol::new('≡', SymbolCategory::Definition, "EQUIVALENT", Some("===")),
-    Symbol::new('≢', SymbolCategory::Definition, "NOT_EQUIVALENT", Some("!==")),
-
+    Symbol::new(
+        '≢',
+        SymbolCategory::Definition,
+        "NOT_EQUIVALENT",
+        Some("!=="),
+    ),
     // Quantifiers
     Symbol::new('∀', SymbolCategory::Quantifier, "FOR_ALL", Some("forall")),
     Symbol::new('∃', SymbolCategory::Quantifier, "EXISTS", Some("exists")),
-
     // Lambda
     Symbol::new('λ', SymbolCategory::Lambda, "LAMBDA", Some("lambda")),
-
     // Logical operators
     Symbol::new('⇒', SymbolCategory::Logic, "IMPLIES", Some("=>")),
     Symbol::new('⇔', SymbolCategory::Logic, "IFF", Some("<=>")),
@@ -90,7 +101,6 @@ pub static AISP_SYMBOLS: &[Symbol] = &[
     Symbol::new('∨', SymbolCategory::Logic, "OR", Some("\\/")),
     Symbol::new('¬', SymbolCategory::Logic, "NOT", Some("~")),
     Symbol::new('⊕', SymbolCategory::Logic, "XOR", Some("xor")),
-
     // Set operators
     Symbol::new('∈', SymbolCategory::Set, "ELEMENT_OF", Some("in")),
     Symbol::new('∉', SymbolCategory::Set, "NOT_ELEMENT_OF", Some("notin")),
@@ -100,34 +110,27 @@ pub static AISP_SYMBOLS: &[Symbol] = &[
     Symbol::new('∪', SymbolCategory::Set, "UNION", Some("union")),
     Symbol::new('∅', SymbolCategory::Set, "EMPTY_SET", Some("emptyset")),
     Symbol::new('𝒫', SymbolCategory::Set, "POWER_SET", Some("powerset")),
-
     // Relational operators
     Symbol::new('≤', SymbolCategory::Relation, "LESS_EQUAL", Some("<=")),
     Symbol::new('≥', SymbolCategory::Relation, "GREATER_EQUAL", Some(">=")),
-
     // Type symbols
     Symbol::new('ℕ', SymbolCategory::Type, "NATURALS", Some("Nat")),
     Symbol::new('ℤ', SymbolCategory::Type, "INTEGERS", Some("Int")),
     Symbol::new('ℝ', SymbolCategory::Type, "REALS", Some("Real")),
     Symbol::new('𝔹', SymbolCategory::Type, "BOOLEANS", Some("Bool")),
     Symbol::new('𝕊', SymbolCategory::Type, "STRINGS", Some("String")),
-
     // Document header
     Symbol::new('𝔸', SymbolCategory::Document, "AISP_HEADER", Some("AISP")),
-
     // Tier symbols
     Symbol::new('◊', SymbolCategory::Tier, "DIAMOND", Some("diamond")),
     Symbol::new('⊘', SymbolCategory::Tier, "REJECT", Some("reject")),
-
     // Tuple delimiters
     Symbol::new('⟨', SymbolCategory::Tuple, "LEFT_ANGLE", Some("<")),
     Symbol::new('⟩', SymbolCategory::Tuple, "RIGHT_ANGLE", Some(">")),
-
     // Temporal operators
     Symbol::new('□', SymbolCategory::Temporal, "ALWAYS", Some("[]")),
     Symbol::new('X', SymbolCategory::Temporal, "NEXT", None),
     Symbol::new('U', SymbolCategory::Temporal, "UNTIL", None),
-
     // Common Greek letters
     Symbol::new('α', SymbolCategory::Greek, "ALPHA", Some("alpha")),
     Symbol::new('β', SymbolCategory::Greek, "BETA", Some("beta")),
@@ -155,18 +158,19 @@ static SYMBOL_MAP: OnceLock<HashMap<char, &Symbol>> = OnceLock::new();
 static ASCII_MAP: OnceLock<HashMap<&str, &Symbol>> = OnceLock::new();
 
 /// Initialize symbol lookup tables
-fn init_symbol_maps() -> (&'static HashMap<char, &'static Symbol>, &'static HashMap<&'static str, &'static Symbol>) {
-    let symbol_map = SYMBOL_MAP.get_or_init(|| {
-        AISP_SYMBOLS.iter().map(|s| (s.char, s)).collect()
-    });
-    
+fn init_symbol_maps() -> (
+    &'static HashMap<char, &'static Symbol>,
+    &'static HashMap<&'static str, &'static Symbol>,
+) {
+    let symbol_map = SYMBOL_MAP.get_or_init(|| AISP_SYMBOLS.iter().map(|s| (s.char, s)).collect());
+
     let ascii_map = ASCII_MAP.get_or_init(|| {
         AISP_SYMBOLS
             .iter()
             .filter_map(|s| s.ascii_alt.map(|alt| (alt, s)))
             .collect()
     });
-    
+
     (symbol_map, ascii_map)
 }
 
@@ -199,7 +203,7 @@ pub fn symbols_in_category(category: SymbolCategory) -> Vec<&'static Symbol> {
 pub fn calculate_symbol_density(text: &str) -> f64 {
     let total_chars = text.chars().filter(|c| !c.is_whitespace()).count();
     let symbol_count = text.chars().filter(|&c| is_aisp_symbol(c)).count();
-    
+
     if total_chars == 0 {
         0.0
     } else {
@@ -211,7 +215,7 @@ pub fn calculate_symbol_density(text: &str) -> f64 {
 pub fn calculate_weighted_density(text: &str) -> f64 {
     let mut category_counts = HashMap::new();
     let mut total_chars = 0;
-    
+
     for ch in text.chars() {
         if !ch.is_whitespace() {
             total_chars += 1;
@@ -220,28 +224,28 @@ pub fn calculate_weighted_density(text: &str) -> f64 {
             }
         }
     }
-    
+
     if total_chars == 0 {
         return 0.0;
     }
-    
+
     // Weight different symbol categories
     let mut weighted_score = 0.0;
     for (category, count) in category_counts {
         let weight = match category {
-            SymbolCategory::Definition => 3.0,   // Definitions are highly semantic
-            SymbolCategory::Logic => 2.5,        // Logic is core to AISP
-            SymbolCategory::Quantifier => 2.5,   // Quantifiers are highly formal
-            SymbolCategory::Lambda => 2.0,       // Functions are important
-            SymbolCategory::Set => 2.0,          // Set operations are formal
-            SymbolCategory::Temporal => 3.0,     // Temporal logic is advanced
-            SymbolCategory::Type => 1.5,         // Types are structural
-            SymbolCategory::Greek => 1.0,        // Variables are less semantic
-            _ => 1.0,                             // Other symbols
+            SymbolCategory::Definition => 3.0, // Definitions are highly semantic
+            SymbolCategory::Logic => 2.5,      // Logic is core to AISP
+            SymbolCategory::Quantifier => 2.5, // Quantifiers are highly formal
+            SymbolCategory::Lambda => 2.0,     // Functions are important
+            SymbolCategory::Set => 2.0,        // Set operations are formal
+            SymbolCategory::Temporal => 3.0,   // Temporal logic is advanced
+            SymbolCategory::Type => 1.5,       // Types are structural
+            SymbolCategory::Greek => 1.0,      // Variables are less semantic
+            _ => 1.0,                          // Other symbols
         };
         weighted_score += count as f64 * weight;
     }
-    
+
     weighted_score / total_chars as f64
 }
 
@@ -254,7 +258,7 @@ mod tests {
         assert!(lookup_symbol('≜').is_some());
         assert!(lookup_symbol('∀').is_some());
         assert!(lookup_symbol('x').is_none());
-        
+
         let definition = lookup_symbol('≜').unwrap();
         assert_eq!(definition.name, "DEFINED_AS");
         assert_eq!(definition.ascii_alt, Some("::="));
@@ -265,7 +269,7 @@ mod tests {
         assert!(lookup_ascii("::=").is_some());
         assert!(lookup_ascii("forall").is_some());
         assert!(lookup_ascii("invalid").is_none());
-        
+
         let forall = lookup_ascii("forall").unwrap();
         assert_eq!(forall.char, '∀');
     }

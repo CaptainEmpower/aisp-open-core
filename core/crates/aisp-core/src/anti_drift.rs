@@ -13,10 +13,10 @@
 
 //! that preserve their intended behavior over extended periods.
 
-use crate::ast::canonical::{LogicalRule, LogicalExpression};
+use crate::ast::canonical::{LogicalExpression, LogicalRule};
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
     error::*,
     semantic::DeepVerificationResult,
 };
@@ -265,29 +265,38 @@ impl AntiDriftValidator {
     /// Create new anti-drift validator
     pub fn new(config: AntiDriftConfig) -> Self {
         let mut correction_registry = HashMap::new();
-        
+
         // Initialize standard correction methods
-        correction_registry.insert("state_reversion".to_string(), CorrectionMethod {
-            id: "state_reversion".to_string(),
-            method_type: CorrectionType::StateReversion,
-            effectiveness: 0.9,
-            applicable_drift_types: vec![DriftType::AbruptChange, DriftType::BiasIntroduction],
-        });
-        
-        correction_registry.insert("constraint_enforcement".to_string(), CorrectionMethod {
-            id: "constraint_enforcement".to_string(),
-            method_type: CorrectionType::ConstraintEnforcement,
-            effectiveness: 0.85,
-            applicable_drift_types: vec![DriftType::GradualShift, DriftType::BoundaryDrift],
-        });
-        
-        correction_registry.insert("bias_correction".to_string(), CorrectionMethod {
-            id: "bias_correction".to_string(),
-            method_type: CorrectionType::BiasCorrection,
-            effectiveness: 0.8,
-            applicable_drift_types: vec![DriftType::BiasIntroduction],
-        });
-        
+        correction_registry.insert(
+            "state_reversion".to_string(),
+            CorrectionMethod {
+                id: "state_reversion".to_string(),
+                method_type: CorrectionType::StateReversion,
+                effectiveness: 0.9,
+                applicable_drift_types: vec![DriftType::AbruptChange, DriftType::BiasIntroduction],
+            },
+        );
+
+        correction_registry.insert(
+            "constraint_enforcement".to_string(),
+            CorrectionMethod {
+                id: "constraint_enforcement".to_string(),
+                method_type: CorrectionType::ConstraintEnforcement,
+                effectiveness: 0.85,
+                applicable_drift_types: vec![DriftType::GradualShift, DriftType::BoundaryDrift],
+            },
+        );
+
+        correction_registry.insert(
+            "bias_correction".to_string(),
+            CorrectionMethod {
+                id: "bias_correction".to_string(),
+                method_type: CorrectionType::BiasCorrection,
+                effectiveness: 0.8,
+                applicable_drift_types: vec![DriftType::BiasIntroduction],
+            },
+        );
+
         Self {
             config,
             drift_history: Vec::new(),
@@ -303,26 +312,35 @@ impl AntiDriftValidator {
     }
 
     /// Validate anti-drift protocols for AISP document
-    pub fn validate_anti_drift(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<AntiDriftValidationResult> {
+    pub fn validate_anti_drift(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<AntiDriftValidationResult> {
         let start_time = Instant::now();
-        
+
         // Analyze drift patterns
         let drift_patterns = self.analyze_drift_patterns(document, semantic_result)?;
-        
+
         // Calculate stability metrics
-        let stability_metrics = self.calculate_stability_metrics(document, semantic_result, &drift_patterns)?;
-        
+        let stability_metrics =
+            self.calculate_stability_metrics(document, semantic_result, &drift_patterns)?;
+
         // Evaluate correction protocols
         let correction_protocols = self.evaluate_correction_protocols(&drift_patterns)?;
-        
+
         // Calculate overall drift resistance score
-        let drift_resistance_score = self.calculate_drift_resistance_score(&drift_patterns, &stability_metrics, &correction_protocols)?;
-        
+        let drift_resistance_score = self.calculate_drift_resistance_score(
+            &drift_patterns,
+            &stability_metrics,
+            &correction_protocols,
+        )?;
+
         // Update statistics
         self.stats.analysis_time = start_time.elapsed();
         self.stats.drift_checks_performed += drift_patterns.incidents.len();
         self.stats.stability_calculations += 5; // semantic, behavioral, meaning, temporal, baseline
-        
+
         Ok(AntiDriftValidationResult {
             valid: self.is_validation_successful(&stability_metrics, &drift_patterns),
             drift_resistance_score,
@@ -336,30 +354,43 @@ impl AntiDriftValidator {
     }
 
     /// Analyze drift patterns in AISP document
-    fn analyze_drift_patterns(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<DriftPatterns> {
+    fn analyze_drift_patterns(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<DriftPatterns> {
         let mut incidents = Vec::new();
-        
+
         // Detect drift from semantic analysis
         let semantic_incidents = self.detect_semantic_drift(document, semantic_result)?;
-        eprintln!("DEBUG: Semantic drift incidents: {}", semantic_incidents.len());
+        eprintln!(
+            "DEBUG: Semantic drift incidents: {}",
+            semantic_incidents.len()
+        );
         incidents.extend(semantic_incidents);
-        
+
         // Detect structural drift
         let structural_incidents = self.detect_structural_drift(document)?;
-        eprintln!("DEBUG: Structural drift incidents: {}", structural_incidents.len());
+        eprintln!(
+            "DEBUG: Structural drift incidents: {}",
+            structural_incidents.len()
+        );
         incidents.extend(structural_incidents);
-        
+
         // Detect behavioral drift
         let behavioral_incidents = self.detect_behavioral_drift(document)?;
-        eprintln!("DEBUG: Behavioral drift incidents: {}", behavioral_incidents.len());
+        eprintln!(
+            "DEBUG: Behavioral drift incidents: {}",
+            behavioral_incidents.len()
+        );
         incidents.extend(behavioral_incidents);
-        
+
         // Analyze drift trends
         let trends = self.analyze_drift_trends(&incidents);
-        
+
         // Classify drift patterns
         let classification = self.classify_drift_patterns(&incidents);
-        
+
         Ok(DriftPatterns {
             incidents,
             trends,
@@ -368,21 +399,26 @@ impl AntiDriftValidator {
     }
 
     /// Detect semantic drift from analysis results
-    fn detect_semantic_drift(&mut self, _document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<Vec<DriftIncident>> {
+    fn detect_semantic_drift(
+        &mut self,
+        _document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<Vec<DriftIncident>> {
         let mut incidents = Vec::new();
         self.stats.temporal_samples += 1;
-        
+
         // Create drift measurement
         let measurement = DriftMeasurement {
             timestamp: 1.0, // Normalized timestamp
             magnitude: semantic_result.ambiguity(),
             elements: vec!["semantic_analysis".to_string()],
         };
-        
+
         self.drift_history.push(measurement);
-        
+
         // Detect drift based on ambiguity levels - only trigger for significant ambiguity
-        if semantic_result.ambiguity() > 0.15 { // 15% ambiguity threshold
+        if semantic_result.ambiguity() > 0.15 {
+            // 15% ambiguity threshold
             let incident = DriftIncident {
                 id: "semantic_ambiguity_drift".to_string(),
                 drift_type: if semantic_result.ambiguity() > 0.1 {
@@ -397,7 +433,7 @@ impl AntiDriftValidator {
             };
             incidents.push(incident);
         }
-        
+
         // Detect drift based on delta changes
         if semantic_result.delta() < 0.5 {
             let incident = DriftIncident {
@@ -410,18 +446,21 @@ impl AntiDriftValidator {
             };
             incidents.push(incident);
         }
-        
+
         Ok(incidents)
     }
 
     /// Detect structural drift in document organization
-    fn detect_structural_drift(&mut self, document: &AispDocument) -> AispResult<Vec<DriftIncident>> {
+    fn detect_structural_drift(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<DriftIncident>> {
         let mut incidents = Vec::new();
-        
+
         // Analyze block structure stability
         let expected_blocks = 5; // Meta, Types, Rules, Functions, Evidence
         let actual_blocks = document.blocks.len();
-        
+
         // Only consider it drift if we have some blocks but are missing critical ones
         // Empty documents (0 blocks) are considered minimal/test documents, not drift
         if actual_blocks > 0 && actual_blocks < expected_blocks {
@@ -435,13 +474,13 @@ impl AntiDriftValidator {
             };
             incidents.push(incident);
         }
-        
+
         // Check for block type diversity
         let mut block_types = std::collections::HashSet::new();
         for block in &document.blocks {
             block_types.insert(block.block_type());
         }
-        
+
         // Only check diversity for non-empty documents (avoid flagging minimal test docs)
         if actual_blocks > 0 && block_types.len() < 3 {
             let incident = DriftIncident {
@@ -454,26 +493,29 @@ impl AntiDriftValidator {
             };
             incidents.push(incident);
         }
-        
+
         Ok(incidents)
     }
 
     /// Detect behavioral drift in functions and rules
-    fn detect_behavioral_drift(&mut self, document: &AispDocument) -> AispResult<Vec<DriftIncident>> {
+    fn detect_behavioral_drift(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<DriftIncident>> {
         let mut incidents = Vec::new();
-        
+
         // Analyze function complexity drift
         for block in &document.blocks {
             match block {
                 AispBlock::Functions(functions_block) => {
                     let mut complexity_sum = 0.0;
                     let mut function_count = 0;
-                    
+
                     for (i, function) in functions_block.functions.iter().enumerate() {
                         let complexity = self.calculate_function_complexity(function);
                         complexity_sum += complexity;
                         function_count += 1;
-                        
+
                         // Detect overly complex or overly simple functions
                         if complexity > 0.8 {
                             let incident = DriftIncident {
@@ -515,7 +557,7 @@ impl AntiDriftValidator {
                 _ => continue,
             }
         }
-        
+
         Ok(incidents)
     }
 
@@ -523,7 +565,7 @@ impl AntiDriftValidator {
     fn calculate_function_complexity(&self, function: &FunctionDefinition) -> f64 {
         let param_complexity = function.lambda.parameters.len() as f64 * 0.1;
         let body_complexity = self.calculate_expression_complexity(&function.lambda.body);
-        
+
         (param_complexity + body_complexity).min(1.0)
     }
 
@@ -532,19 +574,25 @@ impl AntiDriftValidator {
         match expr {
             LogicalExpression::Variable(_) | LogicalExpression::Constant(_) => 0.1,
             LogicalExpression::Binary { left, right, .. } => {
-                0.3 + (self.calculate_expression_complexity(left) + self.calculate_expression_complexity(right)) / 2.0
+                0.3 + (self.calculate_expression_complexity(left)
+                    + self.calculate_expression_complexity(right))
+                    / 2.0
             }
             LogicalExpression::Unary { operand, .. } => {
                 0.2 + self.calculate_expression_complexity(operand)
             }
             LogicalExpression::Application { arguments, .. } => {
-                let arg_complexity: f64 = arguments.iter()
+                let arg_complexity: f64 = arguments
+                    .iter()
                     .map(|arg| self.calculate_expression_complexity(arg))
-                    .sum::<f64>() / arguments.len() as f64;
+                    .sum::<f64>()
+                    / arguments.len() as f64;
                 0.4 + arg_complexity
             }
             LogicalExpression::Membership { element, set } => {
-                0.25 + (self.calculate_expression_complexity(element) + self.calculate_expression_complexity(set)) / 2.0
+                0.25 + (self.calculate_expression_complexity(element)
+                    + self.calculate_expression_complexity(set))
+                    / 2.0
             }
             LogicalExpression::Temporal { operand, .. } => {
                 0.5 + self.calculate_expression_complexity(operand)
@@ -565,29 +613,51 @@ impl AntiDriftValidator {
                 dominant_direction: DriftDirection::Random,
             };
         }
-        
+
         // Calculate drift velocity (change over time)
         let total_magnitude: f64 = incidents.iter().map(|i| i.change_magnitude).sum();
-        let time_span = incidents.iter().map(|i| i.temporal_position).fold(0.0, f64::max);
-        let drift_velocity = if time_span > 0.0 { total_magnitude / time_span } else { 0.0 };
-        
+        let time_span = incidents
+            .iter()
+            .map(|i| i.temporal_position)
+            .fold(0.0, f64::max);
+        let drift_velocity = if time_span > 0.0 {
+            total_magnitude / time_span
+        } else {
+            0.0
+        };
+
         // Approximate drift acceleration (simplified)
         let drift_acceleration = if incidents.len() > 1 {
-            let recent_magnitude: f64 = incidents.iter().rev().take(incidents.len() / 2).map(|i| i.change_magnitude).sum();
-            let earlier_magnitude: f64 = incidents.iter().take(incidents.len() / 2).map(|i| i.change_magnitude).sum();
+            let recent_magnitude: f64 = incidents
+                .iter()
+                .rev()
+                .take(incidents.len() / 2)
+                .map(|i| i.change_magnitude)
+                .sum();
+            let earlier_magnitude: f64 = incidents
+                .iter()
+                .take(incidents.len() / 2)
+                .map(|i| i.change_magnitude)
+                .sum();
             recent_magnitude - earlier_magnitude
         } else {
             0.0
         };
-        
+
         // Determine dominant direction
-        let complexification_count = incidents.iter().filter(|i| 
-            i.drift_type == DriftType::Complexification || 
-            i.drift_type == DriftType::GradualShift || 
-            i.drift_type == DriftType::AbruptChange
-        ).count();
-        let simplification_count = incidents.iter().filter(|i| i.drift_type == DriftType::Simplification).count();
-        
+        let complexification_count = incidents
+            .iter()
+            .filter(|i| {
+                i.drift_type == DriftType::Complexification
+                    || i.drift_type == DriftType::GradualShift
+                    || i.drift_type == DriftType::AbruptChange
+            })
+            .count();
+        let simplification_count = incidents
+            .iter()
+            .filter(|i| i.drift_type == DriftType::Simplification)
+            .count();
+
         let dominant_direction = if complexification_count > simplification_count {
             DriftDirection::Complexification
         } else if simplification_count > complexification_count {
@@ -595,7 +665,7 @@ impl AntiDriftValidator {
         } else {
             DriftDirection::Random
         };
-        
+
         DriftTrends {
             drift_velocity,
             drift_acceleration,
@@ -606,18 +676,24 @@ impl AntiDriftValidator {
 
     /// Classify drift patterns
     fn classify_drift_patterns(&self, incidents: &[DriftIncident]) -> DriftClassification {
-        let gradual_shifts = incidents.iter().filter(|i| i.drift_type == DriftType::GradualShift).count();
-        let abrupt_changes = incidents.iter().filter(|i| i.drift_type == DriftType::AbruptChange).count();
-        
+        let gradual_shifts = incidents
+            .iter()
+            .filter(|i| i.drift_type == DriftType::GradualShift)
+            .count();
+        let abrupt_changes = incidents
+            .iter()
+            .filter(|i| i.drift_type == DriftType::AbruptChange)
+            .count();
+
         let max_severity = incidents.iter().map(|i| i.severity).fold(0.0, f64::max);
         let average_severity = if incidents.is_empty() {
             0.0
         } else {
             incidents.iter().map(|i| i.severity).sum::<f64>() / incidents.len() as f64
         };
-        
+
         let drift_frequency = incidents.len() as f64; // Simplified frequency calculation
-        
+
         DriftClassification {
             gradual_shifts,
             abrupt_changes,
@@ -628,32 +704,37 @@ impl AntiDriftValidator {
     }
 
     /// Calculate stability metrics
-    fn calculate_stability_metrics(&mut self, _document: &AispDocument, semantic_result: &DeepVerificationResult, drift_patterns: &DriftPatterns) -> AispResult<StabilityMetrics> {
+    fn calculate_stability_metrics(
+        &mut self,
+        _document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+        drift_patterns: &DriftPatterns,
+    ) -> AispResult<StabilityMetrics> {
         self.stats.stability_calculations += 1;
-        
+
         // Semantic consistency (inverse of ambiguity)
         let semantic_consistency = 1.0 - semantic_result.ambiguity().min(1.0);
-        
+
         // Behavioral predictability (inverse of drift frequency)
         let behavioral_predictability = if drift_patterns.classification.drift_frequency > 0.0 {
             1.0 / (1.0 + drift_patterns.classification.drift_frequency)
         } else {
             1.0
         };
-        
+
         // Meaning preservation (based on delta)
         let meaning_preservation = semantic_result.delta().min(1.0);
-        
+
         // Temporal stability (inverse of drift velocity)
         let temporal_stability = if drift_patterns.trends.drift_velocity > 0.0 {
             1.0 / (1.0 + drift_patterns.trends.drift_velocity)
         } else {
             1.0
         };
-        
+
         // Baseline deviation (simplified calculation)
         let baseline_deviation = drift_patterns.classification.average_severity;
-        
+
         Ok(StabilityMetrics {
             semantic_consistency,
             behavioral_predictability,
@@ -664,14 +745,17 @@ impl AntiDriftValidator {
     }
 
     /// Evaluate correction protocols
-    fn evaluate_correction_protocols(&mut self, drift_patterns: &DriftPatterns) -> AispResult<CorrectionProtocols> {
+    fn evaluate_correction_protocols(
+        &mut self,
+        drift_patterns: &DriftPatterns,
+    ) -> AispResult<CorrectionProtocols> {
         self.stats.correction_evaluations += 1;
-        
+
         // Determine available correction methods
         let mut applicable_methods = Vec::new();
         let mut total_effectiveness = 0.0;
         let mut method_count = 0;
-        
+
         for incident in &drift_patterns.incidents {
             for method in self.correction_registry.values() {
                 if method.applicable_drift_types.contains(&incident.drift_type) {
@@ -681,7 +765,7 @@ impl AntiDriftValidator {
                 }
             }
         }
-        
+
         // Calculate correction success rate
         let correction_success_rate = if method_count > 0 {
             total_effectiveness / method_count as f64
@@ -692,11 +776,11 @@ impl AntiDriftValidator {
             // No applicable methods for existing incidents = poor correction
             0.0
         };
-        
+
         // Remove duplicates from applicable methods
         applicable_methods.sort_by(|a, b| a.id.cmp(&b.id));
         applicable_methods.dedup_by(|a, b| a.id == b.id);
-        
+
         Ok(CorrectionProtocols {
             auto_correction_enabled: self.config.enable_auto_correction,
             manual_correction_available: true, // Always available
@@ -707,90 +791,102 @@ impl AntiDriftValidator {
     }
 
     /// Calculate overall drift resistance score
-    fn calculate_drift_resistance_score(&self, drift_patterns: &DriftPatterns, stability_metrics: &StabilityMetrics, correction_protocols: &CorrectionProtocols) -> AispResult<f64> {
+    fn calculate_drift_resistance_score(
+        &self,
+        drift_patterns: &DriftPatterns,
+        stability_metrics: &StabilityMetrics,
+        correction_protocols: &CorrectionProtocols,
+    ) -> AispResult<f64> {
         // Weight different aspects
         let stability_weight = 0.5;
         let drift_resistance_weight = 0.3;
         let correction_weight = 0.2;
-        
+
         // Calculate stability score
-        let stability_score = (stability_metrics.semantic_consistency + 
-                              stability_metrics.behavioral_predictability + 
-                              stability_metrics.meaning_preservation + 
-                              stability_metrics.temporal_stability) / 4.0;
-        
+        let stability_score = (stability_metrics.semantic_consistency
+            + stability_metrics.behavioral_predictability
+            + stability_metrics.meaning_preservation
+            + stability_metrics.temporal_stability)
+            / 4.0;
+
         // Calculate drift resistance (inverse of severity)
         let drift_resistance = if drift_patterns.classification.max_severity > 0.0 {
             1.0 - drift_patterns.classification.average_severity
         } else {
             1.0
         };
-        
+
         // Use correction success rate
         let correction_score = correction_protocols.correction_success_rate;
-        
+
         // Weighted combination
-        let overall_score = (stability_score * stability_weight) +
-                           (drift_resistance * drift_resistance_weight) +
-                           (correction_score * correction_weight);
-        
+        let overall_score = (stability_score * stability_weight)
+            + (drift_resistance * drift_resistance_weight)
+            + (correction_score * correction_weight);
+
         Ok(overall_score.min(1.0))
     }
 
     /// Check if validation is successful
-    fn is_validation_successful(&self, stability_metrics: &StabilityMetrics, drift_patterns: &DriftPatterns) -> bool {
-        let stability_score = (stability_metrics.semantic_consistency + 
-                              stability_metrics.behavioral_predictability + 
-                              stability_metrics.meaning_preservation + 
-                              stability_metrics.temporal_stability) / 4.0;
-        
+    fn is_validation_successful(
+        &self,
+        stability_metrics: &StabilityMetrics,
+        drift_patterns: &DriftPatterns,
+    ) -> bool {
+        let stability_score = (stability_metrics.semantic_consistency
+            + stability_metrics.behavioral_predictability
+            + stability_metrics.meaning_preservation
+            + stability_metrics.temporal_stability)
+            / 4.0;
+
         // Debug: For tests with zero drift patterns, be more lenient
-        let drift_check = drift_patterns.trends.drift_velocity <= self.config.max_drift_velocity &&
-                         drift_patterns.classification.max_severity <= self.config.severity_threshold;
+        let drift_check = drift_patterns.trends.drift_velocity <= self.config.max_drift_velocity
+            && drift_patterns.classification.max_severity <= self.config.severity_threshold;
         let stability_check = stability_score >= self.config.min_stability_score;
-        
+
         stability_check && drift_check
     }
 
     /// Generate analysis warnings
-    fn generate_warnings(&self, drift_patterns: &DriftPatterns, stability_metrics: &StabilityMetrics) -> Vec<String> {
+    fn generate_warnings(
+        &self,
+        drift_patterns: &DriftPatterns,
+        stability_metrics: &StabilityMetrics,
+    ) -> Vec<String> {
         let mut warnings = Vec::new();
-        
+
         if drift_patterns.trends.drift_velocity > self.config.max_drift_velocity {
             warnings.push(format!(
                 "Drift velocity {:.4} exceeds maximum threshold {:.4}",
-                drift_patterns.trends.drift_velocity,
-                self.config.max_drift_velocity
+                drift_patterns.trends.drift_velocity, self.config.max_drift_velocity
             ));
         }
-        
+
         if drift_patterns.classification.max_severity > self.config.severity_threshold {
             warnings.push(format!(
                 "Maximum drift severity {:.3} exceeds threshold {:.3}",
-                drift_patterns.classification.max_severity,
-                self.config.severity_threshold
+                drift_patterns.classification.max_severity, self.config.severity_threshold
             ));
         }
-        
+
         if stability_metrics.semantic_consistency < self.config.min_stability_score {
             warnings.push(format!(
                 "Semantic consistency {:.3} is below minimum stability score {:.3}",
-                stability_metrics.semantic_consistency,
-                self.config.min_stability_score
+                stability_metrics.semantic_consistency, self.config.min_stability_score
             ));
         }
-        
+
         if drift_patterns.classification.abrupt_changes > 0 {
             warnings.push(format!(
                 "{} abrupt semantic changes detected - may indicate instability",
                 drift_patterns.classification.abrupt_changes
             ));
         }
-        
+
         if self.stats.analysis_time > self.config.max_analysis_time {
             warnings.push("Anti-drift analysis exceeded maximum time limit".to_string());
         }
-        
+
         warnings
     }
 
@@ -838,7 +934,7 @@ mod tests {
     fn test_anti_drift_validator_creation() {
         let config = AntiDriftConfig::default();
         let validator = AntiDriftValidator::new(config);
-        
+
         assert_eq!(validator.stats.drift_checks_performed, 0);
         assert_eq!(validator.stats.stability_calculations, 0);
         assert_eq!(validator.correction_registry.len(), 3); // 3 default correction methods
@@ -850,30 +946,63 @@ mod tests {
         let mut validator = AntiDriftValidator::new(config);
         let document = create_test_document();
         let semantic_result = create_stable_semantic_result();
-        
-        let result = validator.validate_anti_drift(&document, &semantic_result).unwrap();
-        
+
+        let result = validator
+            .validate_anti_drift(&document, &semantic_result)
+            .unwrap();
+
         // Debug: Always show detailed results for debugging
         eprintln!("DEBUG: Anti-drift validation result");
         eprintln!("  Valid: {}", result.valid);
-        eprintln!("  Drift resistance score: {}", result.drift_resistance_score);
-        eprintln!("  Drift incidents: {}", result.drift_patterns.incidents.len());
-        eprintln!("  Drift velocity: {}", result.drift_patterns.trends.drift_velocity);
-        eprintln!("  Drift acceleration: {}", result.drift_patterns.trends.drift_acceleration);
-        eprintln!("  Drift frequency: {}", result.drift_patterns.classification.drift_frequency);
-        eprintln!("  Max severity: {}", result.drift_patterns.classification.max_severity);
+        eprintln!(
+            "  Drift resistance score: {}",
+            result.drift_resistance_score
+        );
+        eprintln!(
+            "  Drift incidents: {}",
+            result.drift_patterns.incidents.len()
+        );
+        eprintln!(
+            "  Drift velocity: {}",
+            result.drift_patterns.trends.drift_velocity
+        );
+        eprintln!(
+            "  Drift acceleration: {}",
+            result.drift_patterns.trends.drift_acceleration
+        );
+        eprintln!(
+            "  Drift frequency: {}",
+            result.drift_patterns.classification.drift_frequency
+        );
+        eprintln!(
+            "  Max severity: {}",
+            result.drift_patterns.classification.max_severity
+        );
         eprintln!("  Stability metrics:");
-        eprintln!("    semantic_consistency: {}", result.stability_metrics.semantic_consistency);
-        eprintln!("    behavioral_predictability: {}", result.stability_metrics.behavioral_predictability);
-        eprintln!("    meaning_preservation: {}", result.stability_metrics.meaning_preservation);
-        eprintln!("    temporal_stability: {}", result.stability_metrics.temporal_stability);
-        let stability_score = (result.stability_metrics.semantic_consistency + 
-                              result.stability_metrics.behavioral_predictability + 
-                              result.stability_metrics.meaning_preservation + 
-                              result.stability_metrics.temporal_stability) / 4.0;
+        eprintln!(
+            "    semantic_consistency: {}",
+            result.stability_metrics.semantic_consistency
+        );
+        eprintln!(
+            "    behavioral_predictability: {}",
+            result.stability_metrics.behavioral_predictability
+        );
+        eprintln!(
+            "    meaning_preservation: {}",
+            result.stability_metrics.meaning_preservation
+        );
+        eprintln!(
+            "    temporal_stability: {}",
+            result.stability_metrics.temporal_stability
+        );
+        let stability_score = (result.stability_metrics.semantic_consistency
+            + result.stability_metrics.behavioral_predictability
+            + result.stability_metrics.meaning_preservation
+            + result.stability_metrics.temporal_stability)
+            / 4.0;
         eprintln!("    calculated stability_score: {}", stability_score);
         eprintln!("    min required: 0.8");
-        
+
         assert!(result.valid);
         assert!(result.drift_resistance_score > 0.8);
         assert!(result.stability_metrics.semantic_consistency > 0.9);
@@ -885,9 +1014,11 @@ mod tests {
         let mut validator = AntiDriftValidator::new(config);
         let document = create_test_document();
         let semantic_result = create_drifted_semantic_result();
-        
-        let result = validator.validate_anti_drift(&document, &semantic_result).unwrap();
-        
+
+        let result = validator
+            .validate_anti_drift(&document, &semantic_result)
+            .unwrap();
+
         assert!(!result.valid); // Should fail validation due to drift
         assert!(!result.warnings.is_empty()); // Should have warnings
         assert!(result.drift_patterns.incidents.len() > 0); // Should detect drift incidents
@@ -897,7 +1028,7 @@ mod tests {
     fn test_drift_pattern_classification() {
         let config = AntiDriftConfig::default();
         let validator = AntiDriftValidator::new(config);
-        
+
         let incidents = vec![
             DriftIncident {
                 id: "drift1".to_string(),
@@ -916,9 +1047,9 @@ mod tests {
                 change_magnitude: 0.8,
             },
         ];
-        
+
         let classification = validator.classify_drift_patterns(&incidents);
-        
+
         assert_eq!(classification.gradual_shifts, 1);
         assert_eq!(classification.abrupt_changes, 1);
         assert_eq!(classification.max_severity, 0.8);
@@ -929,7 +1060,7 @@ mod tests {
     fn test_drift_trends_analysis() {
         let config = AntiDriftConfig::default();
         let validator = AntiDriftValidator::new(config);
-        
+
         let incidents = vec![
             DriftIncident {
                 id: "drift1".to_string(),
@@ -948,9 +1079,9 @@ mod tests {
                 change_magnitude: 0.4,
             },
         ];
-        
+
         let trends = validator.analyze_drift_trends(&incidents);
-        
+
         assert_eq!(trends.dominant_direction, DriftDirection::Complexification);
         assert!(trends.drift_velocity > 0.0);
     }
@@ -961,7 +1092,7 @@ mod tests {
         let mut validator = AntiDriftValidator::new(config);
         let document = create_test_document();
         let semantic_result = create_stable_semantic_result();
-        
+
         let drift_patterns = DriftPatterns {
             incidents: vec![],
             trends: DriftTrends {
@@ -978,9 +1109,11 @@ mod tests {
                 drift_frequency: 0.0,
             },
         };
-        
-        let metrics = validator.calculate_stability_metrics(&document, &semantic_result, &drift_patterns).unwrap();
-        
+
+        let metrics = validator
+            .calculate_stability_metrics(&document, &semantic_result, &drift_patterns)
+            .unwrap();
+
         assert!(metrics.semantic_consistency > 0.9);
         assert_eq!(metrics.behavioral_predictability, 1.0); // No drift = perfect predictability
         assert!(metrics.meaning_preservation > 0.8);
@@ -994,18 +1127,16 @@ mod tests {
             ..Default::default()
         };
         let mut validator = AntiDriftValidator::new(config);
-        
+
         let drift_patterns = DriftPatterns {
-            incidents: vec![
-                DriftIncident {
-                    id: "bias_drift".to_string(),
-                    drift_type: DriftType::BiasIntroduction,
-                    severity: 0.5,
-                    temporal_position: 1.0,
-                    affected_elements: vec!["bias_element".to_string()],
-                    change_magnitude: 0.5,
-                },
-            ],
+            incidents: vec![DriftIncident {
+                id: "bias_drift".to_string(),
+                drift_type: DriftType::BiasIntroduction,
+                severity: 0.5,
+                temporal_position: 1.0,
+                affected_elements: vec!["bias_element".to_string()],
+                change_magnitude: 0.5,
+            }],
             trends: DriftTrends {
                 drift_velocity: 0.1,
                 drift_acceleration: 0.0,
@@ -1020,9 +1151,11 @@ mod tests {
                 drift_frequency: 1.0,
             },
         };
-        
-        let protocols = validator.evaluate_correction_protocols(&drift_patterns).unwrap();
-        
+
+        let protocols = validator
+            .evaluate_correction_protocols(&drift_patterns)
+            .unwrap();
+
         assert!(protocols.auto_correction_enabled);
         assert!(protocols.manual_correction_available);
         assert!(protocols.correction_success_rate > 0.0);

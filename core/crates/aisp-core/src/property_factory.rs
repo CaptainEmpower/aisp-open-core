@@ -5,8 +5,11 @@
 
 use crate::ast::canonical::*;
 use crate::error::*;
-use crate::property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term, PropertyComplexity, ExtractedProperty, PropertyType, PropertyContext, SourceLocation};
 use crate::property_types::Quantifier as PropertyQuantifier;
+use crate::property_types::{
+    AtomicFormula, ExtractedProperty, FormulaStructure, PropertyComplexity, PropertyContext,
+    PropertyFormula, PropertyType, SourceLocation, Term,
+};
 use std::collections::{HashMap, HashSet};
 
 /// Factory for creating formal properties from AISP constructs
@@ -29,7 +32,11 @@ impl PropertyFactory {
     }
 
     /// Create type safety formula: ∀x. hasType(x, T) → wellFormed(x)
-    pub fn create_type_safety_formula(&self, type_name: &str, _type_expr: &TypeExpression) -> AispResult<PropertyFormula> {
+    pub fn create_type_safety_formula(
+        &self,
+        type_name: &str,
+        _type_expr: &TypeExpression,
+    ) -> AispResult<PropertyFormula> {
         let quantifier = PropertyQuantifier {
             variable: "x".to_string(),
             variable_type: Some(type_name.to_string()),
@@ -61,14 +68,21 @@ impl PropertyFactory {
             structure,
             quantifiers: vec![quantifier],
             free_variables: HashSet::new(),
-            predicates: [&"hasType", &"wellFormed"].iter().map(|s| s.to_string()).collect(),
+            predicates: [&"hasType", &"wellFormed"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             functions: HashSet::new(),
             constants: [type_name].iter().map(|s| s.to_string()).collect(),
         })
     }
 
     /// Create structural invariant for struct types
-    pub fn create_structural_invariant(&mut self, type_name: &str, _fields: &[(String, TypeExpression)]) -> AispResult<ExtractedProperty> {
+    pub fn create_structural_invariant(
+        &mut self,
+        type_name: &str,
+        _fields: &[(String, TypeExpression)],
+    ) -> AispResult<ExtractedProperty> {
         let quantifier = PropertyQuantifier {
             variable: "x".to_string(),
             variable_type: Some(type_name.to_string()),
@@ -91,7 +105,10 @@ impl PropertyFactory {
                 structure,
                 quantifiers: vec![quantifier],
                 free_variables: HashSet::new(),
-                predicates: [&"structurallyValid"].iter().map(|s| s.to_string()).collect(),
+                predicates: [&"structurallyValid"]
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect(),
                 functions: HashSet::new(),
                 constants: [type_name].iter().map(|s| s.to_string()).collect(),
             },
@@ -113,7 +130,11 @@ impl PropertyFactory {
     }
 
     /// Create enumeration membership property
-    pub fn create_enumeration_property(&mut self, type_name: &str, values: &[String]) -> AispResult<ExtractedProperty> {
+    pub fn create_enumeration_property(
+        &mut self,
+        type_name: &str,
+        values: &[String],
+    ) -> AispResult<ExtractedProperty> {
         let quantifier = PropertyQuantifier {
             variable: "x".to_string(),
             variable_type: Some(type_name.to_string()),
@@ -166,7 +187,11 @@ impl PropertyFactory {
     }
 
     /// Create function well-defined formula
-    pub fn create_function_well_defined_formula(&self, _func_name: &str, _lambda: &LambdaExpression) -> AispResult<PropertyFormula> {
+    pub fn create_function_well_defined_formula(
+        &self,
+        _func_name: &str,
+        _lambda: &LambdaExpression,
+    ) -> AispResult<PropertyFormula> {
         // Simplified implementation
         Ok(PropertyFormula {
             structure: FormulaStructure::Atomic(AtomicFormula {
@@ -183,7 +208,11 @@ impl PropertyFactory {
     }
 
     /// Create totality property for functions
-    pub fn create_totality_property(&mut self, func_name: &str, lambda: &LambdaExpression) -> AispResult<ExtractedProperty> {
+    pub fn create_totality_property(
+        &mut self,
+        func_name: &str,
+        lambda: &LambdaExpression,
+    ) -> AispResult<ExtractedProperty> {
         Ok(ExtractedProperty {
             id: self.next_property_id(),
             name: format!("{}_totality", func_name),
@@ -218,7 +247,11 @@ impl PropertyFactory {
     }
 
     /// Create structural invariant for tuple types
-    pub fn create_tuple_structural_invariant(&mut self, type_name: &str, fields: &Vec<TypeExpression>) -> AispResult<ExtractedProperty> {
+    pub fn create_tuple_structural_invariant(
+        &mut self,
+        type_name: &str,
+        fields: &Vec<TypeExpression>,
+    ) -> AispResult<ExtractedProperty> {
         let quantifier = PropertyQuantifier {
             variable: "x".to_string(),
             variable_type: Some(type_name.to_string()),
@@ -239,7 +272,10 @@ impl PropertyFactory {
                 structure,
                 quantifiers: vec![quantifier],
                 free_variables: HashSet::new(),
-                predicates: [&"structurallyValid"].iter().map(|s| s.to_string()).collect(),
+                predicates: [&"structurallyValid"]
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect(),
                 functions: HashSet::new(),
                 constants: [type_name].iter().map(|s| s.to_string()).collect(),
             },
@@ -307,7 +343,7 @@ mod tests {
         let mut factory = PropertyFactory::new();
         let id1 = factory.next_property_id();
         let id2 = factory.next_property_id();
-        
+
         assert_eq!(id1, "prop_0");
         assert_eq!(id2, "prop_1");
     }
@@ -315,8 +351,9 @@ mod tests {
     #[test]
     fn test_type_safety_formula_creation() -> AispResult<()> {
         let factory = PropertyFactory::new();
-        let formula = factory.create_type_safety_formula("Int", &TypeExpression::Basic(BasicType::Integer))?;
-        
+        let formula = factory
+            .create_type_safety_formula("Int", &TypeExpression::Basic(BasicType::Integer))?;
+
         match formula.structure {
             FormulaStructure::Universal(quantifier, _) => {
                 assert_eq!(quantifier.variable, "x");
@@ -324,11 +361,11 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         assert!(formula.predicates.contains("hasType"));
         assert!(formula.predicates.contains("wellFormed"));
         assert!(formula.constants.contains("Int"));
-        
+
         Ok(())
     }
 
@@ -339,14 +376,14 @@ mod tests {
             ("x".to_string(), TypeExpression::Basic(BasicType::Integer)),
             ("y".to_string(), TypeExpression::Basic(BasicType::Integer)),
         ];
-        
+
         let property = factory.create_structural_invariant("Point", &fields)?;
-        
+
         assert_eq!(property.name, "Point_structural_invariant");
         assert_eq!(property.property_type, PropertyType::StructuralInvariant);
         assert_eq!(property.complexity.quantifier_depth, 1);
         assert_eq!(property.complexity.difficulty_score, 2);
-        
+
         Ok(())
     }
 
@@ -354,28 +391,26 @@ mod tests {
     fn test_enumeration_property_creation() -> AispResult<()> {
         let mut factory = PropertyFactory::new();
         let values = vec!["Red".to_string(), "Green".to_string(), "Blue".to_string()];
-        
+
         let property = factory.create_enumeration_property("Color", &values)?;
-        
+
         assert_eq!(property.name, "Color_membership");
         assert_eq!(property.property_type, PropertyType::SetMembership);
-        
+
         match property.formula.structure {
-            FormulaStructure::Universal(_, inner) => {
-                match inner.as_ref() {
-                    FormulaStructure::Disjunction(disjuncts) => {
-                        assert_eq!(disjuncts.len(), 3);
-                    }
-                    _ => panic!("Expected disjunction inside universal"),
+            FormulaStructure::Universal(_, inner) => match inner.as_ref() {
+                FormulaStructure::Disjunction(disjuncts) => {
+                    assert_eq!(disjuncts.len(), 3);
                 }
-            }
+                _ => panic!("Expected disjunction inside universal"),
+            },
             _ => panic!("Expected universal quantification"),
         }
-        
+
         assert!(property.formula.constants.contains("Red"));
         assert!(property.formula.constants.contains("Green"));
         assert!(property.formula.constants.contains("Blue"));
-        
+
         Ok(())
     }
 
@@ -387,18 +422,18 @@ mod tests {
             body: LogicalExpression::Variable("x".to_string()),
             span: Some(create_test_span()),
         };
-        
+
         let formula = factory.create_function_well_defined_formula("f", &lambda)?;
-        
+
         match formula.structure {
             FormulaStructure::Atomic(atomic) => {
                 assert_eq!(atomic.predicate, "wellDefined");
             }
             _ => panic!("Expected atomic formula"),
         }
-        
+
         assert!(formula.predicates.contains("wellDefined"));
-        
+
         Ok(())
     }
 
@@ -410,13 +445,13 @@ mod tests {
             body: LogicalExpression::Variable("result".to_string()),
             span: Some(create_test_span()),
         };
-        
+
         let property = factory.create_totality_property("add", &lambda)?;
-        
+
         assert_eq!(property.name, "add_totality");
         assert_eq!(property.property_type, PropertyType::FunctionalCorrectness);
         assert_eq!(property.complexity.variable_count, 2); // Two parameters
-        
+
         Ok(())
     }
 
@@ -428,23 +463,23 @@ mod tests {
             body: LogicalExpression::Variable("x".to_string()),
             span: Some(create_test_span()),
         };
-        
+
         assert!(factory.should_generate_totality_property(&lambda));
     }
 
     #[test]
     fn test_factory_reset() {
         let mut factory = PropertyFactory::new();
-        
+
         // Generate some IDs
         factory.next_property_id();
         factory.next_property_id();
         assert_eq!(factory.next_id, 2);
-        
+
         // Reset and verify
         factory.reset();
         assert_eq!(factory.next_id, 0);
-        
+
         let id = factory.next_property_id();
         assert_eq!(id, "prop_0");
     }
@@ -452,7 +487,7 @@ mod tests {
     #[test]
     fn test_empty_context_creation() {
         let context = PropertyFactory::create_empty_context();
-        
+
         assert!(context.type_definitions.is_empty());
         assert!(context.function_definitions.is_empty());
         assert!(context.constants.is_empty());

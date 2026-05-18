@@ -5,8 +5,10 @@
 
 use crate::ast::canonical::*;
 use crate::error::*;
-use crate::property_types::{FormulaStructure, PropertyFormula, Term, AtomicFormula, PropertyComplexity, PropertyType};
 use crate::property_types::Quantifier as PropertyQuantifier;
+use crate::property_types::{
+    AtomicFormula, FormulaStructure, PropertyComplexity, PropertyFormula, PropertyType, Term,
+};
 use std::collections::HashSet;
 
 /// Converts AISP logical expressions to formal mathematical formulas
@@ -14,30 +16,43 @@ pub struct FormulaConverter;
 
 impl FormulaConverter {
     /// Convert logical expression to formula structure
-    pub fn convert_logical_expression_structure(expr: &LogicalExpression) -> AispResult<FormulaStructure> {
+    pub fn convert_logical_expression_structure(
+        expr: &LogicalExpression,
+    ) -> AispResult<FormulaStructure> {
         match expr {
             LogicalExpression::Temporal { op, operand } => {
                 let operand_structure = Self::convert_logical_expression_structure(operand)?;
                 match op {
-                    TemporalOperator::Always => Ok(FormulaStructure::TemporalAlways(Box::new(operand_structure))),
-                    TemporalOperator::Eventually => Ok(FormulaStructure::TemporalEventually(Box::new(operand_structure))),
+                    TemporalOperator::Always => Ok(FormulaStructure::TemporalAlways(Box::new(
+                        operand_structure,
+                    ))),
+                    TemporalOperator::Eventually => Ok(FormulaStructure::TemporalEventually(
+                        Box::new(operand_structure),
+                    )),
                     _ => Ok(operand_structure), // Simplified for other temporal operators
                 }
             }
             LogicalExpression::Binary { op, left, right } => {
                 let left_structure = Self::convert_logical_expression_structure(left)?;
                 let right_structure = Self::convert_logical_expression_structure(right)?;
-                
+
                 match op {
-                    BinaryOperator::And => Ok(FormulaStructure::Conjunction(vec![left_structure, right_structure])),
-                    BinaryOperator::Or => Ok(FormulaStructure::Disjunction(vec![left_structure, right_structure])),
-                    BinaryOperator::Implication => Ok(FormulaStructure::Implication(Box::new(left_structure), Box::new(right_structure))),
-                    BinaryOperator::Equals => {
-                        Ok(FormulaStructure::ArithmeticEqual(
-                            Term::Variable("left".to_string(), None),
-                            Term::Variable("right".to_string(), None),
-                        ))
-                    }
+                    BinaryOperator::And => Ok(FormulaStructure::Conjunction(vec![
+                        left_structure,
+                        right_structure,
+                    ])),
+                    BinaryOperator::Or => Ok(FormulaStructure::Disjunction(vec![
+                        left_structure,
+                        right_structure,
+                    ])),
+                    BinaryOperator::Implication => Ok(FormulaStructure::Implication(
+                        Box::new(left_structure),
+                        Box::new(right_structure),
+                    )),
+                    BinaryOperator::Equals => Ok(FormulaStructure::ArithmeticEqual(
+                        Term::Variable("left".to_string(), None),
+                        Term::Variable("right".to_string(), None),
+                    )),
                     _ => {
                         // Default handling for other operators
                         Ok(FormulaStructure::Atomic(AtomicFormula {
@@ -51,30 +66,30 @@ impl FormulaConverter {
                     }
                 }
             }
-            LogicalExpression::Application { function, arguments } => {
-                let terms = arguments.iter().map(|arg| {
-                    Term::Variable(format!("{:?}", arg), None)
-                }).collect();
-                
+            LogicalExpression::Application {
+                function,
+                arguments,
+            } => {
+                let terms = arguments
+                    .iter()
+                    .map(|arg| Term::Variable(format!("{:?}", arg), None))
+                    .collect();
+
                 Ok(FormulaStructure::FunctionApplication(
                     function.clone(),
                     terms,
                 ))
             }
-            LogicalExpression::Variable(name) => {
-                Ok(FormulaStructure::Atomic(AtomicFormula {
-                    predicate: name.clone(),
-                    terms: vec![],
-                    type_signature: None,
-                }))
-            }
-            LogicalExpression::Constant(value) => {
-                Ok(FormulaStructure::Atomic(AtomicFormula {
-                    predicate: format!("{:?}", value),
-                    terms: vec![],
-                    type_signature: None,
-                }))
-            }
+            LogicalExpression::Variable(name) => Ok(FormulaStructure::Atomic(AtomicFormula {
+                predicate: name.clone(),
+                terms: vec![],
+                type_signature: None,
+            })),
+            LogicalExpression::Constant(value) => Ok(FormulaStructure::Atomic(AtomicFormula {
+                predicate: format!("{:?}", value),
+                terms: vec![],
+                type_signature: None,
+            })),
             _ => {
                 // Fallback for other expression types
                 Ok(FormulaStructure::Atomic(AtomicFormula {
@@ -89,7 +104,7 @@ impl FormulaConverter {
     /// Convert rule expression to mathematical formula
     pub fn convert_rule_to_formula(expr: &LogicalExpression) -> AispResult<PropertyFormula> {
         let structure = Self::convert_logical_expression_structure(expr)?;
-        
+
         Ok(PropertyFormula {
             structure,
             quantifiers: Self::extract_quantifiers(expr),
@@ -101,7 +116,9 @@ impl FormulaConverter {
     }
 
     /// Convert logical expression to formula for meta properties
-    pub fn convert_logical_expression_to_formula(expr: &LogicalExpression) -> AispResult<PropertyFormula> {
+    pub fn convert_logical_expression_to_formula(
+        expr: &LogicalExpression,
+    ) -> AispResult<PropertyFormula> {
         // Use the same conversion as for rules
         Self::convert_rule_to_formula(expr)
     }
@@ -175,17 +192,19 @@ impl FormulaConverter {
     /// Classify the type of property represented by a rule expression
     pub fn classify_rule_property(expr: &LogicalExpression) -> PropertyType {
         match expr {
-            LogicalExpression::Temporal { op, .. } => {
-                match op {
-                    TemporalOperator::Always => PropertyType::TemporalSafety,
-                    TemporalOperator::Eventually => PropertyType::TemporalLiveness,
-                    _ => PropertyType::LogicalAssertion,
-                }
-            }
+            LogicalExpression::Temporal { op, .. } => match op {
+                TemporalOperator::Always => PropertyType::TemporalSafety,
+                TemporalOperator::Eventually => PropertyType::TemporalLiveness,
+                _ => PropertyType::LogicalAssertion,
+            },
             LogicalExpression::Binary { left, right, .. } => {
-                if Self::contains_relational_predicates(left) || Self::contains_relational_predicates(right) {
+                if Self::contains_relational_predicates(left)
+                    || Self::contains_relational_predicates(right)
+                {
                     PropertyType::RelationalConstraint
-                } else if Self::contains_arithmetic_operations(left) || Self::contains_arithmetic_operations(right) {
+                } else if Self::contains_arithmetic_operations(left)
+                    || Self::contains_arithmetic_operations(right)
+                {
                     PropertyType::ArithmeticConstraint
                 } else {
                     PropertyType::LogicalAssertion
@@ -204,7 +223,7 @@ mod tests {
     fn test_variable_expression_conversion() {
         let expr = LogicalExpression::Variable("x".to_string());
         let result = FormulaConverter::convert_logical_expression_structure(&expr);
-        
+
         assert!(result.is_ok());
         match result.unwrap() {
             FormulaStructure::Atomic(atomic) => {
@@ -218,7 +237,7 @@ mod tests {
     fn test_constant_expression_conversion() {
         let expr = LogicalExpression::Constant(ConstantValue::Number(42.0));
         let result = FormulaConverter::convert_logical_expression_structure(&expr);
-        
+
         assert!(result.is_ok());
         match result.unwrap() {
             FormulaStructure::Atomic(atomic) => {
@@ -237,10 +256,10 @@ mod tests {
             left,
             right,
         };
-        
+
         let result = FormulaConverter::convert_logical_expression_structure(&expr);
         assert!(result.is_ok());
-        
+
         match result.unwrap() {
             FormulaStructure::Conjunction(formulas) => {
                 assert_eq!(formulas.len(), 2);
@@ -256,10 +275,10 @@ mod tests {
             op: TemporalOperator::Always,
             operand,
         };
-        
+
         let result = FormulaConverter::convert_logical_expression_structure(&expr);
         assert!(result.is_ok());
-        
+
         match result.unwrap() {
             FormulaStructure::TemporalAlways(_) => {
                 // Success
@@ -274,15 +293,15 @@ mod tests {
             op: TemporalOperator::Always,
             operand: Box::new(LogicalExpression::Variable("P".to_string())),
         };
-        
+
         let property_type = FormulaConverter::classify_rule_property(&temporal_expr);
         assert_eq!(property_type, PropertyType::TemporalSafety);
-        
+
         let liveness_expr = LogicalExpression::Temporal {
             op: TemporalOperator::Eventually,
             operand: Box::new(LogicalExpression::Variable("P".to_string())),
         };
-        
+
         let liveness_type = FormulaConverter::classify_rule_property(&liveness_expr);
         assert_eq!(liveness_type, PropertyType::TemporalLiveness);
     }
@@ -291,10 +310,10 @@ mod tests {
     fn test_rule_to_formula_conversion() {
         let expr = LogicalExpression::Variable("P".to_string());
         let result = FormulaConverter::convert_rule_to_formula(&expr);
-        
+
         assert!(result.is_ok());
         let formula = result.unwrap();
-        
+
         match formula.structure {
             FormulaStructure::Atomic(atomic) => {
                 assert_eq!(atomic.predicate, "P");
@@ -309,10 +328,10 @@ mod tests {
             function: "f".to_string(),
             arguments: vec![LogicalExpression::Variable("x".to_string())],
         };
-        
+
         let result = FormulaConverter::convert_logical_expression_structure(&expr);
         assert!(result.is_ok());
-        
+
         match result.unwrap() {
             FormulaStructure::FunctionApplication(name, terms) => {
                 assert_eq!(name, "f");
@@ -326,7 +345,7 @@ mod tests {
     fn test_complexity_analysis() {
         let expr = LogicalExpression::Variable("P".to_string());
         let complexity = FormulaConverter::analyze_rule_complexity(&expr);
-        
+
         assert!(complexity.difficulty_score > 0);
         assert!(complexity.difficulty_score <= 10);
     }
@@ -334,11 +353,11 @@ mod tests {
     #[test]
     fn test_extract_operations() {
         let expr = LogicalExpression::Variable("P".to_string());
-        
+
         let quantifiers = FormulaConverter::extract_quantifiers(&expr);
         let variables = FormulaConverter::extract_free_variables(&expr);
         let predicates = FormulaConverter::extract_predicates(&expr);
-        
+
         // These are simplified implementations that return empty collections
         assert_eq!(quantifiers.len(), 0);
         assert_eq!(variables.len(), 0);

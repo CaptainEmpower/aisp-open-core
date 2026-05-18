@@ -44,7 +44,11 @@ pub enum ConstraintType {
     /// Subset constraint (A ⊆ B)
     Subset { subset: String, superset: String },
     /// Function constraint (f(x) = y)
-    Function { function: String, input: String, output: String },
+    Function {
+        function: String,
+        input: String,
+        output: String,
+    },
     /// Custom logical constraint
     Logical { expression: String },
 }
@@ -90,7 +94,6 @@ pub struct ConstraintConflict {
     pub resolution: Option<String>,
 }
 
-
 impl ConstraintSolver {
     /// Create a new constraint solver
     pub fn new() -> Self {
@@ -105,13 +108,13 @@ impl ConstraintSolver {
     pub fn extract_constraints(&mut self, document: &AispDocument) -> ConstraintAnalysisResult {
         self.constraints.clear();
         self.domains.clear();
-        
+
         // Extract constraints from different blocks
         self.extract_type_constraints(document);
         self.extract_rule_constraints(document);
         self.extract_function_constraints(document);
         self.extract_meta_constraints(document);
-        
+
         // Analyze constraint satisfaction
         self.analyze_satisfaction()
     }
@@ -124,7 +127,7 @@ impl ConstraintSolver {
                     // Add domain constraints for enumeration types
                     if let TypeExpression::Enumeration(values) = &definition.type_expr {
                         self.domains.insert(name.clone(), values.clone());
-                        
+
                         // Create membership constraints for each value
                         for value in values {
                             let constraint = Constraint {
@@ -293,7 +296,9 @@ impl ConstraintSolver {
         // Check for conflicting membership constraints
         for i in 0..self.constraints.len() {
             for j in (i + 1)..self.constraints.len() {
-                if let Some(conflict) = self.check_constraint_conflict(&self.constraints[i], &self.constraints[j]) {
+                if let Some(conflict) =
+                    self.check_constraint_conflict(&self.constraints[i], &self.constraints[j])
+                {
                     conflicts.push(conflict);
                 }
             }
@@ -303,17 +308,30 @@ impl ConstraintSolver {
     }
 
     /// Check if two constraints conflict
-    fn check_constraint_conflict(&self, c1: &Constraint, c2: &Constraint) -> Option<ConstraintConflict> {
+    fn check_constraint_conflict(
+        &self,
+        c1: &Constraint,
+        c2: &Constraint,
+    ) -> Option<ConstraintConflict> {
         match (&c1.constraint_type, &c2.constraint_type) {
             (
-                ConstraintType::Equality { left: l1, right: r1 },
-                ConstraintType::Inequality { left: l2, right: r2 }
+                ConstraintType::Equality {
+                    left: l1,
+                    right: r1,
+                },
+                ConstraintType::Inequality {
+                    left: l2,
+                    right: r2,
+                },
             ) => {
                 if (l1 == l2 && r1 == r2) || (l1 == r2 && r1 == l2) {
                     Some(ConstraintConflict {
                         constraint_ids: vec![c1.id.clone(), c2.id.clone()],
                         severity: ConflictSeverity::Error,
-                        description: format!("Equality constraint {} conflicts with inequality constraint {}", c1.id, c2.id),
+                        description: format!(
+                            "Equality constraint {} conflicts with inequality constraint {}",
+                            c1.id, c2.id
+                        ),
                         resolution: Some("Remove one of the conflicting constraints".to_string()),
                     })
                 } else {
@@ -331,11 +349,14 @@ mod tests {
 
     fn create_test_document() -> AispDocument {
         let mut type_definitions = HashMap::new();
-        type_definitions.insert("State".to_string(), TypeDefinition {
-            name: "State".to_string(),
-            type_expr: TypeExpression::Enumeration(vec!["A".to_string(), "B".to_string()]),
-            span: Some(Span::new(1, 1, 1, 10)),
-        });
+        type_definitions.insert(
+            "State".to_string(),
+            TypeDefinition {
+                name: "State".to_string(),
+                type_expr: TypeExpression::Enumeration(vec!["A".to_string(), "B".to_string()]),
+                span: Some(Span::new(1, 1, 1, 10)),
+            },
+        );
 
         AispDocument {
             header: DocumentHeader {
@@ -361,9 +382,9 @@ mod tests {
     fn test_constraint_extraction() {
         let mut solver = ConstraintSolver::new();
         let document = create_test_document();
-        
+
         let result = solver.extract_constraints(&document);
-        
+
         assert!(!result.constraints.is_empty());
         assert!(result.satisfaction_score >= 0.0);
         assert!(result.satisfaction_score <= 1.0);
@@ -413,7 +434,7 @@ mod tests {
 
         let conflict = solver.check_constraint_conflict(&c1, &c2);
         assert!(conflict.is_some());
-        
+
         if let Some(conflict) = conflict {
             assert_eq!(conflict.severity, ConflictSeverity::Error);
             assert_eq!(conflict.constraint_ids.len(), 2);

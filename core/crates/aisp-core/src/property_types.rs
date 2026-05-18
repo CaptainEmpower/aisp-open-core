@@ -252,7 +252,7 @@ mod tests {
             terms: vec![],
             type_signature: None,
         });
-        
+
         matches!(atomic, FormulaStructure::Atomic(_));
     }
 
@@ -263,7 +263,7 @@ mod tests {
             variable_type: Some("Int".to_string()),
             domain: None,
         };
-        
+
         assert_eq!(quantifier.variable, "x");
         assert_eq!(quantifier.variable_type, Some("Int".to_string()));
     }
@@ -294,8 +294,10 @@ mod tests {
             constants: HashMap::new(),
             dependencies: Vec::new(),
         };
-        
-        context.type_definitions.insert("Int".to_string(), "Integer".to_string());
+
+        context
+            .type_definitions
+            .insert("Int".to_string(), "Integer".to_string());
         assert_eq!(context.type_definitions.len(), 1);
     }
 
@@ -307,7 +309,7 @@ mod tests {
             column: Some(10),
             source_text: Some("test code".to_string()),
         };
-        
+
         assert_eq!(loc.block_type, "Types");
         assert_eq!(loc.line, Some(42));
     }
@@ -316,7 +318,7 @@ mod tests {
     fn test_extracted_property_creation() {
         // Inline test utility - replaced test_fixtures
         use std::collections::HashMap;
-        
+
         let property = ExtractedProperty {
             id: "prop_1".to_string(),
             name: "test_property".to_string(),
@@ -347,10 +349,10 @@ mod tests {
                 source_text: Some("test property".to_string()),
             },
         };
-        
+
         assert_eq!(property.id, "prop_1");
         assert_eq!(property.property_type, PropertyType::TypeSafety);
-        
+
         // Verify formula structure
         match &property.formula.structure {
             FormulaStructure::Atomic(atomic) => {

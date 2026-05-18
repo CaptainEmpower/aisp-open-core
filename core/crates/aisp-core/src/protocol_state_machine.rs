@@ -4,12 +4,13 @@
 //! including state transition validation, reachability analysis, and behavioral property verification.
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, 
-                     TypesBlock, Span, DocumentHeader, DocumentMetadata, 
-                     TypeDefinition, TypeExpression, BasicType},
+    ast::canonical::{
+        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+        DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
+    },
     error::{AispError, AispResult},
-    property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term},
     formal_verification::verifier::FormalVerifier,
+    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
     temporal_logic_solver::TemporalLogicSolver,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -353,12 +354,15 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Perform comprehensive state machine analysis on AISP document
-    pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<StateMachineAnalysis> {
+    pub fn analyze_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<StateMachineAnalysis> {
         let start_time = Instant::now();
 
         // Extract state machines from document
         let state_machines = self.extract_state_machines(document)?;
-        
+
         if state_machines.is_empty() {
             return Ok(StateMachineAnalysis {
                 state_machines,
@@ -390,14 +394,14 @@ impl ProtocolStateMachineAnalyzer {
         let protocol_compliance = self.verify_protocol_compliance(&state_machines)?;
 
         // Calculate performance metrics
-        let performance_metrics = self.calculate_performance_metrics(&state_machines, start_time.elapsed());
+        let performance_metrics =
+            self.calculate_performance_metrics(&state_machines, start_time.elapsed());
 
         // Check for state space explosion
         if performance_metrics.state_space_size > self.config.max_state_space {
             warnings.push(format!(
                 "State space size ({}) exceeds maximum ({})",
-                performance_metrics.state_space_size,
-                self.config.max_state_space
+                performance_metrics.state_space_size, self.config.max_state_space
             ));
         }
 
@@ -412,7 +416,10 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Extract state machines from AISP document
-    fn extract_state_machines(&self, document: &AispDocument) -> AispResult<Vec<ProtocolStateMachine>> {
+    fn extract_state_machines(
+        &self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<ProtocolStateMachine>> {
         let mut state_machines = Vec::new();
 
         // Look for state machine patterns in types and rules blocks
@@ -430,7 +437,10 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Extract state machine from a specific block
-    fn extract_state_machine_from_block(&self, _block: &AispBlock) -> AispResult<Option<ProtocolStateMachine>> {
+    fn extract_state_machine_from_block(
+        &self,
+        _block: &AispBlock,
+    ) -> AispResult<Option<ProtocolStateMachine>> {
         // Simplified extraction - in practice would analyze block structure
         Ok(Some(ProtocolStateMachine {
             id: "extracted_machine".to_string(),
@@ -480,13 +490,19 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Extract implicit state machines from temporal logic patterns
-    fn extract_implicit_state_machines(&self, _document: &AispDocument) -> AispResult<Vec<ProtocolStateMachine>> {
+    fn extract_implicit_state_machines(
+        &self,
+        _document: &AispDocument,
+    ) -> AispResult<Vec<ProtocolStateMachine>> {
         // Simplified - would analyze temporal patterns to infer state machines
         Ok(vec![])
     }
 
     /// Perform reachability analysis on state machines
-    fn analyze_reachability(&self, machines: &[ProtocolStateMachine]) -> AispResult<ReachabilityAnalysis> {
+    fn analyze_reachability(
+        &self,
+        machines: &[ProtocolStateMachine],
+    ) -> AispResult<ReachabilityAnalysis> {
         let mut all_reachable = HashSet::new();
         let mut all_unreachable = HashSet::new();
         let mut reachability_graph = HashMap::new();
@@ -504,14 +520,14 @@ impl ProtocolStateMachineAnalyzer {
 
             while let Some((state, distance)) = queue.pop_front() {
                 all_reachable.insert(state.clone());
-                
+
                 // Find transitions from this state
                 for transition in &machine.transitions {
                     if transition.from_state == state && !visited.contains(&transition.to_state) {
                         visited.insert(transition.to_state.clone());
                         queue.push_back((transition.to_state.clone(), distance + 1));
                         distances.insert(transition.to_state.clone(), distance + 1);
-                        
+
                         // Update reachability graph
                         reachability_graph
                             .entry(state.clone())
@@ -548,26 +564,23 @@ impl ProtocolStateMachineAnalyzer {
     /// Detect cycles in state machines
     fn detect_cycles(&self, machines: &[ProtocolStateMachine]) -> Vec<Vec<String>> {
         let mut cycles = Vec::new();
-        
+
         for machine in machines {
             // Use DFS to detect cycles
             let mut visited = HashSet::new();
             let mut rec_stack = HashSet::new();
-            
+
             for state in &machine.states {
                 if !visited.contains(state) {
-                    if let Some(cycle) = self.dfs_cycle_detection(
-                        state,
-                        machine,
-                        &mut visited,
-                        &mut rec_stack,
-                    ) {
+                    if let Some(cycle) =
+                        self.dfs_cycle_detection(state, machine, &mut visited, &mut rec_stack)
+                    {
                         cycles.push(cycle);
                     }
                 }
             }
         }
-        
+
         cycles
     }
 
@@ -581,16 +594,13 @@ impl ProtocolStateMachineAnalyzer {
     ) -> Option<Vec<String>> {
         visited.insert(state.to_string());
         rec_stack.insert(state.to_string());
-        
+
         for transition in &machine.transitions {
             if transition.from_state == state {
                 if !visited.contains(&transition.to_state) {
-                    if let Some(cycle) = self.dfs_cycle_detection(
-                        &transition.to_state,
-                        machine,
-                        visited,
-                        rec_stack,
-                    ) {
+                    if let Some(cycle) =
+                        self.dfs_cycle_detection(&transition.to_state, machine, visited, rec_stack)
+                    {
                         return Some(cycle);
                     }
                 } else if rec_stack.contains(&transition.to_state) {
@@ -599,27 +609,34 @@ impl ProtocolStateMachineAnalyzer {
                 }
             }
         }
-        
+
         rec_stack.remove(state);
         None
     }
 
     /// Find strongly connected components using Tarjan's algorithm
-    fn find_strongly_connected_components(&self, machines: &[ProtocolStateMachine]) -> Vec<Vec<String>> {
+    fn find_strongly_connected_components(
+        &self,
+        machines: &[ProtocolStateMachine],
+    ) -> Vec<Vec<String>> {
         // Simplified implementation - would use Tarjan's algorithm
         let mut components = Vec::new();
-        
+
         for machine in machines {
             for state in &machine.states {
                 components.push(vec![state.clone()]);
             }
         }
-        
+
         components
     }
 
     /// Analyze liveness properties
-    fn analyze_liveness(&mut self, machines: &[ProtocolStateMachine], _reachability: &ReachabilityAnalysis) -> AispResult<LivenessAnalysis> {
+    fn analyze_liveness(
+        &mut self,
+        machines: &[ProtocolStateMachine],
+        _reachability: &ReachabilityAnalysis,
+    ) -> AispResult<LivenessAnalysis> {
         let mut deadlock_states = HashSet::new();
         let mut livelock_cycles = Vec::new();
         let mut safety_violations = Vec::new();
@@ -628,9 +645,8 @@ impl ProtocolStateMachineAnalyzer {
         for machine in machines {
             // Detect deadlock states (states with no outgoing transitions)
             for state in &machine.states {
-                let has_outgoing = machine.transitions.iter()
-                    .any(|t| t.from_state == *state);
-                
+                let has_outgoing = machine.transitions.iter().any(|t| t.from_state == *state);
+
                 if !has_outgoing && !machine.final_states.contains(state) {
                     deadlock_states.insert(state.clone());
                 }
@@ -697,7 +713,10 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Verify protocol compliance
-    fn verify_protocol_compliance(&self, machines: &[ProtocolStateMachine]) -> AispResult<ProtocolCompliance> {
+    fn verify_protocol_compliance(
+        &self,
+        machines: &[ProtocolStateMachine],
+    ) -> AispResult<ProtocolCompliance> {
         let mut violations = Vec::new();
         let mut supported_features = Vec::new();
         let mut missing_features = Vec::new();
@@ -731,7 +750,8 @@ impl ProtocolStateMachineAnalyzer {
         let compliance_score = if violations.is_empty() {
             1.0
         } else {
-            let violation_weight: f64 = violations.iter()
+            let violation_weight: f64 = violations
+                .iter()
                 .map(|v| match v.severity {
                     ViolationSeverity::Low => 0.1,
                     ViolationSeverity::Medium => 0.3,
@@ -752,11 +772,16 @@ impl ProtocolStateMachineAnalyzer {
     }
 
     /// Calculate performance metrics
-    fn calculate_performance_metrics(&self, machines: &[ProtocolStateMachine], analysis_time: Duration) -> StateMachinePerformance {
+    fn calculate_performance_metrics(
+        &self,
+        machines: &[ProtocolStateMachine],
+        analysis_time: Duration,
+    ) -> StateMachinePerformance {
         let total_states: usize = machines.iter().map(|m| m.states.len()).sum();
         let total_transitions: usize = machines.iter().map(|m| m.transitions.len()).sum();
-        
-        let max_path_length = machines.iter()
+
+        let max_path_length = machines
+            .iter()
             .map(|m| self.calculate_longest_path(m))
             .max()
             .unwrap_or(0);
@@ -854,11 +879,14 @@ mod tests {
 
     fn create_test_document() -> AispDocument {
         let mut types = HashMap::new();
-        types.insert("State".to_string(), TypeDefinition {
-            name: "State".to_string(),
-            type_expr: TypeExpression::Basic(BasicType::String),
-            span: Some(Span::new(0, 0, 1, 1)),
-        });
+        types.insert(
+            "State".to_string(),
+            TypeDefinition {
+                name: "State".to_string(),
+                type_expr: TypeExpression::Basic(BasicType::String),
+                span: Some(Span::new(0, 0, 1, 1)),
+            },
+        );
 
         AispDocument {
             header: DocumentHeader {
@@ -871,13 +899,11 @@ mod tests {
                 domain: Some("protocol".to_string()),
                 protocol: Some("state-machine".to_string()),
             },
-            blocks: vec![
-                AispBlock::Types(TypesBlock {
-                    definitions: types,
-                    raw_definitions: Vec::new(),
-                    span: Some(Span::new(0, 0, 1, 1)),
-                }),
-            ],
+            blocks: vec![AispBlock::Types(TypesBlock {
+                definitions: types,
+                raw_definitions: Vec::new(),
+                span: Some(Span::new(0, 0, 1, 1)),
+            })],
             span: Some(Span::new(0, 0, 1, 1)),
         }
     }
@@ -894,10 +920,10 @@ mod tests {
     fn test_state_machine_analysis() {
         let mut analyzer = ProtocolStateMachineAnalyzer::new();
         let document = create_test_document();
-        
+
         let result = analyzer.analyze_document(&document);
         assert!(result.is_ok());
-        
+
         let analysis = result.unwrap();
         // Analysis should complete even with minimal input
         assert!(analysis.performance_metrics.analysis_time > Duration::from_nanos(0));
@@ -922,7 +948,7 @@ mod tests {
             priority: 1,
             timing: None,
         };
-        
+
         assert_eq!(transition.from_state, "A");
         assert_eq!(transition.to_state, "B");
         assert_eq!(transition.priority, 1);
@@ -935,7 +961,7 @@ mod tests {
             max_delay: Some(Duration::from_secs(1)),
             deadline: Some(Duration::from_secs(5)),
         };
-        
+
         assert_eq!(timing.min_delay, Some(Duration::from_millis(100)));
         assert_eq!(timing.max_delay, Some(Duration::from_secs(1)));
         assert_eq!(timing.deadline, Some(Duration::from_secs(5)));

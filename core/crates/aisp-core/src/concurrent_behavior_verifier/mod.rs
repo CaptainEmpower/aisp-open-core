@@ -3,20 +3,17 @@
 //! This module provides comprehensive analysis of concurrent behavior in AISP protocols,
 //! breaking down the analysis into specialized components for maintainability.
 
-pub mod types;
 pub mod analyzer;
-pub mod race_detector;
 pub mod deadlock_analyzer;
+pub mod race_detector;
+pub mod types;
 
-pub use types::*;
 pub use analyzer::ConcurrentBehaviorAnalyzer;
-pub use race_detector::RaceConditionDetector;
 pub use deadlock_analyzer::DeadlockAnalyzer;
+pub use race_detector::RaceConditionDetector;
+pub use types::*;
 
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::AispResult,
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 
 /// Main concurrent behavior verifier
 pub struct ConcurrentBehaviorVerifier {
@@ -42,17 +39,24 @@ impl ConcurrentBehaviorVerifier {
     pub fn verify(&mut self, document: &AispDocument) -> AispResult<ConcurrentBehaviorAnalysis> {
         // Perform main concurrent behavior analysis
         let mut analysis = self.analyzer.analyze(document)?;
-        
+
         // Enhance with detailed race condition analysis
-        let detailed_races = self.race_detector.detect_races(&analysis.concurrent_processes)?;
+        let detailed_races = self
+            .race_detector
+            .detect_races(&analysis.concurrent_processes)?;
         for detailed_race in detailed_races {
-            analysis.race_condition_analysis.race_conditions.push(detailed_race.base);
+            analysis
+                .race_condition_analysis
+                .race_conditions
+                .push(detailed_race.base);
         }
-        
+
         // Enhance with detailed deadlock analysis
-        let enhanced_deadlock_analysis = self.deadlock_analyzer.analyze(&analysis.concurrent_processes)?;
+        let enhanced_deadlock_analysis = self
+            .deadlock_analyzer
+            .analyze(&analysis.concurrent_processes)?;
         analysis.deadlock_analysis = enhanced_deadlock_analysis;
-        
+
         Ok(analysis)
     }
 }
@@ -81,7 +85,7 @@ mod tests {
         let _race_detector = RaceConditionDetector::new();
         let _deadlock_analyzer = DeadlockAnalyzer::new();
         let _verifier = ConcurrentBehaviorVerifier::new();
-        
+
         // Integration smoke test
         assert!(true);
     }

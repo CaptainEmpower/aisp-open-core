@@ -6,8 +6,7 @@
 use crate::{
     error::AispResult,
     property_types::{
-        PropertyFormula, FormulaStructure, AtomicFormula, Term, 
-        Quantifier as PropQuantifier,
+        AtomicFormula, FormulaStructure, PropertyFormula, Quantifier as PropQuantifier, Term,
     },
 };
 use std::collections::HashSet;
@@ -29,7 +28,7 @@ pub fn create_non_negativity_formula(type_name: &str) -> AispResult<PropertyForm
                     Term::Constant("0".to_string(), "ℕ".to_string()),
                 ],
                 type_signature: None,
-            }))
+            })),
         ),
         quantifiers: vec![PropQuantifier {
             variable: "x".to_string(),
@@ -53,7 +52,10 @@ pub fn create_non_negativity_formula(type_name: &str) -> AispResult<PropertyForm
 
 /// Create a membership formula for enumeration types
 /// Formula: ∀x:TypeName → x ∈ {variant1, variant2, ...}
-pub fn create_membership_formula(type_name: &str, variants: &[String]) -> AispResult<PropertyFormula> {
+pub fn create_membership_formula(
+    type_name: &str,
+    variants: &[String],
+) -> AispResult<PropertyFormula> {
     Ok(PropertyFormula {
         structure: FormulaStructure::Universal(
             PropQuantifier {
@@ -68,7 +70,7 @@ pub fn create_membership_formula(type_name: &str, variants: &[String]) -> AispRe
                     Term::Constant(format!("{{{}}}", variants.join(",")), type_name.to_string()),
                 ],
                 type_signature: None,
-            }))
+            })),
         ),
         quantifiers: vec![PropQuantifier {
             variable: "x".to_string(),
@@ -102,11 +104,9 @@ pub fn create_well_formed_formula(type_name: &str) -> AispResult<PropertyFormula
             },
             Box::new(FormulaStructure::Atomic(AtomicFormula {
                 predicate: "WellFormed".to_string(),
-                terms: vec![
-                    Term::Variable("x".to_string(), Some(type_name.to_string())),
-                ],
+                terms: vec![Term::Variable("x".to_string(), Some(type_name.to_string()))],
                 type_signature: None,
-            }))
+            })),
         ),
         quantifiers: vec![PropQuantifier {
             variable: "x".to_string(),
@@ -153,7 +153,10 @@ pub fn create_range_formula(type_name: &str, min: i64, max: i64) -> AispResult<P
                 variable_type: Some(type_name.to_string()),
                 domain: None,
             },
-            Box::new(FormulaStructure::Conjunction(vec![min_constraint, max_constraint]))
+            Box::new(FormulaStructure::Conjunction(vec![
+                min_constraint,
+                max_constraint,
+            ])),
         ),
         quantifiers: vec![PropQuantifier {
             variable: "x".to_string(),
@@ -179,7 +182,10 @@ pub fn create_range_formula(type_name: &str, min: i64, max: i64) -> AispResult<P
 
 /// Create an identity function formula
 /// Formula: ∀x → f(x) = x
-pub fn create_identity_formula(function_name: &str, type_name: &str) -> AispResult<PropertyFormula> {
+pub fn create_identity_formula(
+    function_name: &str,
+    type_name: &str,
+) -> AispResult<PropertyFormula> {
     Ok(PropertyFormula {
         structure: FormulaStructure::Universal(
             PropQuantifier {
@@ -190,13 +196,14 @@ pub fn create_identity_formula(function_name: &str, type_name: &str) -> AispResu
             Box::new(FormulaStructure::Atomic(AtomicFormula {
                 predicate: "=".to_string(),
                 terms: vec![
-                    Term::Function(function_name.to_string(), vec![
-                        Term::Variable("x".to_string(), Some(type_name.to_string()))
-                    ]),
+                    Term::Function(
+                        function_name.to_string(),
+                        vec![Term::Variable("x".to_string(), Some(type_name.to_string()))],
+                    ),
                     Term::Variable("x".to_string(), Some(type_name.to_string())),
                 ],
                 type_signature: None,
-            }))
+            })),
         ),
         quantifiers: vec![PropQuantifier {
             variable: "x".to_string(),
@@ -225,13 +232,13 @@ mod tests {
     #[test]
     fn test_create_non_negativity_formula() {
         let formula = create_non_negativity_formula("Natural").unwrap();
-        
+
         // Check that it's a universal quantification
         match &formula.structure {
             FormulaStructure::Universal(quantifier, body) => {
                 assert_eq!(quantifier.variable, "x");
                 assert_eq!(quantifier.variable_type, Some("Natural".to_string()));
-                
+
                 // Check the body is an atomic formula with ≥ predicate
                 match body.as_ref() {
                     FormulaStructure::Atomic(atomic) => {
@@ -243,7 +250,7 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         // Check predicates and constants
         assert!(formula.predicates.contains("≥"));
         assert!(formula.constants.contains("0"));
@@ -253,13 +260,13 @@ mod tests {
     fn test_create_membership_formula() {
         let variants = vec!["Active".to_string(), "Inactive".to_string()];
         let formula = create_membership_formula("Status", &variants).unwrap();
-        
+
         // Check that it's a universal quantification
         match &formula.structure {
             FormulaStructure::Universal(quantifier, body) => {
                 assert_eq!(quantifier.variable, "x");
                 assert_eq!(quantifier.variable_type, Some("Status".to_string()));
-                
+
                 // Check the body is an atomic formula with ∈ predicate
                 match body.as_ref() {
                     FormulaStructure::Atomic(atomic) => {
@@ -271,7 +278,7 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         // Check predicates and constants
         assert!(formula.predicates.contains("∈"));
         assert!(formula.constants.contains("{Active,Inactive}"));
@@ -280,12 +287,12 @@ mod tests {
     #[test]
     fn test_create_well_formed_formula() {
         let formula = create_well_formed_formula("CustomType").unwrap();
-        
+
         match &formula.structure {
             FormulaStructure::Universal(quantifier, body) => {
                 assert_eq!(quantifier.variable, "x");
                 assert_eq!(quantifier.variable_type, Some("CustomType".to_string()));
-                
+
                 match body.as_ref() {
                     FormulaStructure::Atomic(atomic) => {
                         assert_eq!(atomic.predicate, "WellFormed");
@@ -296,19 +303,19 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         assert!(formula.predicates.contains("WellFormed"));
     }
 
     #[test]
     fn test_create_range_formula() {
         let formula = create_range_formula("Counter", 0, 100).unwrap();
-        
+
         match &formula.structure {
             FormulaStructure::Universal(quantifier, body) => {
                 assert_eq!(quantifier.variable, "x");
                 assert_eq!(quantifier.variable_type, Some("Counter".to_string()));
-                
+
                 // Should be a conjunction of two constraints
                 match body.as_ref() {
                     FormulaStructure::Conjunction(constraints) => {
@@ -319,7 +326,7 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         // Check predicates and constants
         assert!(formula.predicates.contains("≥"));
         assert!(formula.predicates.contains("≤"));
@@ -330,17 +337,17 @@ mod tests {
     #[test]
     fn test_create_identity_formula() {
         let formula = create_identity_formula("identity", "Any").unwrap();
-        
+
         match &formula.structure {
             FormulaStructure::Universal(quantifier, body) => {
                 assert_eq!(quantifier.variable, "x");
                 assert_eq!(quantifier.variable_type, Some("Any".to_string()));
-                
+
                 match body.as_ref() {
                     FormulaStructure::Atomic(atomic) => {
                         assert_eq!(atomic.predicate, "=");
                         assert_eq!(atomic.terms.len(), 2);
-                        
+
                         // First term should be function application
                         match &atomic.terms[0] {
                             Term::Function(name, args) => {
@@ -355,7 +362,7 @@ mod tests {
             }
             _ => panic!("Expected universal quantification"),
         }
-        
+
         assert!(formula.predicates.contains("="));
         assert!(formula.functions.contains("identity"));
     }
@@ -363,12 +370,15 @@ mod tests {
     #[test]
     fn test_formula_quantifiers_consistency() {
         let formula = create_non_negativity_formula("Test").unwrap();
-        
+
         // Quantifiers field should match the structure
         assert_eq!(formula.quantifiers.len(), 1);
         assert_eq!(formula.quantifiers[0].variable, "x");
-        assert_eq!(formula.quantifiers[0].variable_type, Some("Test".to_string()));
-        
+        assert_eq!(
+            formula.quantifiers[0].variable_type,
+            Some("Test".to_string())
+        );
+
         // Free variables should be empty for universally quantified formulas
         assert!(formula.free_variables.is_empty());
     }

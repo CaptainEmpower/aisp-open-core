@@ -18,20 +18,20 @@
 //! - `hebbian_learner`: F₇ Enhanced Hebbian Learning
 //! - Additional modules for remaining features...
 
-pub mod types;
 pub mod binding_verifier;
-pub mod rossnet_scorer;
 pub mod hebbian_learner;
+pub mod rossnet_scorer;
+pub mod types;
 
-pub use types::*;
 pub use binding_verifier::FourStateBindingVerifier;
-pub use rossnet_scorer::RossNetScorer;
 pub use hebbian_learner::EnhancedHebbianLearner;
+pub use rossnet_scorer::RossNetScorer;
+pub use types::*;
 
 use crate::{
+    ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     pocket_architecture::{ContentHash, InteractionResult},
-    ast::canonical::CanonicalAispDocument as AispDocument,
 };
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -118,7 +118,9 @@ impl CoreFeaturesManager {
 
         // F₆: RossNet Scoring
         if self.feature_config.enable_rossnet_scoring {
-            let scoring_feedback = self.rossnet_scorer.calculate_score(content_a, content_b, context)?;
+            let scoring_feedback = self
+                .rossnet_scorer
+                .calculate_score(content_a, content_b, context)?;
             analysis_result.rossnet_score = Some(scoring_feedback);
             self.update_feature_usage("rossnet_scoring");
         }
@@ -152,15 +154,13 @@ impl CoreFeaturesManager {
     ) -> AispResult<f64> {
         if !self.feature_config.enable_hebbian_learning {
             return Err(AispError::validation_error(
-                "Hebbian learning is disabled".to_string()
+                "Hebbian learning is disabled".to_string(),
             ));
         }
 
-        let new_affinity = self.hebbian_learner.update_affinity(
-            content_a,
-            content_b,
-            interaction_result,
-        )?;
+        let new_affinity =
+            self.hebbian_learner
+                .update_affinity(content_a, content_b, interaction_result)?;
 
         self.update_feature_usage("affinity_update");
         Ok(new_affinity)
@@ -174,11 +174,13 @@ impl CoreFeaturesManager {
     ) -> AispResult<(bool, f64)> {
         if !self.feature_config.enable_hebbian_learning {
             return Err(AispError::validation_error(
-                "Hebbian learning is disabled".to_string()
+                "Hebbian learning is disabled".to_string(),
             ));
         }
 
-        Ok(self.hebbian_learner.predict_interaction_success(content_a, content_b))
+        Ok(self
+            .hebbian_learner
+            .predict_interaction_success(content_a, content_b))
     }
 
     /// Batch analyze multiple content interactions
@@ -190,13 +192,8 @@ impl CoreFeaturesManager {
         let mut results = Vec::with_capacity(interactions.len());
 
         for (content_a, content_b, type_a, type_b) in interactions {
-            let analysis = self.analyze_content_interaction(
-                content_a,
-                content_b,
-                type_a,
-                type_b,
-                context,
-            )?;
+            let analysis =
+                self.analyze_content_interaction(content_a, content_b, type_a, type_b, context)?;
             results.push(analysis);
         }
 
@@ -214,7 +211,10 @@ impl CoreFeaturesManager {
 
         for (content_a, content_b) in content_pairs {
             let scoring_feedback = if self.feature_config.enable_rossnet_scoring {
-                Some(self.rossnet_scorer.calculate_score(content_a, content_b, context)?)
+                Some(
+                    self.rossnet_scorer
+                        .calculate_score(content_a, content_b, context)?,
+                )
             } else {
                 None
             };
@@ -226,7 +226,8 @@ impl CoreFeaturesManager {
             };
 
             let (predicted_success, confidence) = if self.feature_config.enable_hebbian_learning {
-                self.hebbian_learner.predict_interaction_success(*content_a, *content_b)
+                self.hebbian_learner
+                    .predict_interaction_success(*content_a, *content_b)
             } else {
                 (false, 0.0)
             };
@@ -244,7 +245,9 @@ impl CoreFeaturesManager {
 
         // Sort by score descending
         recommendations.sort_by(|a, b| {
-            b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal)
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         recommendations.truncate(limit);
@@ -285,38 +288,35 @@ impl CoreFeaturesManager {
 
         // Check integration performance
         if self.integration_stats.average_processing_time_ms > 1000.0 {
-            health_report.component_health.insert(
-                "integration_performance".to_string(),
-                HealthStatus::Warning,
-            );
-            health_report.recommendations.push(
-                "Consider optimizing feature integration for better performance".to_string()
-            );
+            health_report
+                .component_health
+                .insert("integration_performance".to_string(), HealthStatus::Warning);
+            health_report
+                .recommendations
+                .push("Consider optimizing feature integration for better performance".to_string());
         } else {
-            health_report.component_health.insert(
-                "integration_performance".to_string(),
-                HealthStatus::Healthy,
-            );
+            health_report
+                .component_health
+                .insert("integration_performance".to_string(), HealthStatus::Healthy);
         }
 
         // Check success rate
         let success_rate = if self.integration_stats.feature_interactions > 0 {
-            self.integration_stats.successful_integrations as f64 /
-            self.integration_stats.feature_interactions as f64
+            self.integration_stats.successful_integrations as f64
+                / self.integration_stats.feature_interactions as f64
         } else {
             1.0
         };
 
-        health_report.performance_metrics.insert(
-            "success_rate".to_string(),
-            success_rate,
-        );
+        health_report
+            .performance_metrics
+            .insert("success_rate".to_string(), success_rate);
 
         if success_rate < 0.8 {
             health_report.overall_health = HealthStatus::Warning;
-            health_report.recommendations.push(
-                "Low success rate detected - review error patterns".to_string()
-            );
+            health_report
+                .recommendations
+                .push("Low success rate detected - review error patterns".to_string());
         }
 
         health_report
@@ -356,7 +356,9 @@ impl CoreFeaturesManager {
 
     /// Update feature usage statistics
     fn update_feature_usage(&mut self, feature_name: &str) {
-        *self.integration_stats.feature_usage_counts
+        *self
+            .integration_stats
+            .feature_usage_counts
             .entry(feature_name.to_string())
             .or_insert(0) += 1;
     }
@@ -364,7 +366,7 @@ impl CoreFeaturesManager {
     /// Update processing statistics
     fn update_processing_statistics(&mut self, processing_time_ms: f64, success: bool) {
         self.integration_stats.feature_interactions += 1;
-        
+
         if success {
             self.integration_stats.successful_integrations += 1;
         } else {
@@ -373,9 +375,8 @@ impl CoreFeaturesManager {
 
         // Update average processing time using exponential moving average
         let alpha = 0.1;
-        self.integration_stats.average_processing_time_ms = 
-            alpha * processing_time_ms + 
-            (1.0 - alpha) * self.integration_stats.average_processing_time_ms;
+        self.integration_stats.average_processing_time_ms = alpha * processing_time_ms
+            + (1.0 - alpha) * self.integration_stats.average_processing_time_ms;
     }
 }
 
@@ -446,16 +447,19 @@ impl ContentAnalysisResult {
 
     /// Check if interaction is recommended
     pub fn is_recommended(&self) -> bool {
-        let binding_ok = self.binding_state
+        let binding_ok = self
+            .binding_state
             .map(|state| state.allows_execution())
             .unwrap_or(true);
-        
-        let score_ok = self.rossnet_score
+
+        let score_ok = self
+            .rossnet_score
             .as_ref()
             .map(|feedback| feedback.score > 0.5)
             .unwrap_or(true);
-        
-        let affinity_ok = self.current_affinity
+
+        let affinity_ok = self
+            .current_affinity
             .map(|affinity| affinity >= 0.0)
             .unwrap_or(true);
 
@@ -516,23 +520,18 @@ mod tests {
     fn test_comprehensive_content_analysis() {
         let mut manager = CoreFeaturesManager::new();
         let context = create_test_context();
-        
+
         let content_a = ContentHash(123);
         let content_b = ContentHash(456);
         let type_a = create_test_type_signature("TestType");
         let type_b = create_test_type_signature("TestType");
 
-        let result = manager.analyze_content_interaction(
-            &content_a,
-            &content_b,
-            &type_a,
-            &type_b,
-            &context,
-        );
+        let result =
+            manager.analyze_content_interaction(&content_a, &content_b, &type_a, &type_b, &context);
 
         assert!(result.is_ok());
         let analysis = result.unwrap();
-        
+
         assert_eq!(analysis.content_a, content_a);
         assert_eq!(analysis.content_b, content_b);
         assert!(analysis.binding_state.is_some());
@@ -547,11 +546,8 @@ mod tests {
         let content_a = ContentHash(789);
         let content_b = ContentHash(101);
 
-        let result = manager.update_interaction_affinity(
-            content_a,
-            content_b,
-            InteractionResult::Success,
-        );
+        let result =
+            manager.update_interaction_affinity(content_a, content_b, InteractionResult::Success);
 
         assert!(result.is_ok());
         let new_affinity = result.unwrap();
@@ -565,13 +561,13 @@ mod tests {
         let content_b = ContentHash(222);
 
         // Update affinity first
-        manager.update_interaction_affinity(
-            content_a,
-            content_b,
-            InteractionResult::Success,
-        ).unwrap();
+        manager
+            .update_interaction_affinity(content_a, content_b, InteractionResult::Success)
+            .unwrap();
 
-        let (prediction, confidence) = manager.predict_interaction_success(content_a, content_b).unwrap();
+        let (prediction, confidence) = manager
+            .predict_interaction_success(content_a, content_b)
+            .unwrap();
         assert!(prediction); // Should predict success after positive update
         assert!(confidence > 0.0);
     }
@@ -598,10 +594,10 @@ mod tests {
 
         let results = manager.batch_analyze_interactions(&interactions, &context);
         assert!(results.is_ok());
-        
+
         let analysis_results = results.unwrap();
         assert_eq!(analysis_results.len(), 2);
-        
+
         for result in analysis_results {
             assert!(result.binding_state.is_some());
             assert!(result.rossnet_score.is_some());
@@ -621,10 +617,10 @@ mod tests {
 
         let recommendations = manager.get_top_recommendations(&content_pairs, &context, 2);
         assert!(recommendations.is_ok());
-        
+
         let recs = recommendations.unwrap();
         assert!(recs.len() <= 2);
-        
+
         for rec in recs {
             assert!(rec.score >= 0.0);
             assert!(!rec.reasoning.is_empty());
@@ -634,13 +630,13 @@ mod tests {
     #[test]
     fn test_configuration_update() {
         let mut manager = CoreFeaturesManager::new();
-        
+
         let mut new_config = CoreFeatureConfiguration::default();
         new_config.enable_binding_verification = false;
         new_config.enable_rossnet_scoring = false;
-        
+
         manager.update_configuration(new_config);
-        
+
         assert!(!manager.feature_config.enable_binding_verification);
         assert!(!manager.feature_config.enable_rossnet_scoring);
         assert!(manager.feature_config.enable_hebbian_learning); // Should still be true
@@ -655,12 +651,16 @@ mod tests {
         let content_a = ContentHash(123);
         let content_b = ContentHash(456);
         let type_sig = create_test_type_signature("Test");
-        
-        manager.analyze_content_interaction(&content_a, &content_b, &type_sig, &type_sig, &context).unwrap();
-        manager.update_interaction_affinity(content_a, content_b, InteractionResult::Success).unwrap();
+
+        manager
+            .analyze_content_interaction(&content_a, &content_b, &type_sig, &type_sig, &context)
+            .unwrap();
+        manager
+            .update_interaction_affinity(content_a, content_b, InteractionResult::Success)
+            .unwrap();
 
         let stats = manager.get_comprehensive_statistics();
-        
+
         assert!(stats.integration_stats.feature_interactions > 0);
         assert!(!stats.integration_stats.feature_usage_counts.is_empty());
         assert!(stats.hebbian_stats.total_updates > 0);
@@ -670,7 +670,7 @@ mod tests {
     fn test_system_health_check() {
         let manager = CoreFeaturesManager::new();
         let health_report = manager.check_system_health();
-        
+
         assert_eq!(health_report.overall_health, HealthStatus::Healthy);
         assert!(!health_report.component_health.is_empty());
         assert!(!health_report.performance_metrics.is_empty());
@@ -680,18 +680,15 @@ mod tests {
     fn test_feature_with_disabled_components() {
         let mut config = CoreFeatureConfiguration::default();
         config.enable_hebbian_learning = false;
-        
+
         let mut manager = CoreFeaturesManager::with_configuration(config);
         let content_a = ContentHash(123);
         let content_b = ContentHash(456);
 
         // Should fail when trying to update affinity with disabled Hebbian learning
-        let result = manager.update_interaction_affinity(
-            content_a,
-            content_b,
-            InteractionResult::Success,
-        );
-        
+        let result =
+            manager.update_interaction_affinity(content_a, content_b, InteractionResult::Success);
+
         assert!(result.is_err());
     }
 
@@ -699,18 +696,18 @@ mod tests {
     fn test_content_analysis_result() {
         let content_a = ContentHash(111);
         let content_b = ContentHash(222);
-        
+
         let mut result = ContentAnalysisResult::new(content_a, content_b);
         assert_eq!(result.content_a, content_a);
         assert_eq!(result.content_b, content_b);
-        
+
         // Should not be recommended without any data
         assert!(result.is_recommended()); // Default is true when no data present
-        
+
         // Add negative affinity
         result.current_affinity = Some(-0.5);
         assert!(!result.is_recommended());
-        
+
         // Add positive affinity
         result.current_affinity = Some(0.5);
         assert!(result.is_recommended());
@@ -725,17 +722,21 @@ mod tests {
         let content_a = ContentHash(123);
         let content_b = ContentHash(456);
         let type_sig = create_test_type_signature("Test");
-        
-        manager.analyze_content_interaction(&content_a, &content_b, &type_sig, &type_sig, &context).unwrap();
-        manager.update_interaction_affinity(content_a, content_b, InteractionResult::Success).unwrap();
-        
+
+        manager
+            .analyze_content_interaction(&content_a, &content_b, &type_sig, &type_sig, &context)
+            .unwrap();
+        manager
+            .update_interaction_affinity(content_a, content_b, InteractionResult::Success)
+            .unwrap();
+
         // Verify activity
         assert!(manager.integration_stats.feature_interactions > 0);
         assert!(manager.hebbian_learner.get_statistics().total_updates > 0);
-        
+
         // Reset
         manager.reset_all();
-        
+
         // Verify reset
         assert_eq!(manager.integration_stats.feature_interactions, 0);
         assert_eq!(manager.hebbian_learner.get_statistics().total_updates, 0);

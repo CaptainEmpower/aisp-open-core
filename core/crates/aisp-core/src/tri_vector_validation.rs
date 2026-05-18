@@ -5,7 +5,7 @@
 //! constraints and safety isolation properties.
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
     error::*,
     // z3_integration::*, // Temporarily disabled
 };
@@ -228,7 +228,11 @@ pub struct ProofCertificate {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TriVectorError {
     /// Invalid dimensionality
-    InvalidDimension { space: String, expected: usize, actual: usize },
+    InvalidDimension {
+        space: String,
+        expected: usize,
+        actual: usize,
+    },
     /// Missing required vector space
     MissingVectorSpace(String),
     /// Orthogonality constraint violated
@@ -302,7 +306,10 @@ impl TriVectorValidator {
     }
 
     /// Validate tri-vector signal definition in AISP document
-    pub fn validate_document(&mut self, document: &AispDocument) -> AispResult<TriVectorValidationResult> {
+    pub fn validate_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<TriVectorValidationResult> {
         let mut result = TriVectorValidationResult {
             valid: false,
             signal: None,
@@ -349,7 +356,7 @@ impl TriVectorValidator {
                     result.safety_isolation = self.verify_safety_isolation(&signal)?;
                     if !result.safety_isolation.isolated {
                         result.errors.push(TriVectorError::SafetyIsolationFailed(
-                            "Safety constraints are not properly isolated".to_string()
+                            "Safety constraints are not properly isolated".to_string(),
                         ));
                         has_violations = true;
                     }
@@ -363,9 +370,12 @@ impl TriVectorValidator {
                 result.valid = !has_violations;
             }
             Err(error) => {
-                result.errors.push(TriVectorError::MissingVectorSpace(
-                    format!("Failed to extract tri-vector signal: {}", error)
-                ));
+                result
+                    .errors
+                    .push(TriVectorError::MissingVectorSpace(format!(
+                        "Failed to extract tri-vector signal: {}",
+                        error
+                    )));
             }
         }
 
@@ -388,13 +398,16 @@ impl TriVectorValidator {
                             self.parse_signal_definition(type_def)?;
                         }
                         "V_H" => {
-                            semantic_space = Some(self.parse_vector_space_definition(name, type_def, 768)?);
+                            semantic_space =
+                                Some(self.parse_vector_space_definition(name, type_def, 768)?);
                         }
                         "V_L" => {
-                            structural_space = Some(self.parse_vector_space_definition(name, type_def, 512)?);
+                            structural_space =
+                                Some(self.parse_vector_space_definition(name, type_def, 512)?);
                         }
                         "V_S" => {
-                            safety_space = Some(self.parse_vector_space_definition(name, type_def, 256)?);
+                            safety_space =
+                                Some(self.parse_vector_space_definition(name, type_def, 256)?);
                         }
                         _ => {}
                     }
@@ -404,11 +417,15 @@ impl TriVectorValidator {
 
         // Ensure all required spaces are defined
         let semantic = semantic_space.ok_or_else(|| {
-            AispError::validation_error("Missing V_H (semantic vector space) definition".to_string())
+            AispError::validation_error(
+                "Missing V_H (semantic vector space) definition".to_string(),
+            )
         })?;
 
         let structural = structural_space.ok_or_else(|| {
-            AispError::validation_error("Missing V_L (structural vector space) definition".to_string())
+            AispError::validation_error(
+                "Missing V_L (structural vector space) definition".to_string(),
+            )
         })?;
 
         let safety = safety_space.ok_or_else(|| {
@@ -438,7 +455,7 @@ impl TriVectorValidator {
     ) -> AispResult<VectorSpace> {
         // Parse dimension from type expression like ℝ⁷⁶⁸
         let dimension = self.extract_dimension_from_type(&type_def.type_expr)?;
-        
+
         if dimension != expected_dim {
             return Err(AispError::validation_error(format!(
                 "Vector space {} has incorrect dimension: expected {}, got {}",
@@ -501,9 +518,10 @@ impl TriVectorValidator {
         // Validate vector space axioms
         for space in [&signal.semantic, &signal.structural, &signal.safety] {
             if !self.validate_vector_space_axioms(space) {
-                errors.push(TriVectorError::InvalidVectorSpaceDefinition(
-                    format!("Vector space {} violates vector space axioms", space.name)
-                ));
+                errors.push(TriVectorError::InvalidVectorSpaceDefinition(format!(
+                    "Vector space {} violates vector space axioms",
+                    space.name
+                )));
             }
         }
 
@@ -517,18 +535,21 @@ impl TriVectorValidator {
     /// Validate vector space satisfies axioms
     fn validate_vector_space_axioms(&self, space: &VectorSpace) -> bool {
         // Check all vector space axioms
-        space.properties.closed_under_addition &&
-        space.properties.closed_under_scaling &&
-        space.properties.has_zero_vector &&
-        space.properties.has_additive_inverses &&
-        space.properties.addition_associative &&
-        space.properties.addition_commutative &&
-        space.properties.scaling_associative &&
-        space.properties.distributive
+        space.properties.closed_under_addition
+            && space.properties.closed_under_scaling
+            && space.properties.has_zero_vector
+            && space.properties.has_additive_inverses
+            && space.properties.addition_associative
+            && space.properties.addition_commutative
+            && space.properties.scaling_associative
+            && space.properties.distributive
     }
 
     /// Verify orthogonality constraints between vector spaces
-    fn verify_orthogonality_constraints(&mut self, signal: &TriVectorSignal) -> AispResult<HashMap<String, OrthogonalityResult>> {
+    fn verify_orthogonality_constraints(
+        &mut self,
+        signal: &TriVectorSignal,
+    ) -> AispResult<HashMap<String, OrthogonalityResult>> {
         let mut results = HashMap::new();
 
         // V_H ⊥ V_S (must be orthogonal)
@@ -581,11 +602,13 @@ impl TriVectorValidator {
         let actual_type = self.determine_orthogonality_type(space1, space2)?;
 
         let confidence = if proof.is_some() { 1.0 } else { 0.5 };
-        
+
         let result = OrthogonalityResult {
             space1: space1.name.clone(),
             space2: space2.name.clone(),
-            orthogonality_type: if actual_type == expected_type || expected_type == OrthogonalityType::PartiallyOrthogonal {
+            orthogonality_type: if actual_type == expected_type
+                || expected_type == OrthogonalityType::PartiallyOrthogonal
+            {
                 actual_type
             } else {
                 OrthogonalityType::NotOrthogonal
@@ -616,7 +639,10 @@ impl TriVectorValidator {
                     format!("1. Let {{e_i}} be an orthonormal basis for {}", space1.name),
                     format!("2. Let {{f_j}} be an orthonormal basis for {}", space2.name),
                     "3. For orthogonality, we need ⟨e_i, f_j⟩ = 0 for all i,j".to_string(),
-                    format!("4. By construction of AISP tri-vector spaces, {} ⊥ {}", space1.name, space2.name),
+                    format!(
+                        "4. By construction of AISP tri-vector spaces, {} ⊥ {}",
+                        space1.name, space2.name
+                    ),
                     "5. Therefore, the spaces are orthogonal. ∎".to_string(),
                 ]
             }
@@ -635,7 +661,8 @@ impl TriVectorValidator {
             method,
             proof_steps,
             z3_certificate: None, // Would be generated with Z3 integration
-            mathematical_basis: "AISP 5.1 tri-vector signal decomposition specification".to_string(),
+            mathematical_basis: "AISP 5.1 tri-vector signal decomposition specification"
+                .to_string(),
         })
     }
 
@@ -655,7 +682,10 @@ impl TriVectorValidator {
     }
 
     /// Verify safety isolation properties
-    fn verify_safety_isolation(&self, signal: &TriVectorSignal) -> AispResult<SafetyIsolationResult> {
+    fn verify_safety_isolation(
+        &self,
+        signal: &TriVectorSignal,
+    ) -> AispResult<SafetyIsolationResult> {
         let mut violations = Vec::new();
 
         // Check that safety space is isolated from semantic optimizations
@@ -712,7 +742,10 @@ impl TriVectorValidator {
     }
 
     /// Generate proof of safety isolation
-    fn generate_safety_isolation_proof(&self, _signal: &TriVectorSignal) -> AispResult<SafetyIsolationProof> {
+    fn generate_safety_isolation_proof(
+        &self,
+        _signal: &TriVectorSignal,
+    ) -> AispResult<SafetyIsolationProof> {
         // This would generate formal proofs using the orthogonality results
         Ok(SafetyIsolationProof {
             semantic_safety_orthogonality: OrthogonalityProof {
@@ -739,7 +772,10 @@ impl TriVectorValidator {
     }
 
     /// Generate formal proof certificates
-    fn generate_proof_certificates(&self, _signal: &TriVectorSignal) -> AispResult<Vec<ProofCertificate>> {
+    fn generate_proof_certificates(
+        &self,
+        _signal: &TriVectorSignal,
+    ) -> AispResult<Vec<ProofCertificate>> {
         let certificates = vec![
             ProofCertificate {
                 id: "tri-vector-orthogonality".to_string(),
@@ -789,14 +825,26 @@ impl Default for TriVectorValidator {
 impl std::fmt::Display for TriVectorError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidDimension { space, expected, actual } => {
-                write!(f, "Vector space {} has invalid dimension: expected {}, got {}", space, expected, actual)
+            Self::InvalidDimension {
+                space,
+                expected,
+                actual,
+            } => {
+                write!(
+                    f,
+                    "Vector space {} has invalid dimension: expected {}, got {}",
+                    space, expected, actual
+                )
             }
             Self::MissingVectorSpace(space) => {
                 write!(f, "Missing required vector space: {}", space)
             }
             Self::OrthogonalityViolated { space1, space2 } => {
-                write!(f, "Orthogonality constraint violated between {} and {}", space1, space2)
+                write!(
+                    f,
+                    "Orthogonality constraint violated between {} and {}",
+                    space1, space2
+                )
             }
             Self::SafetyIsolationFailed(reason) => {
                 write!(f, "Safety isolation verification failed: {}", reason)
@@ -862,7 +910,7 @@ mod tests {
     #[test]
     fn test_orthogonality_type_determination() {
         let validator = TriVectorValidator::new();
-        
+
         let vh = VectorSpace {
             name: "V_H".to_string(),
             dimension: 768,
@@ -870,7 +918,7 @@ mod tests {
             properties: VectorSpaceProperties::default_real_vector_space(),
             type_annotation: Some("ℝ⁷⁶⁸".to_string()),
         };
-        
+
         let vs = VectorSpace {
             name: "V_S".to_string(),
             dimension: 256,

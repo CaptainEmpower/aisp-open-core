@@ -7,8 +7,8 @@ use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     invariant_types::DiscoveredInvariant,
-    property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term},
-    smt_types::{SmtFormula, SmtSort, SmtCommand},
+    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    smt_types::{SmtCommand, SmtFormula, SmtSort},
 };
 use std::collections::{HashMap, HashSet};
 
@@ -88,7 +88,7 @@ impl Default for SatisfiabilityConfig {
         let mut solver_options = HashMap::new();
         solver_options.insert("model_completion".to_string(), "true".to_string());
         solver_options.insert("timeout".to_string(), "10000".to_string());
-        
+
         Self {
             timeout_seconds: 10,
             max_model_size: 1000,
@@ -111,50 +111,47 @@ impl SatisfiabilityChecker {
     }
 
     /// Check satisfiability of discovered invariants
-    pub fn check_invariants(&self, invariants: &[DiscoveredInvariant]) 
-        -> AispResult<SatisfiabilityResult> 
-    {
+    pub fn check_invariants(
+        &self,
+        invariants: &[DiscoveredInvariant],
+    ) -> AispResult<SatisfiabilityResult> {
         if invariants.is_empty() {
             return Ok(SatisfiabilityResult::Satisfiable(ConstraintModel::empty()));
         }
 
         // Convert invariants to constraint system
         let constraint_system = self.build_constraint_system(invariants)?;
-        
+
         // Check satisfiability using SMT solver
         self.solve_constraint_system(&constraint_system)
     }
 
     /// Check satisfiability of a specific formula
-    pub fn check_formula(&self, formula: &PropertyFormula) 
-        -> AispResult<SatisfiabilityResult> 
-    {
+    pub fn check_formula(&self, formula: &PropertyFormula) -> AispResult<SatisfiabilityResult> {
         let constraint_system = ConstraintSystem::from_formula(formula.clone())?;
         self.solve_constraint_system(&constraint_system)
     }
 
     /// Check consistency between invariants
-    pub fn check_consistency(&self, invariants: &[DiscoveredInvariant]) 
-        -> AispResult<ConsistencyResult> 
-    {
+    pub fn check_consistency(
+        &self,
+        invariants: &[DiscoveredInvariant],
+    ) -> AispResult<ConsistencyResult> {
         let result = self.check_invariants(invariants)?;
-        
+
         match result {
-            SatisfiabilityResult::Satisfiable(model) => {
-                Ok(ConsistencyResult::Consistent(model))
-            }
+            SatisfiabilityResult::Satisfiable(model) => Ok(ConsistencyResult::Consistent(model)),
             SatisfiabilityResult::Unsatisfiable(proof) => {
                 Ok(ConsistencyResult::Inconsistent(proof))
             }
-            SatisfiabilityResult::Unknown(reason) => {
-                Ok(ConsistencyResult::Unknown(reason))
-            }
+            SatisfiabilityResult::Unknown(reason) => Ok(ConsistencyResult::Unknown(reason)),
         }
     }
 
-    fn build_constraint_system(&self, invariants: &[DiscoveredInvariant]) 
-        -> AispResult<ConstraintSystem> 
-    {
+    fn build_constraint_system(
+        &self,
+        invariants: &[DiscoveredInvariant],
+    ) -> AispResult<ConstraintSystem> {
         let mut constraints = Vec::new();
         let mut variables = HashSet::new();
         let mut functions = HashSet::new();
@@ -179,19 +176,19 @@ impl SatisfiabilityChecker {
         })
     }
 
-    fn formula_to_constraint(&self, formula: &PropertyFormula) 
-        -> AispResult<Constraint> 
-    {
+    fn formula_to_constraint(&self, formula: &PropertyFormula) -> AispResult<Constraint> {
         match &formula.structure {
-            FormulaStructure::Atomic(atomic) => {
-                Ok(Constraint::Atomic(AtomicConstraint {
-                    predicate: atomic.predicate.clone(),
-                    terms: atomic.terms.iter().map(|t| self.term_to_constraint_term(t)).collect::<AispResult<Vec<_>>>()?,
-                }))
-            }
+            FormulaStructure::Atomic(atomic) => Ok(Constraint::Atomic(AtomicConstraint {
+                predicate: atomic.predicate.clone(),
+                terms: atomic
+                    .terms
+                    .iter()
+                    .map(|t| self.term_to_constraint_term(t))
+                    .collect::<AispResult<Vec<_>>>()?,
+            })),
             FormulaStructure::Conjunction(formulas) => {
                 if formulas.len() >= 2 {
-                        let left_constraint = self.formula_to_constraint(&PropertyFormula {
+                    let left_constraint = self.formula_to_constraint(&PropertyFormula {
                         structure: formulas[0].clone(),
                         quantifiers: formula.quantifiers.clone(),
                         free_variables: formula.free_variables.clone(),
@@ -199,7 +196,7 @@ impl SatisfiabilityChecker {
                         functions: formula.functions.clone(),
                         constants: formula.constants.clone(),
                     })?;
-                        let right_constraint = self.formula_to_constraint(&PropertyFormula {
+                    let right_constraint = self.formula_to_constraint(&PropertyFormula {
                         structure: formulas[1].clone(),
                         quantifiers: formula.quantifiers.clone(),
                         free_variables: formula.free_variables.clone(),
@@ -207,32 +204,42 @@ impl SatisfiabilityChecker {
                         functions: formula.functions.clone(),
                         constants: formula.constants.clone(),
                     })?;
-                    Ok(Constraint::Conjunction(Box::new(left_constraint), Box::new(right_constraint)))
+                    Ok(Constraint::Conjunction(
+                        Box::new(left_constraint),
+                        Box::new(right_constraint),
+                    ))
                 } else {
-                    Err(AispError::ValidationError { message: "Conjunction requires at least 2 formulas".to_string() })
+                    Err(AispError::ValidationError {
+                        message: "Conjunction requires at least 2 formulas".to_string(),
+                    })
                 }
             }
             FormulaStructure::Disjunction(formulas) => {
                 if formulas.len() >= 2 {
                     let left_constraint = self.formula_to_constraint(&PropertyFormula {
                         structure: formulas[0].clone(),
-                    quantifiers: formula.quantifiers.clone(),
-                    free_variables: formula.free_variables.clone(),
-                    predicates: formula.predicates.clone(),
-                    functions: formula.functions.clone(),
-                    constants: formula.constants.clone(),
-                })?;
+                        quantifiers: formula.quantifiers.clone(),
+                        free_variables: formula.free_variables.clone(),
+                        predicates: formula.predicates.clone(),
+                        functions: formula.functions.clone(),
+                        constants: formula.constants.clone(),
+                    })?;
                     let right_constraint = self.formula_to_constraint(&PropertyFormula {
                         structure: formulas[1].clone(),
-                    quantifiers: formula.quantifiers.clone(),
-                    free_variables: formula.free_variables.clone(),
-                    predicates: formula.predicates.clone(),
-                    functions: formula.functions.clone(),
-                    constants: formula.constants.clone(),
-                })?;
-                    Ok(Constraint::Disjunction(Box::new(left_constraint), Box::new(right_constraint)))
+                        quantifiers: formula.quantifiers.clone(),
+                        free_variables: formula.free_variables.clone(),
+                        predicates: formula.predicates.clone(),
+                        functions: formula.functions.clone(),
+                        constants: formula.constants.clone(),
+                    })?;
+                    Ok(Constraint::Disjunction(
+                        Box::new(left_constraint),
+                        Box::new(right_constraint),
+                    ))
                 } else {
-                    Err(AispError::ValidationError { message: "Disjunction requires at least 2 formulas".to_string() })
+                    Err(AispError::ValidationError {
+                        message: "Disjunction requires at least 2 formulas".to_string(),
+                    })
                 }
             }
             FormulaStructure::Universal(quantifier, body) => {
@@ -244,7 +251,10 @@ impl SatisfiabilityChecker {
                     functions: formula.functions.clone(),
                     constants: formula.constants.clone(),
                 })?;
-                Ok(Constraint::Universal(quantifier.variable.clone(), Box::new(body_constraint)))
+                Ok(Constraint::Universal(
+                    quantifier.variable.clone(),
+                    Box::new(body_constraint),
+                ))
             }
             FormulaStructure::Existential(quantifier, body) => {
                 let body_constraint = self.formula_to_constraint(&PropertyFormula {
@@ -255,7 +265,10 @@ impl SatisfiabilityChecker {
                     functions: formula.functions.clone(),
                     constants: formula.constants.clone(),
                 })?;
-                Ok(Constraint::Existential(quantifier.variable.clone(), Box::new(body_constraint)))
+                Ok(Constraint::Existential(
+                    quantifier.variable.clone(),
+                    Box::new(body_constraint),
+                ))
             }
             FormulaStructure::Negation(inner) => {
                 let inner_constraint = self.formula_to_constraint(&PropertyFormula {
@@ -287,10 +300,15 @@ impl SatisfiabilityChecker {
                 Ok(ConstraintTerm::Constant(value.clone(), const_type.clone()))
             }
             Term::Function(name, args) => {
-                let constraint_args = args.iter()
+                let constraint_args = args
+                    .iter()
                     .map(|arg| self.term_to_constraint_term(arg))
                     .collect::<AispResult<Vec<_>>>()?;
-                Ok(ConstraintTerm::Function(name.clone(), constraint_args, Some("unknown".to_string())))
+                Ok(ConstraintTerm::Function(
+                    name.clone(),
+                    constraint_args,
+                    Some("unknown".to_string()),
+                ))
             }
             _ => {
                 // For other term types, return a placeholder
@@ -299,25 +317,24 @@ impl SatisfiabilityChecker {
         }
     }
 
-    fn solve_constraint_system(&self, system: &ConstraintSystem) 
-        -> AispResult<SatisfiabilityResult> 
-    {
+    fn solve_constraint_system(
+        &self,
+        system: &ConstraintSystem,
+    ) -> AispResult<SatisfiabilityResult> {
         // Generate SMT-LIB commands for the constraint system
         let smt_commands = self.generate_smt_commands(system)?;
-        
+
         // For now, simulate SMT solving (in practice would call Z3)
         self.simulate_smt_solving(&smt_commands, system)
     }
 
-    fn generate_smt_commands(&self, system: &ConstraintSystem) 
-        -> AispResult<Vec<SmtCommand>> 
-    {
+    fn generate_smt_commands(&self, system: &ConstraintSystem) -> AispResult<Vec<SmtCommand>> {
         let mut commands = Vec::new();
-        
+
         // Declare sorts
         commands.push(SmtCommand::DeclareSort("Natural".to_string(), 0));
         commands.push(SmtCommand::DeclareSort("Boolean".to_string(), 0));
-        
+
         // Declare variables
         for var in &system.variables {
             commands.push(SmtCommand::DeclareFun(
@@ -326,7 +343,7 @@ impl SatisfiabilityChecker {
                 SmtSort::Natural,
             ));
         }
-        
+
         // Declare functions
         for func in &system.functions {
             commands.push(SmtCommand::DeclareFun(
@@ -335,53 +352,45 @@ impl SatisfiabilityChecker {
                 SmtSort::Boolean,
             ));
         }
-        
+
         // Assert constraints
         for constraint in &system.constraints {
             let smt_formula = self.constraint_to_smt(constraint)?;
             commands.push(SmtCommand::Assert(smt_formula));
         }
-        
+
         commands.push(SmtCommand::CheckSat);
         commands.push(SmtCommand::GetModel);
-        
+
         Ok(commands)
     }
 
     fn constraint_to_smt(&self, constraint: &Constraint) -> AispResult<SmtFormula> {
         match constraint {
-            Constraint::Atomic(atomic) => {
-                Ok(SmtFormula::Application(
-                    atomic.predicate.clone(),
-                    atomic.terms.iter()
-                        .map(|t| self.constraint_term_to_smt(t))
-                        .collect::<AispResult<Vec<_>>>()?
-                ))
-            }
-            Constraint::Conjunction(left, right) => {
-                Ok(SmtFormula::And(vec![
-                    self.constraint_to_smt(left)?,
-                    self.constraint_to_smt(right)?,
-                ]))
-            }
-            Constraint::Disjunction(left, right) => {
-                Ok(SmtFormula::Or(vec![
-                    self.constraint_to_smt(left)?,
-                    self.constraint_to_smt(right)?,
-                ]))
-            }
-            Constraint::Universal(var, body) => {
-                Ok(SmtFormula::Forall(
-                    vec![(var.clone(), SmtSort::Natural)],
-                    Box::new(self.constraint_to_smt(body)?),
-                ))
-            }
-            Constraint::Existential(var, body) => {
-                Ok(SmtFormula::Exists(
-                    vec![(var.clone(), SmtSort::Natural)],
-                    Box::new(self.constraint_to_smt(body)?),
-                ))
-            }
+            Constraint::Atomic(atomic) => Ok(SmtFormula::Application(
+                atomic.predicate.clone(),
+                atomic
+                    .terms
+                    .iter()
+                    .map(|t| self.constraint_term_to_smt(t))
+                    .collect::<AispResult<Vec<_>>>()?,
+            )),
+            Constraint::Conjunction(left, right) => Ok(SmtFormula::And(vec![
+                self.constraint_to_smt(left)?,
+                self.constraint_to_smt(right)?,
+            ])),
+            Constraint::Disjunction(left, right) => Ok(SmtFormula::Or(vec![
+                self.constraint_to_smt(left)?,
+                self.constraint_to_smt(right)?,
+            ])),
+            Constraint::Universal(var, body) => Ok(SmtFormula::Forall(
+                vec![(var.clone(), SmtSort::Natural)],
+                Box::new(self.constraint_to_smt(body)?),
+            )),
+            Constraint::Existential(var, body) => Ok(SmtFormula::Exists(
+                vec![(var.clone(), SmtSort::Natural)],
+                Box::new(self.constraint_to_smt(body)?),
+            )),
             Constraint::Negation(inner) => {
                 Ok(SmtFormula::Not(Box::new(self.constraint_to_smt(inner)?)))
             }
@@ -390,9 +399,7 @@ impl SatisfiabilityChecker {
 
     fn constraint_term_to_smt(&self, term: &ConstraintTerm) -> AispResult<SmtFormula> {
         match term {
-            ConstraintTerm::Variable(name, _) => {
-                Ok(SmtFormula::Variable(name.clone()))
-            }
+            ConstraintTerm::Variable(name, _) => Ok(SmtFormula::Variable(name.clone())),
             ConstraintTerm::Constant(value, _) => {
                 // Try to parse as integer
                 if let Ok(int_val) = value.parse::<i64>() {
@@ -402,7 +409,8 @@ impl SatisfiabilityChecker {
                 }
             }
             ConstraintTerm::Function(name, args, _) => {
-                let smt_args = args.iter()
+                let smt_args = args
+                    .iter()
                     .map(|arg| self.constraint_term_to_smt(arg))
                     .collect::<AispResult<Vec<_>>>()?;
                 Ok(SmtFormula::Application(name.clone(), smt_args))
@@ -410,40 +418,40 @@ impl SatisfiabilityChecker {
         }
     }
 
-    fn simulate_smt_solving(&self, _commands: &[SmtCommand], system: &ConstraintSystem) 
-        -> AispResult<SatisfiabilityResult> 
-    {
+    fn simulate_smt_solving(
+        &self,
+        _commands: &[SmtCommand],
+        system: &ConstraintSystem,
+    ) -> AispResult<SatisfiabilityResult> {
         // Simplified satisfiability check
         // In practice, this would invoke Z3 or another SMT solver
-        
+
         // Check for obvious contradictions
         if self.has_trivial_contradiction(system) {
-            return Ok(SatisfiabilityResult::Unsatisfiable(
-                UnsatisfiabilityProof {
-                    conflicting_constraints: vec!["trivial_contradiction".to_string()],
-                    proof_steps: vec![ProofStep {
-                        rule: "contradiction".to_string(),
-                        premises: vec!["P".to_string(), "¬P".to_string()],
-                        conclusion: "⊥".to_string(),
-                        justification: "Contradictory formulas cannot both be true".to_string(),
-                    }],
-                    reason: "System contains trivial contradictions".to_string(),
-                }
-            ));
+            return Ok(SatisfiabilityResult::Unsatisfiable(UnsatisfiabilityProof {
+                conflicting_constraints: vec!["trivial_contradiction".to_string()],
+                proof_steps: vec![ProofStep {
+                    rule: "contradiction".to_string(),
+                    premises: vec!["P".to_string(), "¬P".to_string()],
+                    conclusion: "⊥".to_string(),
+                    justification: "Contradictory formulas cannot both be true".to_string(),
+                }],
+                reason: "System contains trivial contradictions".to_string(),
+            }));
         }
-        
+
         // Generate a simple model
         let mut variable_assignments = HashMap::new();
         for var in &system.variables {
             variable_assignments.insert(var.clone(), ModelValue::Integer(0));
         }
-        
+
         let model = ConstraintModel {
             variable_assignments,
             function_interpretations: HashMap::new(),
             predicate_interpretations: HashMap::new(),
         };
-        
+
         Ok(SatisfiabilityResult::Satisfiable(model))
     }
 
@@ -491,7 +499,7 @@ impl ConstraintSystem {
         let functions = formula.functions;
         let predicates = formula.predicates;
         let constraints = vec![]; // Would convert formula to constraints
-        
+
         Ok(Self {
             constraints,
             variables,
@@ -517,11 +525,11 @@ impl ConstraintModel {
             predicate_interpretations: HashMap::new(),
         }
     }
-    
+
     pub fn get_variable_value(&self, name: &str) -> Option<&ModelValue> {
         self.variable_assignments.get(name)
     }
-    
+
     pub fn set_variable_value(&mut self, name: String, value: ModelValue) {
         self.variable_assignments.insert(name, value);
     }
@@ -587,7 +595,7 @@ mod tests {
     fn test_satisfiability_checker_creation() {
         let config = SatisfiabilityConfig::default();
         let checker = SatisfiabilityChecker::new(config);
-        
+
         assert_eq!(checker.config.timeout_seconds, 10);
         assert_eq!(checker.config.max_model_size, 1000);
         assert!(checker.config.enable_quantifier_instantiation);
@@ -597,7 +605,7 @@ mod tests {
     fn test_check_empty_invariants() {
         let checker = SatisfiabilityChecker::default();
         let result = checker.check_invariants(&[]).unwrap();
-        
+
         match result {
             SatisfiabilityResult::Satisfiable(model) => {
                 assert!(model.variable_assignments.is_empty());
@@ -611,7 +619,7 @@ mod tests {
         let checker = SatisfiabilityChecker::default();
         let invariant = create_test_invariant();
         let result = checker.check_invariants(&[invariant]).unwrap();
-        
+
         match result {
             SatisfiabilityResult::Satisfiable(model) => {
                 assert!(!model.variable_assignments.is_empty());
@@ -625,7 +633,7 @@ mod tests {
         let checker = SatisfiabilityChecker::default();
         let formula = create_test_formula();
         let result = checker.check_formula(&formula).unwrap();
-        
+
         match result {
             SatisfiabilityResult::Satisfiable(_) | SatisfiabilityResult::Unknown(_) => {
                 // Either result is acceptable for this simple formula
@@ -641,7 +649,7 @@ mod tests {
         let checker = SatisfiabilityChecker::default();
         let invariant = create_test_invariant();
         let result = checker.check_consistency(&[invariant]).unwrap();
-        
+
         match result {
             ConsistencyResult::Consistent(_) => {
                 // Expected
@@ -659,9 +667,12 @@ mod tests {
     fn test_constraint_model_operations() {
         let mut model = ConstraintModel::empty();
         assert!(model.variable_assignments.is_empty());
-        
+
         model.set_variable_value("x".to_string(), ModelValue::Integer(42));
-        assert_eq!(model.get_variable_value("x"), Some(&ModelValue::Integer(42)));
+        assert_eq!(
+            model.get_variable_value("x"),
+            Some(&ModelValue::Integer(42))
+        );
         assert_eq!(model.get_variable_value("y"), None);
     }
 
@@ -672,7 +683,7 @@ mod tests {
         let real_val = ModelValue::Real(3.14);
         let str_val = ModelValue::String("test".to_string());
         let enum_val = ModelValue::Enumeration("Active".to_string());
-        
+
         assert_ne!(bool_val, int_val);
         assert_ne!(int_val, real_val);
         assert_ne!(real_val, str_val);
@@ -682,7 +693,7 @@ mod tests {
     #[test]
     fn test_satisfiability_config_defaults() {
         let config = SatisfiabilityConfig::default();
-        
+
         assert_eq!(config.timeout_seconds, 10);
         assert_eq!(config.max_model_size, 1000);
         assert!(config.enable_quantifier_instantiation);
@@ -694,9 +705,9 @@ mod tests {
     fn test_formula_to_constraint_conversion() {
         let checker = SatisfiabilityChecker::default();
         let formula = create_test_formula();
-        
+
         let constraint = checker.formula_to_constraint(&formula).unwrap();
-        
+
         match constraint {
             Constraint::Atomic(atomic) => {
                 assert_eq!(atomic.predicate, "≥");
@@ -718,7 +729,7 @@ mod tests {
             }],
             reason: "Contradiction detected".to_string(),
         };
-        
+
         assert_eq!(proof.conflicting_constraints.len(), 2);
         assert_eq!(proof.proof_steps.len(), 1);
         assert_eq!(proof.reason, "Contradiction detected");

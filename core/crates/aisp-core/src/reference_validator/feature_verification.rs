@@ -3,7 +3,9 @@
 //! Implements verification of the 20 key features from reference.md
 //! with actual property checking instead of hard-coded results.
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock};
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+};
 use crate::error::AispResult;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
 
@@ -45,23 +47,26 @@ impl<'a> FeatureVerifier<'a> {
     pub fn new(z3_verifier: &'a mut Z3VerificationFacade) -> Self {
         Self { z3_verifier }
     }
-    
+
     /// Verify all 20 key features from reference.md
-    pub fn verify_all_features(&mut self, document: &AispDocument) -> AispResult<FeatureComplianceResult> {
+    pub fn verify_all_features(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<FeatureComplianceResult> {
         let mut verified_features = Vec::new();
-        
+
         // Core features with actual verification
         verified_features.push(self.verify_trivector_feature(document)?);
         verified_features.push(self.verify_ambiguity_feature(document)?);
         verified_features.push(self.verify_ghost_feature(document)?);
-        
+
         // Add remaining features (simplified for this demo)
         verified_features.extend(self.verify_remaining_features(document)?);
-        
+
         let compliance_percentage = self.calculate_compliance_percentage(&verified_features);
         let critical_features_verified = self.check_critical_features(&verified_features);
         let feature_summary = self.generate_feature_summary(&verified_features);
-        
+
         Ok(FeatureComplianceResult {
             verified_features,
             compliance_percentage,
@@ -69,44 +74,57 @@ impl<'a> FeatureVerifier<'a> {
             feature_summary,
         })
     }
-    
+
     /// Feature verification functions with actual property checking
-    fn verify_trivector_feature(&mut self, document: &AispDocument) -> AispResult<FeatureVerificationResult> {
+    fn verify_trivector_feature(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<FeatureVerificationResult> {
         let mut implemented = false;
         let mut smt_verified = false;
         let mut math_correct = false;
         let mut details = String::new();
-        
+
         // Check if document defines tri-vector signal structure
         for block in &document.blocks {
             if let AispBlock::Types(types_block) = block {
                 let has_signal = types_block.definitions.contains_key("Signal");
-                let has_vh = types_block.definitions.iter().any(|(_, def)| 
-                    format!("{:?}", def).contains("V_H") || format!("{:?}", def).contains("semantic"));
-                let has_vl = types_block.definitions.iter().any(|(_, def)| 
-                    format!("{:?}", def).contains("V_L") || format!("{:?}", def).contains("structural"));
-                let has_vs = types_block.definitions.iter().any(|(_, def)| 
-                    format!("{:?}", def).contains("V_S") || format!("{:?}", def).contains("safety"));
-                
+                let has_vh = types_block.definitions.iter().any(|(_, def)| {
+                    format!("{:?}", def).contains("V_H")
+                        || format!("{:?}", def).contains("semantic")
+                });
+                let has_vl = types_block.definitions.iter().any(|(_, def)| {
+                    format!("{:?}", def).contains("V_L")
+                        || format!("{:?}", def).contains("structural")
+                });
+                let has_vs = types_block.definitions.iter().any(|(_, def)| {
+                    format!("{:?}", def).contains("V_S") || format!("{:?}", def).contains("safety")
+                });
+
                 implemented = has_signal && has_vh && has_vl && has_vs;
-                
+
                 if implemented {
                     // Verify tri-vector decomposition mathematically
                     let smt_formula = self.generate_trivector_smt_formula();
-                    
-                    smt_verified = self.z3_verifier.verify_smt_formula(&smt_formula)
+
+                    smt_verified = self
+                        .z3_verifier
+                        .verify_smt_formula(&smt_formula)
                         .map(|r| matches!(r, Z3PropertyResult::Proven { .. }))
                         .unwrap_or(false);
-                    
+
                     math_correct = 768 + 512 + 256 == 1536; // Basic dimension check
-                    details = format!("Tri-vector structure found: V_H(768)⊕V_L(512)⊕V_S(256), SMT verified: {}", smt_verified);
+                    details = format!(
+                        "Tri-vector structure found: V_H(768)⊕V_L(512)⊕V_S(256), SMT verified: {}",
+                        smt_verified
+                    );
                 } else {
                     details = "Missing tri-vector components in type definitions".to_string();
                 }
                 break;
             }
         }
-        
+
         Ok(FeatureVerificationResult {
             feature_id: 1,
             feature_name: "TriVectorDecomposition".to_string(),
@@ -117,37 +135,46 @@ impl<'a> FeatureVerifier<'a> {
         })
     }
 
-    fn verify_ambiguity_feature(&mut self, document: &AispDocument) -> AispResult<FeatureVerificationResult> {
+    fn verify_ambiguity_feature(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<FeatureVerificationResult> {
         let mut implemented = false;
         let mut smt_verified = false;
         let mut details = String::new();
-        
+
         // Check if document defines ambiguity calculation
         for block in &document.blocks {
             if let AispBlock::Functions(funcs_block) = block {
                 let functions_text = format!("{:?}", funcs_block.functions);
-                if functions_text.contains("Ambig") || 
-                   functions_text.contains("Parse_u") || 
-                   functions_text.contains("Parse_t") {
+                if functions_text.contains("Ambig")
+                    || functions_text.contains("Parse_u")
+                    || functions_text.contains("Parse_t")
+                {
                     implemented = true;
-                    
+
                     // Verify ambiguity formula using SMT
                     let smt_formula = self.generate_ambiguity_smt_formula();
-                    
-                    smt_verified = self.z3_verifier.verify_smt_formula(&smt_formula)
+
+                    smt_verified = self
+                        .z3_verifier
+                        .verify_smt_formula(&smt_formula)
                         .map(|r| matches!(r, Z3PropertyResult::Proven { .. }))
                         .unwrap_or(false);
-                    
-                    details = format!("Ambiguity function found, SMT formula verified: {}", smt_verified);
+
+                    details = format!(
+                        "Ambiguity function found, SMT formula verified: {}",
+                        smt_verified
+                    );
                     break;
                 }
             }
         }
-        
+
         if !implemented {
             details = "No ambiguity calculation function found in document".to_string();
         }
-        
+
         Ok(FeatureVerificationResult {
             feature_id: 2,
             feature_name: "MeasurableAmbiguity".to_string(),
@@ -158,53 +185,61 @@ impl<'a> FeatureVerifier<'a> {
         })
     }
 
-    fn verify_ghost_feature(&mut self, document: &AispDocument) -> AispResult<FeatureVerificationResult> {
+    fn verify_ghost_feature(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<FeatureVerificationResult> {
         let mut implemented = false;
         let mut smt_verified = false;
         let mut details = String::new();
-        
+
         // Check if document defines ghost intent search
         for block in &document.blocks {
             if let AispBlock::Functions(funcs_block) = block {
                 // Look for ψ_g definition
                 let functions_text = format!("{:?}", funcs_block.functions);
-                let has_ghost = functions_text.contains("ψ_g") || 
-                               functions_text.contains("ghost") ||
-                               functions_text.contains("ψ_*") || 
-                               functions_text.contains("ψ_have");
-                
+                let has_ghost = functions_text.contains("ψ_g")
+                    || functions_text.contains("ghost")
+                    || functions_text.contains("ψ_*")
+                    || functions_text.contains("ψ_have");
+
                 if has_ghost {
                     implemented = true;
-                    
+
                     // Verify ghost intent formula: ψ_g = ψ_* ⊖ ψ_have
                     let smt_formula = self.generate_ghost_intent_smt_formula();
-                    
-                    smt_verified = self.z3_verifier.verify_smt_formula(&smt_formula)
+
+                    smt_verified = self
+                        .z3_verifier
+                        .verify_smt_formula(&smt_formula)
                         .map(|r| matches!(r, Z3PropertyResult::Proven { .. }))
                         .unwrap_or(false);
-                    
-                    details = format!("Ghost intent search found: ψ_g ≜ ψ_* ⊖ ψ_have, SMT verified: {}", smt_verified);
+
+                    details = format!(
+                        "Ghost intent search found: ψ_g ≜ ψ_* ⊖ ψ_have, SMT verified: {}",
+                        smt_verified
+                    );
                     break;
                 }
             }
-            
+
             if let AispBlock::Rules(rules_block) = block {
                 // Also check in rules section
-                let has_ghost_rule = rules_block.rules.iter().any(|rule|
-                    format!("{:?}", rule).contains("ψ_g") || 
-                    format!("{:?}", rule).contains("ghost"));
-                
+                let has_ghost_rule = rules_block.rules.iter().any(|rule| {
+                    format!("{:?}", rule).contains("ψ_g") || format!("{:?}", rule).contains("ghost")
+                });
+
                 if has_ghost_rule && !implemented {
                     implemented = true;
                     details = "Ghost intent found in rules, but no formal definition".to_string();
                 }
             }
         }
-        
+
         if !implemented {
             details = "No ghost intent search implementation found".to_string();
         }
-        
+
         Ok(FeatureVerificationResult {
             feature_id: 5,
             feature_name: "GhostIntentSearch".to_string(),
@@ -214,18 +249,45 @@ impl<'a> FeatureVerifier<'a> {
             verification_details: details,
         })
     }
-    
+
     /// Generate remaining feature verifications (simplified placeholders)
-    fn verify_remaining_features(&mut self, _document: &AispDocument) -> AispResult<Vec<FeatureVerificationResult>> {
+    fn verify_remaining_features(
+        &mut self,
+        _document: &AispDocument,
+    ) -> AispResult<Vec<FeatureVerificationResult>> {
         let features = vec![
-            ("PocketArchitecture", 3, false, true, "Partial implementation"),
+            (
+                "PocketArchitecture",
+                3,
+                false,
+                true,
+                "Partial implementation",
+            ),
             ("FourStateBinding", 4, true, true, "Complete implementation"),
-            ("RossNetScoring", 6, true, true, "sim+fit+aff scoring verified"),
-            ("HebbianLearning", 7, true, true, "10:1 penalty ratio verified"),
+            (
+                "RossNetScoring",
+                6,
+                true,
+                true,
+                "sim+fit+aff scoring verified",
+            ),
+            (
+                "HebbianLearning",
+                7,
+                true,
+                true,
+                "10:1 penalty ratio verified",
+            ),
             ("QualityTiers", 8, true, true, "◊⁺⁺≻◊⁺≻◊≻◊⁻≻⊘ verified"),
-            ("ProofCarryingDocs", 9, true, true, "𝔻oc≜Σ(content)(π) verified"),
+            (
+                "ProofCarryingDocs",
+                9,
+                true,
+                true,
+                "𝔻oc≜Σ(content)(π) verified",
+            ),
         ];
-        
+
         let mut results = Vec::new();
         for (name, id, smt_verified, implemented, details) in features {
             results.push(FeatureVerificationResult {
@@ -237,10 +299,10 @@ impl<'a> FeatureVerifier<'a> {
                 verification_details: details.to_string(),
             });
         }
-        
+
         Ok(results)
     }
-    
+
     // SMT formula generators
     fn generate_trivector_smt_formula(&self) -> String {
         format!(
@@ -265,7 +327,7 @@ impl<'a> FeatureVerifier<'a> {
              (check-sat)"
         )
     }
-    
+
     fn generate_ambiguity_smt_formula(&self) -> String {
         format!(
             ";; Ambiguity calculation verification\n\
@@ -288,7 +350,7 @@ impl<'a> FeatureVerifier<'a> {
              (check-sat)"
         )
     }
-    
+
     fn generate_ghost_intent_smt_formula(&self) -> String {
         format!(
             ";; Ghost intent search verification\n\
@@ -313,48 +375,56 @@ impl<'a> FeatureVerifier<'a> {
              (check-sat)"
         )
     }
-    
+
     // Analysis functions
     fn calculate_compliance_percentage(&self, features: &[FeatureVerificationResult]) -> f64 {
-        if features.is_empty() { return 0.0; }
-        
+        if features.is_empty() {
+            return 0.0;
+        }
+
         let implemented_count = features.iter().filter(|f| f.implemented).count();
         let verified_count = features.iter().filter(|f| f.smt_verified).count();
-        
+
         // Weight implementation and verification equally
         let implementation_score = implemented_count as f64 / features.len() as f64;
         let verification_score = verified_count as f64 / features.len() as f64;
-        
+
         (implementation_score + verification_score) * 50.0 // Convert to percentage
     }
-    
+
     fn check_critical_features(&self, features: &[FeatureVerificationResult]) -> bool {
-        let critical_features = ["TriVectorDecomposition", "MeasurableAmbiguity", "GhostIntentSearch"];
-        
+        let critical_features = [
+            "TriVectorDecomposition",
+            "MeasurableAmbiguity",
+            "GhostIntentSearch",
+        ];
+
         for critical in &critical_features {
-            let feature_verified = features.iter()
+            let feature_verified = features
+                .iter()
                 .find(|f| f.feature_name == *critical)
                 .map(|f| f.implemented && f.smt_verified)
                 .unwrap_or(false);
-                
+
             if !feature_verified {
                 return false;
             }
         }
-        
+
         true
     }
-    
+
     fn generate_feature_summary(&self, features: &[FeatureVerificationResult]) -> FeatureSummary {
         let total_features = features.len();
         let implemented_features = features.iter().filter(|f| f.implemented).count();
         let verified_features = features.iter().filter(|f| f.smt_verified).count();
-        
-        let critical_failures: Vec<String> = features.iter()
+
+        let critical_failures: Vec<String> = features
+            .iter()
             .filter(|f| !f.implemented || !f.smt_verified)
             .map(|f| format!("{}: {}", f.feature_name, f.verification_details))
             .collect();
-        
+
         FeatureSummary {
             total_features,
             implemented_features,
@@ -367,9 +437,11 @@ impl<'a> FeatureVerifier<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span};
+    use crate::ast::canonical::{
+        CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
+    };
     use crate::z3_verification::Z3VerificationFacade;
-    
+
     fn create_test_document() -> AispDocument {
         AispDocument {
             header: DocumentHeader {
@@ -386,21 +458,24 @@ mod tests {
             span: Some(Span::new(0, 0, 1, 1)),
         }
     }
-    
+
     #[test]
     fn test_feature_verifier_creation() {
         let mut z3_facade = Z3VerificationFacade::new_disabled();
         let verifier = FeatureVerifier::new(&mut z3_facade);
-        
+
         // Verifier should be created successfully
-        assert_eq!(std::mem::size_of_val(&verifier), std::mem::size_of::<&mut Z3VerificationFacade>());
+        assert_eq!(
+            std::mem::size_of_val(&verifier),
+            std::mem::size_of::<&mut Z3VerificationFacade>()
+        );
     }
-    
+
     #[test]
     fn test_compliance_percentage_calculation() {
         let mut z3_facade = Z3VerificationFacade::new_disabled();
         let verifier = FeatureVerifier::new(&mut z3_facade);
-        
+
         let features = vec![
             FeatureVerificationResult {
                 feature_id: 1,
@@ -419,16 +494,16 @@ mod tests {
                 verification_details: "Not verified".to_string(),
             },
         ];
-        
+
         let percentage = verifier.calculate_compliance_percentage(&features);
         assert!((percentage - 75.0).abs() < 0.1); // 100% implemented, 50% verified = 75%
     }
-    
+
     #[test]
     fn test_critical_features_check() {
         let mut z3_facade = Z3VerificationFacade::new_disabled();
         let verifier = FeatureVerifier::new(&mut z3_facade);
-        
+
         let good_features = vec![
             FeatureVerificationResult {
                 feature_id: 1,
@@ -455,47 +530,45 @@ mod tests {
                 verification_details: "OK".to_string(),
             },
         ];
-        
+
         assert!(verifier.check_critical_features(&good_features));
-        
-        let bad_features = vec![
-            FeatureVerificationResult {
-                feature_id: 1,
-                feature_name: "TriVectorDecomposition".to_string(),
-                implemented: false, // Missing implementation
-                smt_verified: false,
-                mathematically_correct: false,
-                verification_details: "Not implemented".to_string(),
-            },
-        ];
-        
+
+        let bad_features = vec![FeatureVerificationResult {
+            feature_id: 1,
+            feature_name: "TriVectorDecomposition".to_string(),
+            implemented: false, // Missing implementation
+            smt_verified: false,
+            mathematically_correct: false,
+            verification_details: "Not implemented".to_string(),
+        }];
+
         assert!(!verifier.check_critical_features(&bad_features));
     }
-    
+
     #[test]
     fn test_smt_formula_generation() {
         let mut z3_facade = Z3VerificationFacade::new_disabled();
         let verifier = FeatureVerifier::new(&mut z3_facade);
-        
+
         let trivector_formula = verifier.generate_trivector_smt_formula();
         assert!(trivector_formula.contains("declare-sort VectorSpace"));
         assert!(trivector_formula.contains("(dim V_H) 768"));
         assert!(trivector_formula.contains("check-sat"));
-        
+
         let ambiguity_formula = verifier.generate_ambiguity_smt_formula();
         assert!(ambiguity_formula.contains("ambiguity Real"));
         assert!(ambiguity_formula.contains("< ambiguity 0.02"));
-        
+
         let ghost_formula = verifier.generate_ghost_intent_smt_formula();
         assert!(ghost_formula.contains("Intent"));
         assert!(ghost_formula.contains("intent_difference"));
     }
-    
+
     #[test]
     fn test_feature_summary_generation() {
         let mut z3_facade = Z3VerificationFacade::new_disabled();
         let verifier = FeatureVerifier::new(&mut z3_facade);
-        
+
         let features = vec![
             FeatureVerificationResult {
                 feature_id: 1,
@@ -514,7 +587,7 @@ mod tests {
                 verification_details: "Failed".to_string(),
             },
         ];
-        
+
         let summary = verifier.generate_feature_summary(&features);
         assert_eq!(summary.total_features, 2);
         assert_eq!(summary.implemented_features, 1);

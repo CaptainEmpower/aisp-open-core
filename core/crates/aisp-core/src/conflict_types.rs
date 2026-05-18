@@ -1,6 +1,6 @@
 //! Shared Conflict Types and Severity Levels
 //!
-//! This module defines common conflict types and severity levels 
+//! This module defines common conflict types and severity levels
 //! used across different analysis modules to prevent re-export conflicts.
 
 /// Conflict severity levels for different types of analysis conflicts

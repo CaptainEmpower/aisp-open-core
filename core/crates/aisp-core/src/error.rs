@@ -203,7 +203,11 @@ mod tests {
     fn test_error_creation() {
         let error = AispError::parse_error(10, 5, "Invalid symbol");
         match error {
-            AispError::ParseError { line, column, message } => {
+            AispError::ParseError {
+                line,
+                column,
+                message,
+            } => {
                 assert_eq!(line, 10);
                 assert_eq!(column, 5);
                 assert_eq!(message, "Invalid symbol");
@@ -216,6 +220,9 @@ mod tests {
     fn test_error_recoverability() {
         assert!(!AispError::parse_error(1, 1, "test").is_recoverable());
         assert!(AispError::validation_error("test").is_recoverable());
-        assert!(AispError::UndefinedSymbol { symbol: "test".to_string() }.is_recoverable());
+        assert!(AispError::UndefinedSymbol {
+            symbol: "test".to_string()
+        }
+        .is_recoverable());
     }
 }

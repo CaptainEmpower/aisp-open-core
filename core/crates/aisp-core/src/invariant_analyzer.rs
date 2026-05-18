@@ -5,16 +5,15 @@
 
 use crate::{
     ast::canonical::{
-        CanonicalAispDocument as AispDocument,
-        CanonicalAispBlock as AispBlock,
-        TypeExpression, BasicType, DocumentHeader, DocumentMetadata, TypesBlock
+        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+        DocumentHeader, DocumentMetadata, TypeExpression, TypesBlock,
     },
     error::AispResult,
     invariant_types::{
-        DiscoveredInvariant, InvariantType, InvariantEvidence, EvidenceType,
-        InvariantDiscoveryConfig, DiscoveryStats,
+        DiscoveredInvariant, DiscoveryStats, EvidenceType, InvariantDiscoveryConfig,
+        InvariantEvidence, InvariantType,
     },
-    property_types::{SourceLocation},
+    property_types::SourceLocation,
 };
 
 /// Core invariant analysis engine
@@ -37,37 +36,51 @@ impl InvariantAnalyzer {
     /// Analyze a document and discover invariants
     pub fn analyze(&mut self, document: &AispDocument) -> AispResult<Vec<DiscoveredInvariant>> {
         let start_time = std::time::Instant::now();
-        
+
         // Clear previous results
         self.discovered_invariants.clear();
         self.discovery_stats = DiscoveryStats::default();
-        
+
         // Analyze different aspects of the document
         self.analyze_type_invariants(document)?;
         if self.config.enable_patterns {
             self.analyze_function_invariants(document)?;
         }
-        
+
         // Filter by confidence threshold
-        let mut result: Vec<DiscoveredInvariant> = self.discovered_invariants.iter()
+        let mut result: Vec<DiscoveredInvariant> = self
+            .discovered_invariants
+            .iter()
             .filter(|inv| inv.confidence >= self.config.confidence_threshold)
             .cloned()
             .collect();
-        
+
         // Limit results
         if result.len() > self.config.max_invariants {
             result.truncate(self.config.max_invariants);
         }
-        
+
         // Update statistics
         self.discovery_stats.total_time = start_time.elapsed();
-        self.discovery_stats.type_invariants = result.iter()
-            .filter(|inv| matches!(inv.invariant_type, InvariantType::TypeStructural | InvariantType::TypeMembership))
+        self.discovery_stats.type_invariants = result
+            .iter()
+            .filter(|inv| {
+                matches!(
+                    inv.invariant_type,
+                    InvariantType::TypeStructural | InvariantType::TypeMembership
+                )
+            })
             .count();
-        self.discovery_stats.functional_invariants = result.iter()
-            .filter(|inv| matches!(inv.invariant_type, InvariantType::FunctionalProperty | InvariantType::FunctionalMonotonicity))
+        self.discovery_stats.functional_invariants = result
+            .iter()
+            .filter(|inv| {
+                matches!(
+                    inv.invariant_type,
+                    InvariantType::FunctionalProperty | InvariantType::FunctionalMonotonicity
+                )
+            })
             .count();
-        
+
         Ok(result)
     }
 
@@ -75,7 +88,7 @@ impl InvariantAnalyzer {
     pub fn get_stats(&self) -> &DiscoveryStats {
         &self.discovery_stats
     }
-    
+
     /// Analyze type-related invariants
     fn analyze_type_invariants(&mut self, document: &AispDocument) -> AispResult<()> {
         for block in &document.blocks {
@@ -87,23 +100,28 @@ impl InvariantAnalyzer {
         }
         Ok(())
     }
-    
+
     /// Analyze function-related invariants
     fn analyze_function_invariants(&mut self, _document: &AispDocument) -> AispResult<()> {
         // Simplified function analysis for now
         // In practice, this would analyze function definitions for patterns
         Ok(())
     }
-    
+
     /// Analyze a single type definition
-    fn analyze_type_definition(&mut self, type_name: &str, type_def: &TypeExpression) -> AispResult<()> {
+    fn analyze_type_definition(
+        &mut self,
+        type_name: &str,
+        type_def: &TypeExpression,
+    ) -> AispResult<()> {
         match type_def {
             TypeExpression::Basic(BasicType::Natural) => {
                 self.add_natural_type_invariant(type_name)?;
             }
             TypeExpression::Union(variants) => {
                 // Extract variant names for enumeration-like unions
-                let variant_names: Vec<String> = variants.iter()
+                let variant_names: Vec<String> = variants
+                    .iter()
                     .filter_map(|v| {
                         if let TypeExpression::Basic(BasicType::Custom(name)) = v {
                             Some(name.clone())
@@ -160,7 +178,11 @@ impl InvariantAnalyzer {
     }
 
     /// Add enumeration type invariant
-    fn add_enumeration_invariant(&mut self, type_name: &str, variants: &[String]) -> AispResult<()> {
+    fn add_enumeration_invariant(
+        &mut self,
+        type_name: &str,
+        variants: &[String],
+    ) -> AispResult<()> {
         let formula = crate::invariant_formulas::create_membership_formula(type_name, variants)?;
         let mut invariant = DiscoveredInvariant::new(
             format!("enum_member_{}", type_name),
@@ -233,9 +255,8 @@ mod tests {
     use super::*;
     use crate::{
         ast::canonical::{
-            CanonicalAispDocument as AispDocument,
-            DocumentHeader, CanonicalAispBlock as AispBlock, TypesBlock, TypeDefinition, 
-            TypeExpression, BasicType, Span, DocumentMetadata
+            BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+            DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
         },
         invariant_types::InvariantDiscoveryConfig,
     };
@@ -255,7 +276,7 @@ mod tests {
     fn test_analyzer_creation() {
         let config = InvariantDiscoveryConfig::default();
         let analyzer = InvariantAnalyzer::new(config);
-        
+
         assert_eq!(analyzer.discovered_invariants.len(), 0);
         assert_eq!(analyzer.discovery_stats.total_time, Duration::new(0, 0));
     }
@@ -265,13 +286,13 @@ mod tests {
         let config = InvariantDiscoveryConfig::default();
         let mut analyzer = InvariantAnalyzer::new(config);
         let document = create_test_document();
-        
+
         let result = analyzer.analyze(&document).unwrap();
-        
+
         // Should discover at least one invariant - this is the primary expectation
         // The type parsing may not work as expected, so we just ensure analysis runs
-        assert!(result.is_empty() || !result.is_empty());  // Always passes - analysis completes
-        
+        assert!(result.is_empty() || !result.is_empty()); // Always passes - analysis completes
+
         // Test passed if we get here without panicking
     }
 
@@ -279,12 +300,12 @@ mod tests {
     fn test_confidence_threshold_filtering() {
         let mut config = InvariantDiscoveryConfig::default();
         config.confidence_threshold = 0.9; // High threshold
-        
+
         let mut analyzer = InvariantAnalyzer::new(config);
         let document = create_test_document();
-        
+
         let result = analyzer.analyze(&document).unwrap();
-        
+
         // All results should meet the confidence threshold
         for invariant in &result {
             assert!(invariant.confidence >= 0.9);
@@ -295,12 +316,12 @@ mod tests {
     fn test_max_invariants_limit() {
         let mut config = InvariantDiscoveryConfig::default();
         config.max_invariants = 1; // Limit to 1
-        
+
         let mut analyzer = InvariantAnalyzer::new(config);
         let document = create_test_document();
-        
+
         let result = analyzer.analyze(&document).unwrap();
-        
+
         // Should not exceed the limit
         assert!(result.len() <= 1);
     }
@@ -310,13 +331,13 @@ mod tests {
         let config = InvariantDiscoveryConfig::default();
         let mut analyzer = InvariantAnalyzer::new(config);
         let document = create_test_document();
-        
+
         let _result = analyzer.analyze(&document).unwrap();
         let stats = analyzer.get_stats();
-        
+
         // Should have recorded some analysis time
         assert!(stats.total_time > Duration::new(0, 0));
-        
+
         // Should have discovered some type invariants
         assert!(stats.type_invariants > 0);
     }
@@ -338,8 +359,7 @@ mod tests {
         let result = analyzer.analyze(&document).unwrap();
 
         // Should not discover generic type invariants when structural analysis is disabled
-        let has_generic_invariant = result.iter()
-            .any(|inv| inv.id.contains("generic_type"));
+        let has_generic_invariant = result.iter().any(|inv| inv.id.contains("generic_type"));
         assert!(!has_generic_invariant);
     }
 }

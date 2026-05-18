@@ -79,41 +79,44 @@ impl EnhancedHebbianLearner {
     ) -> AispResult<f64> {
         let key = (pocket_a, pocket_b);
         let current_affinity = self.affinity_matrix.get(&key).copied().unwrap_or(0.0);
-        
+
         // Apply Hebbian rule
         let delta = match interaction_result {
             InteractionResult::Success => {
                 self.learning_stats.successful_interactions += 1;
                 self.success_reward
-            },
+            }
             InteractionResult::Failure => {
                 self.learning_stats.failed_interactions += 1;
                 self.failure_penalty
-            },
+            }
         };
-        
+
         // Update with learning rate and decay: A_new = decay * A_old + lr * delta
-        let new_affinity = (current_affinity * self.decay_factor) + 
-                          (self.learning_rate * delta);
-        
+        let new_affinity = (current_affinity * self.decay_factor) + (self.learning_rate * delta);
+
         // Apply bounds to prevent overflow
         let bounded_affinity = new_affinity.max(-100.0).min(100.0);
-        
+
         self.affinity_matrix.insert(key, bounded_affinity);
-        
+
         // Update confidence based on interaction result
-        self.confidence_tracker.update_confidence(pocket_a, pocket_b, interaction_result);
-        
+        self.confidence_tracker
+            .update_confidence(pocket_a, pocket_b, interaction_result);
+
         // Update statistics
         self.learning_stats.total_updates += 1;
         self.update_convergence_metrics();
-        
+
         Ok(bounded_affinity)
     }
 
     /// Get current affinity between two pockets
     pub fn get_affinity(&self, pocket_a: ContentHash, pocket_b: ContentHash) -> f64 {
-        self.affinity_matrix.get(&(pocket_a, pocket_b)).copied().unwrap_or(0.0)
+        self.affinity_matrix
+            .get(&(pocket_a, pocket_b))
+            .copied()
+            .unwrap_or(0.0)
     }
 
     /// Predict interaction success based on affinity
@@ -124,10 +127,10 @@ impl EnhancedHebbianLearner {
     ) -> (bool, f64) {
         let affinity = self.get_affinity(pocket_a, pocket_b);
         let confidence = self.confidence_tracker.get_confidence(pocket_a, pocket_b);
-        
+
         // Positive affinity suggests success
         let prediction = affinity > 0.0;
-        
+
         (prediction, confidence)
     }
 
@@ -137,36 +140,40 @@ impl EnhancedHebbianLearner {
         interactions: &[(ContentHash, ContentHash, InteractionResult)],
     ) -> AispResult<Vec<f64>> {
         let mut new_affinities = Vec::with_capacity(interactions.len());
-        
+
         for &(pocket_a, pocket_b, result) in interactions {
             let affinity = self.update_affinity(pocket_a, pocket_b, result)?;
             new_affinities.push(affinity);
         }
-        
+
         Ok(new_affinities)
     }
 
     /// Get top affinity pairs (most positive relationships)
     pub fn get_top_affinities(&self, limit: usize) -> Vec<((ContentHash, ContentHash), f64)> {
-        let mut affinity_pairs: Vec<_> = self.affinity_matrix.iter()
+        let mut affinity_pairs: Vec<_> = self
+            .affinity_matrix
+            .iter()
             .map(|(&pair, &affinity)| (pair, affinity))
             .collect();
-        
+
         affinity_pairs.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
         affinity_pairs.truncate(limit);
-        
+
         affinity_pairs
     }
 
     /// Get bottom affinity pairs (most negative relationships)
     pub fn get_bottom_affinities(&self, limit: usize) -> Vec<((ContentHash, ContentHash), f64)> {
-        let mut affinity_pairs: Vec<_> = self.affinity_matrix.iter()
+        let mut affinity_pairs: Vec<_> = self
+            .affinity_matrix
+            .iter()
             .map(|(&pair, &affinity)| (pair, affinity))
             .collect();
-        
+
         affinity_pairs.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
         affinity_pairs.truncate(limit);
-        
+
         affinity_pairs
     }
 
@@ -175,12 +182,14 @@ impl EnhancedHebbianLearner {
         if self.learning_stats.convergence_metrics.len() < 10 {
             return false;
         }
-        
-        let recent_changes: Vec<f64> = self.learning_stats.convergence_metrics
+
+        let recent_changes: Vec<f64> = self
+            .learning_stats
+            .convergence_metrics
             .windows(2)
             .map(|w| (w[1] - w[0]).abs())
             .collect();
-        
+
         recent_changes.iter().all(|&change| change < threshold)
     }
 
@@ -209,23 +218,22 @@ impl EnhancedHebbianLearner {
     /// Get affinity matrix summary
     pub fn get_affinity_summary(&self) -> AffinitySummary {
         let affinities: Vec<f64> = self.affinity_matrix.values().copied().collect();
-        
+
         if affinities.is_empty() {
             return AffinitySummary::default();
         }
 
         let mean = affinities.iter().sum::<f64>() / affinities.len() as f64;
-        let variance = affinities.iter()
-            .map(|&x| (x - mean).powi(2))
-            .sum::<f64>() / affinities.len() as f64;
+        let variance =
+            affinities.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / affinities.len() as f64;
         let std_dev = variance.sqrt();
-        
+
         let positive_relationships = affinities.iter().filter(|&&x| x > 0.0).count();
         let negative_relationships = affinities.iter().filter(|&&x| x < 0.0).count();
-        
+
         let mut sorted_affinities = affinities;
         sorted_affinities.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-        
+
         AffinitySummary {
             total_pairs: self.affinity_matrix.len(),
             mean_affinity: mean,
@@ -246,7 +254,7 @@ impl EnhancedHebbianLearner {
     /// Apply forgetting mechanism to old affinities
     pub fn apply_forgetting(&mut self, forgetting_rate: f64) {
         let forgetting_factor = 1.0 - forgetting_rate.max(0.0).min(1.0);
-        
+
         for affinity in self.affinity_matrix.values_mut() {
             *affinity *= forgetting_factor;
         }
@@ -259,10 +267,12 @@ impl EnhancedHebbianLearner {
         } else {
             self.affinity_matrix.values().sum::<f64>() / self.affinity_matrix.len() as f64
         };
-        
+
         self.learning_stats.average_affinity = average_affinity;
-        self.learning_stats.convergence_metrics.push(average_affinity);
-        
+        self.learning_stats
+            .convergence_metrics
+            .push(average_affinity);
+
         // Keep only recent metrics (limit memory usage)
         if self.learning_stats.convergence_metrics.len() > 1000 {
             self.learning_stats.convergence_metrics.drain(0..500);
@@ -301,26 +311,26 @@ impl ConfidenceTracker {
         result: InteractionResult,
     ) {
         let key = (pocket_a, pocket_b);
-        
+
         // Increment frequency counter
         *self.update_frequencies.entry(key).or_insert(0) += 1;
-        
+
         // Calculate confidence based on frequency and consistency
         let frequency = self.update_frequencies[&key] as f64;
         let frequency_confidence = (frequency / (frequency + 10.0)).min(1.0);
-        
+
         // Update running confidence score
         let current_confidence = self.confidence_scores.get(&key).copied().unwrap_or(0.5);
         let result_confidence = match result {
             InteractionResult::Success => 0.8,
             InteractionResult::Failure => 0.6,
         };
-        
+
         // Exponential moving average
         let alpha = 0.2;
         let new_confidence = alpha * result_confidence + (1.0 - alpha) * current_confidence;
         let final_confidence = (new_confidence * frequency_confidence).max(0.1).min(1.0);
-        
+
         self.confidence_scores.insert(key, final_confidence);
     }
 
@@ -333,7 +343,7 @@ impl ConfidenceTracker {
     /// Update accuracy history
     pub fn update_accuracy(&mut self, accuracy: f64) {
         self.accuracy_history.push(accuracy.max(0.0).min(1.0));
-        
+
         // Keep only recent history
         if self.accuracy_history.len() > 100 {
             self.accuracy_history.drain(0..50);
@@ -396,18 +406,18 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(123);
         let pocket_b = ContentHash(456);
-        
+
         // Initial affinity should be 0
         assert_eq!(learner.get_affinity(pocket_a, pocket_b), 0.0);
-        
+
         // Update with successful interaction
         let result = learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success);
         assert!(result.is_ok());
-        
+
         let new_affinity = result.unwrap();
         assert!(new_affinity > 0.0);
         assert_eq!(learner.get_affinity(pocket_a, pocket_b), new_affinity);
-        
+
         // Check statistics
         assert_eq!(learner.learning_stats.successful_interactions, 1);
         assert_eq!(learner.learning_stats.total_updates, 1);
@@ -418,15 +428,15 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(123);
         let pocket_b = ContentHash(456);
-        
+
         // Update with failed interaction
         let result = learner.update_affinity(pocket_a, pocket_b, InteractionResult::Failure);
         assert!(result.is_ok());
-        
+
         let new_affinity = result.unwrap();
         assert!(new_affinity < 0.0);
         assert_eq!(learner.get_affinity(pocket_a, pocket_b), new_affinity);
-        
+
         // Check statistics
         assert_eq!(learner.learning_stats.failed_interactions, 1);
         assert_eq!(learner.learning_stats.total_updates, 1);
@@ -437,16 +447,20 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(111);
         let pocket_b = ContentHash(222);
-        
+
         // One success
-        let success_affinity = learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
-        
+        let success_affinity = learner
+            .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+            .unwrap();
+
         let pocket_c = ContentHash(333);
         let pocket_d = ContentHash(444);
-        
+
         // One failure
-        let failure_affinity = learner.update_affinity(pocket_c, pocket_d, InteractionResult::Failure).unwrap();
-        
+        let failure_affinity = learner
+            .update_affinity(pocket_c, pocket_d, InteractionResult::Failure)
+            .unwrap();
+
         // Failure penalty should be 10x larger in magnitude
         assert!((failure_affinity.abs() / success_affinity.abs() - 10.0).abs() < 1.0);
     }
@@ -456,17 +470,22 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(555);
         let pocket_b = ContentHash(666);
-        
+
         // Initial prediction should be neutral
         let (prediction, confidence) = learner.predict_interaction_success(pocket_a, pocket_b);
         assert!(!prediction); // 0.0 affinity means false prediction
         assert!(confidence > 0.0);
-        
+
         // After positive interactions, should predict success
-        learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
-        learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
-        
-        let (positive_prediction, higher_confidence) = learner.predict_interaction_success(pocket_a, pocket_b);
+        learner
+            .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+            .unwrap();
+        learner
+            .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+            .unwrap();
+
+        let (positive_prediction, higher_confidence) =
+            learner.predict_interaction_success(pocket_a, pocket_b);
         assert!(positive_prediction);
         assert!(higher_confidence >= confidence);
     }
@@ -474,45 +493,55 @@ mod tests {
     #[test]
     fn test_batch_update() {
         let mut learner = EnhancedHebbianLearner::new();
-        
+
         let interactions = vec![
             (ContentHash(1), ContentHash(2), InteractionResult::Success),
             (ContentHash(3), ContentHash(4), InteractionResult::Failure),
             (ContentHash(5), ContentHash(6), InteractionResult::Success),
         ];
-        
+
         let affinities = learner.batch_update(&interactions).unwrap();
         assert_eq!(affinities.len(), 3);
         assert!(affinities[0] > 0.0); // Success
         assert!(affinities[1] < 0.0); // Failure
         assert!(affinities[2] > 0.0); // Success
-        
+
         assert_eq!(learner.learning_stats.total_updates, 3);
     }
 
     #[test]
     fn test_top_and_bottom_affinities() {
         let mut learner = EnhancedHebbianLearner::new();
-        
+
         // Create some relationships
-        learner.update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success).unwrap();
-        learner.update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success).unwrap();
-        
-        learner.update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure).unwrap();
-        learner.update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure).unwrap();
-        
-        learner.update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success).unwrap();
-        
+        learner
+            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
+            .unwrap();
+        learner
+            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
+            .unwrap();
+
+        learner
+            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
+            .unwrap();
+        learner
+            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
+            .unwrap();
+
+        learner
+            .update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success)
+            .unwrap();
+
         let top_affinities = learner.get_top_affinities(2);
         let bottom_affinities = learner.get_bottom_affinities(2);
-        
+
         assert_eq!(top_affinities.len(), 2);
         assert_eq!(bottom_affinities.len(), 1); // Only one negative relationship
-        
+
         // Top should have positive affinities
         assert!(top_affinities[0].1 > 0.0);
         assert!(top_affinities[1].1 > 0.0);
-        
+
         // Bottom should have negative affinities
         assert!(bottom_affinities[0].1 < 0.0);
     }
@@ -522,15 +551,17 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(777);
         let pocket_b = ContentHash(888);
-        
+
         // Should not converge initially
         assert!(!learner.has_converged(0.01));
-        
+
         // Add consistent updates
         for _ in 0..20 {
-            learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
+            learner
+                .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+                .unwrap();
         }
-        
+
         // Should eventually converge
         assert!(learner.has_converged(0.1));
     }
@@ -538,17 +569,17 @@ mod tests {
     #[test]
     fn test_parameter_adjustment() {
         let mut learner = EnhancedHebbianLearner::new();
-        
+
         learner.adjust_learning_rate(0.5);
         assert_eq!(learner.learning_rate, 0.5);
-        
+
         learner.adjust_decay_factor(0.8);
         assert_eq!(learner.decay_factor, 0.8);
-        
+
         // Test bounds
         learner.adjust_learning_rate(2.0); // Should cap at 1.0
         assert_eq!(learner.learning_rate, 1.0);
-        
+
         learner.adjust_learning_rate(-0.1); // Should floor at 0.0
         assert_eq!(learner.learning_rate, 0.0);
     }
@@ -558,23 +589,27 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(999);
         let pocket_b = ContentHash(1000);
-        
+
         // Many failures should not go below -100
         for _ in 0..50 {
-            learner.update_affinity(pocket_a, pocket_b, InteractionResult::Failure).unwrap();
+            learner
+                .update_affinity(pocket_a, pocket_b, InteractionResult::Failure)
+                .unwrap();
         }
-        
+
         let final_affinity = learner.get_affinity(pocket_a, pocket_b);
         assert!(final_affinity >= -100.0);
-        
+
         // Reset and test upper bound
         learner.reset();
-        
+
         // Many successes should not go above 100
         for _ in 0..50 {
-            learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
+            learner
+                .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+                .unwrap();
         }
-        
+
         let final_affinity = learner.get_affinity(pocket_a, pocket_b);
         assert!(final_affinity <= 100.0);
     }
@@ -584,16 +619,16 @@ mod tests {
         let mut tracker = ConfidenceTracker::new();
         let pocket_a = ContentHash(111);
         let pocket_b = ContentHash(222);
-        
+
         // Initial confidence should be low
         let initial_confidence = tracker.get_confidence(pocket_a, pocket_b);
         assert_eq!(initial_confidence, 0.1);
-        
+
         // Update with interaction results
         tracker.update_confidence(pocket_a, pocket_b, InteractionResult::Success);
         tracker.update_confidence(pocket_a, pocket_b, InteractionResult::Success);
         tracker.update_confidence(pocket_a, pocket_b, InteractionResult::Success);
-        
+
         let updated_confidence = tracker.get_confidence(pocket_a, pocket_b);
         assert!(updated_confidence > initial_confidence);
     }
@@ -601,15 +636,23 @@ mod tests {
     #[test]
     fn test_affinity_summary() {
         let mut learner = EnhancedHebbianLearner::new();
-        
+
         // Add various relationships
-        learner.update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success).unwrap();
-        learner.update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure).unwrap();
-        learner.update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success).unwrap();
-        learner.update_affinity(ContentHash(7), ContentHash(8), InteractionResult::Failure).unwrap();
-        
+        learner
+            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
+            .unwrap();
+        learner
+            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
+            .unwrap();
+        learner
+            .update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success)
+            .unwrap();
+        learner
+            .update_affinity(ContentHash(7), ContentHash(8), InteractionResult::Failure)
+            .unwrap();
+
         let summary = learner.get_affinity_summary();
-        
+
         assert_eq!(summary.total_pairs, 4);
         assert_eq!(summary.positive_relationships, 2);
         assert_eq!(summary.negative_relationships, 2);
@@ -622,15 +665,17 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(123);
         let pocket_b = ContentHash(456);
-        
+
         // Build up some affinity
-        learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
+        learner
+            .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+            .unwrap();
         let initial_affinity = learner.get_affinity(pocket_a, pocket_b);
-        
+
         // Apply forgetting
         learner.apply_forgetting(0.1); // 10% forgetting rate
         let forgotten_affinity = learner.get_affinity(pocket_a, pocket_b);
-        
+
         // Affinity should decrease
         assert!(forgotten_affinity < initial_affinity);
         assert!(forgotten_affinity > 0.0); // Should still be positive
@@ -641,15 +686,17 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
         let pocket_a = ContentHash(789);
         let pocket_b = ContentHash(101);
-        
+
         // Add some data
-        learner.update_affinity(pocket_a, pocket_b, InteractionResult::Success).unwrap();
+        learner
+            .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
+            .unwrap();
         assert!(learner.get_affinity(pocket_a, pocket_b) > 0.0);
         assert!(learner.learning_stats.total_updates > 0);
-        
+
         // Reset
         learner.reset();
-        
+
         // Everything should be cleared
         assert_eq!(learner.get_affinity(pocket_a, pocket_b), 0.0);
         assert_eq!(learner.learning_stats.total_updates, 0);

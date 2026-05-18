@@ -26,7 +26,7 @@ use crate::{
     error::{AispError, AispResult},
     formal_semantics::*,
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Soundness proof state for tracking validation correctness
@@ -143,7 +143,7 @@ impl SoundnessChecker {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     /// Generate soundness proof for AISP validator
     pub fn generate_soundness_proof(&self) -> AispResult<SoundnessProof> {
         let phases = vec![
@@ -152,12 +152,12 @@ impl SoundnessChecker {
             self.prove_semantic_soundness()?,
             self.prove_logical_soundness()?,
         ];
-        
+
         let global_invariants = self.define_global_invariants();
-        
-        let verified = phases.iter().all(|p| p.verified) 
+
+        let verified = phases.iter().all(|p| p.verified)
             && self.check_invariant_preservation(&global_invariants)?;
-            
+
         Ok(SoundnessProof {
             phases,
             global_invariants,
@@ -165,18 +165,16 @@ impl SoundnessChecker {
             counter_examples: vec![], // Should be empty for sound validator
         })
     }
-    
+
     /// Prove syntactic soundness: parser only accepts syntactically valid documents
     fn prove_syntactic_soundness(&self) -> AispResult<PhaseProof> {
-        let preconditions = vec![
-            Condition {
-                id: "input_utf8".to_string(),
-                formula: "∀d:Input. valid_utf8(d)".to_string(),
-                description: "Input is valid UTF-8".to_string(),
-                verified: true,
-            }
-        ];
-        
+        let preconditions = vec![Condition {
+            id: "input_utf8".to_string(),
+            formula: "∀d:Input. valid_utf8(d)".to_string(),
+            description: "Input is valid UTF-8".to_string(),
+            verified: true,
+        }];
+
         let postconditions = vec![
             Condition {
                 id: "parse_success_implies_syntax_valid".to_string(),
@@ -186,12 +184,13 @@ impl SoundnessChecker {
             },
             Condition {
                 id: "parse_preserves_structure".to_string(),
-                formula: "∀d:Input. parse(d) = Success(ast) ⟹ structure_preserved(d, ast)".to_string(),
+                formula: "∀d:Input. parse(d) = Success(ast) ⟹ structure_preserved(d, ast)"
+                    .to_string(),
                 description: "Parsing preserves document structure".to_string(),
                 verified: true,
-            }
+            },
         ];
-        
+
         Ok(PhaseProof {
             phase: "syntactic_validation".to_string(),
             preconditions,
@@ -201,18 +200,16 @@ impl SoundnessChecker {
             verified: true,
         })
     }
-    
+
     /// Prove structural soundness: AST construction preserves validity
     fn prove_structural_soundness(&self) -> AispResult<PhaseProof> {
-        let preconditions = vec![
-            Condition {
-                id: "syntactically_valid".to_string(),
-                formula: "syntactically_valid(document)".to_string(),
-                description: "Document is syntactically valid".to_string(),
-                verified: true,
-            }
-        ];
-        
+        let preconditions = vec![Condition {
+            id: "syntactically_valid".to_string(),
+            formula: "syntactically_valid(document)".to_string(),
+            description: "Document is syntactically valid".to_string(),
+            verified: true,
+        }];
+
         let postconditions = vec![
             Condition {
                 id: "ast_well_formed".to_string(),
@@ -225,9 +222,9 @@ impl SoundnessChecker {
                 formula: "∀ast:AST. well_formed(ast) ⟹ has_required_blocks(ast)".to_string(),
                 description: "Well-formed AST has required blocks".to_string(),
                 verified: true,
-            }
+            },
         ];
-        
+
         Ok(PhaseProof {
             phase: "structural_validation".to_string(),
             preconditions,
@@ -237,22 +234,21 @@ impl SoundnessChecker {
             verified: true,
         })
     }
-    
+
     /// Prove semantic soundness: semantic analysis preserves structural validity
     fn prove_semantic_soundness(&self) -> AispResult<PhaseProof> {
-        let preconditions = vec![
-            Condition {
-                id: "well_formed_ast".to_string(),
-                formula: "well_formed(ast)".to_string(),
-                description: "AST is well-formed".to_string(),
-                verified: true,
-            }
-        ];
-        
+        let preconditions = vec![Condition {
+            id: "well_formed_ast".to_string(),
+            formula: "well_formed(ast)".to_string(),
+            description: "AST is well-formed".to_string(),
+            verified: true,
+        }];
+
         let postconditions = vec![
             Condition {
                 id: "semantic_consistency".to_string(),
-                formula: "∀ast:AST. semantic_analysis(ast) = Valid ⟹ semantically_consistent(ast)".to_string(),
+                formula: "∀ast:AST. semantic_analysis(ast) = Valid ⟹ semantically_consistent(ast)"
+                    .to_string(),
                 description: "Semantic validation implies semantic consistency".to_string(),
                 verified: true,
             },
@@ -261,9 +257,9 @@ impl SoundnessChecker {
                 formula: "∀ast:AST. semantically_consistent(ast) ⟹ type_safe(ast)".to_string(),
                 description: "Semantic consistency implies type safety".to_string(),
                 verified: true,
-            }
+            },
         ];
-        
+
         Ok(PhaseProof {
             phase: "semantic_validation".to_string(),
             preconditions,
@@ -273,18 +269,16 @@ impl SoundnessChecker {
             verified: true,
         })
     }
-    
+
     /// Prove logical soundness: formal verification preserves semantic validity
     fn prove_logical_soundness(&self) -> AispResult<PhaseProof> {
-        let preconditions = vec![
-            Condition {
-                id: "semantically_consistent".to_string(),
-                formula: "semantically_consistent(ast)".to_string(),
-                description: "AST is semantically consistent".to_string(),
-                verified: true,
-            }
-        ];
-        
+        let preconditions = vec![Condition {
+            id: "semantically_consistent".to_string(),
+            formula: "semantically_consistent(ast)".to_string(),
+            description: "AST is semantically consistent".to_string(),
+            verified: true,
+        }];
+
         let postconditions = vec![
             Condition {
                 id: "logical_validity".to_string(),
@@ -297,9 +291,9 @@ impl SoundnessChecker {
                 formula: "∀ast:AST. logically_valid(ast) ⟹ satisfiable(ast)".to_string(),
                 description: "Logical validity implies satisfiability".to_string(),
                 verified: true,
-            }
+            },
         ];
-        
+
         Ok(PhaseProof {
             phase: "formal_verification".to_string(),
             preconditions,
@@ -309,7 +303,7 @@ impl SoundnessChecker {
             verified: true,
         })
     }
-    
+
     /// Define global invariants maintained throughout validation
     fn define_global_invariants(&self) -> Vec<Invariant> {
         vec![
@@ -324,14 +318,22 @@ impl SoundnessChecker {
                 id: "block_integrity".to_string(),
                 formula: "∀ast:AST. preserved_block_structure(ast)".to_string(),
                 description: "Block structure is preserved during transformations".to_string(),
-                applies_to_phases: vec!["structural_validation".to_string(), "semantic_validation".to_string()],
-                preservation_proof: Some("AST transformations preserve block boundaries".to_string()),
+                applies_to_phases: vec![
+                    "structural_validation".to_string(),
+                    "semantic_validation".to_string(),
+                ],
+                preservation_proof: Some(
+                    "AST transformations preserve block boundaries".to_string(),
+                ),
             },
             Invariant {
                 id: "type_consistency".to_string(),
                 formula: "∀ast:AST. type_consistent(ast)".to_string(),
                 description: "Type assignments remain consistent".to_string(),
-                applies_to_phases: vec!["semantic_validation".to_string(), "formal_verification".to_string()],
+                applies_to_phases: vec![
+                    "semantic_validation".to_string(),
+                    "formal_verification".to_string(),
+                ],
                 preservation_proof: Some("Type checking maintains consistency".to_string()),
             },
             Invariant {
@@ -343,7 +345,7 @@ impl SoundnessChecker {
             },
         ]
     }
-    
+
     /// Check that invariants are preserved across all phases
     fn check_invariant_preservation(&self, invariants: &[Invariant]) -> AispResult<bool> {
         // For now, assume invariants are preserved (would need formal verification)
@@ -351,16 +353,22 @@ impl SoundnessChecker {
         // 1. Generate verification conditions for each invariant
         // 2. Use automated theorem provers to verify preservation
         // 3. Report any invariant violations
-        
-        Ok(invariants.iter().all(|inv| inv.preservation_proof.is_some()))
+
+        Ok(invariants
+            .iter()
+            .all(|inv| inv.preservation_proof.is_some()))
     }
-    
+
     /// Verify soundness proof against test cases
-    pub fn verify_proof_with_tests(&self, proof: &SoundnessProof, test_documents: &[CanonicalAispDocument]) -> AispResult<VerificationResult> {
+    pub fn verify_proof_with_tests(
+        &self,
+        proof: &SoundnessProof,
+        test_documents: &[CanonicalAispDocument],
+    ) -> AispResult<VerificationResult> {
         let mut valid_documents = 0;
         let mut invalid_documents = 0;
         let mut false_positives = Vec::new();
-        
+
         for (i, doc) in test_documents.iter().enumerate() {
             // Get semantic interpretation
             let semantic_result = self.semantics.interpret(doc);
@@ -368,15 +376,15 @@ impl SoundnessChecker {
                 Ok(domain) => self.semantics.is_valid(&domain),
                 Err(_) => false,
             };
-            
+
             // Check validator result (would need actual validator integration)
             let validator_accepts = true; // Placeholder - integrate with actual validator
-            
+
             if semantically_valid {
                 valid_documents += 1;
             } else {
                 invalid_documents += 1;
-                
+
                 // Check for false positives (soundness violations)
                 if validator_accepts {
                     false_positives.push(CounterExample {
@@ -388,7 +396,7 @@ impl SoundnessChecker {
                 }
             }
         }
-        
+
         Ok(VerificationResult {
             total_documents: test_documents.len(),
             valid_documents,
@@ -398,11 +406,14 @@ impl SoundnessChecker {
             false_positives,
         })
     }
-    
+
     /// Generate verification conditions for automated proof checking
-    pub fn generate_verification_conditions(&self, proof: &SoundnessProof) -> Vec<VerificationCondition> {
+    pub fn generate_verification_conditions(
+        &self,
+        proof: &SoundnessProof,
+    ) -> Vec<VerificationCondition> {
         let mut conditions = Vec::new();
-        
+
         for phase in &proof.phases {
             for pre in &phase.preconditions {
                 for post in &phase.postconditions {
@@ -416,7 +427,7 @@ impl SoundnessChecker {
                 }
             }
         }
-        
+
         conditions
     }
 }
@@ -457,10 +468,10 @@ pub struct VerificationCondition {
 pub trait SoundnessVerifier {
     /// Verify a soundness proof
     fn verify_proof(&self, proof: &SoundnessProof) -> AispResult<bool>;
-    
+
     /// Check for counter-examples
     fn find_counter_examples(&self, conditions: &[VerificationCondition]) -> Vec<CounterExample>;
-    
+
     /// Generate proof certificates
     fn generate_certificate(&self, proof: &SoundnessProof) -> AispResult<String>;
 }
@@ -481,15 +492,15 @@ impl SoundnessVerifier for ReferenceSoundnessVerifier {
         // 1. Translate verification conditions to prover format
         // 2. Invoke external theorem prover (Coq, Lean, etc.)
         // 3. Parse and interpret proof results
-        
+
         Ok(proof.verified && proof.counter_examples.is_empty())
     }
-    
+
     fn find_counter_examples(&self, _conditions: &[VerificationCondition]) -> Vec<CounterExample> {
         // Placeholder - would search for counter-examples systematically
         vec![]
     }
-    
+
     fn generate_certificate(&self, proof: &SoundnessProof) -> AispResult<String> {
         Ok(format!(
             "Soundness Certificate\n\
@@ -514,53 +525,54 @@ mod tests {
     fn test_soundness_proof_generation() {
         let checker = SoundnessChecker::new();
         let proof = checker.generate_soundness_proof();
-        
+
         assert!(proof.is_ok());
         let proof = proof.unwrap();
         assert_eq!(proof.phases.len(), 4);
         assert!(proof.verified);
         assert!(proof.counter_examples.is_empty());
     }
-    
+
     #[test]
     fn test_phase_proofs() {
         let checker = SoundnessChecker::new();
-        
+
         let syntactic_proof = checker.prove_syntactic_soundness().unwrap();
         assert_eq!(syntactic_proof.phase, "syntactic_validation");
         assert!(syntactic_proof.verified);
         assert!(!syntactic_proof.preconditions.is_empty());
         assert!(!syntactic_proof.postconditions.is_empty());
-        
+
         let semantic_proof = checker.prove_semantic_soundness().unwrap();
         assert_eq!(semantic_proof.phase, "semantic_validation");
         assert!(semantic_proof.verified);
     }
-    
+
     #[test]
     fn test_global_invariants() {
         let checker = SoundnessChecker::new();
         let invariants = checker.define_global_invariants();
-        
+
         assert!(!invariants.is_empty());
-        
+
         // Check that UTF-8 validity invariant exists
-        let utf8_invariant = invariants.iter()
-            .find(|inv| inv.id == "utf8_validity");
+        let utf8_invariant = invariants.iter().find(|inv| inv.id == "utf8_validity");
         assert!(utf8_invariant.is_some());
-        
+
         // Check that all invariants have preservation proofs
-        assert!(invariants.iter().all(|inv| inv.preservation_proof.is_some()));
+        assert!(invariants
+            .iter()
+            .all(|inv| inv.preservation_proof.is_some()));
     }
-    
+
     #[test]
     fn test_verification_conditions() {
         let checker = SoundnessChecker::new();
         let proof = checker.generate_soundness_proof().unwrap();
         let conditions = checker.generate_verification_conditions(&proof);
-        
+
         assert!(!conditions.is_empty());
-        
+
         // Each condition should connect preconditions to postconditions
         for condition in &conditions {
             assert!(!condition.premise.is_empty());
@@ -568,35 +580,35 @@ mod tests {
             assert!(!condition.phase.is_empty());
         }
     }
-    
+
     #[test]
     fn test_soundness_verifier() {
         let verifier = ReferenceSoundnessVerifier {
             prover: Some("Z3".to_string()),
             timeout: 5000,
         };
-        
+
         let checker = SoundnessChecker::new();
         let proof = checker.generate_soundness_proof().unwrap();
-        
+
         let verification_result = verifier.verify_proof(&proof);
         assert!(verification_result.is_ok());
         assert!(verification_result.unwrap());
     }
-    
+
     #[test]
     fn test_certificate_generation() {
         let verifier = ReferenceSoundnessVerifier {
             prover: None,
             timeout: 1000,
         };
-        
+
         let checker = SoundnessChecker::new();
         let proof = checker.generate_soundness_proof().unwrap();
-        
+
         let certificate = verifier.generate_certificate(&proof);
         assert!(certificate.is_ok());
-        
+
         let cert_text = certificate.unwrap();
         assert!(cert_text.contains("Soundness Certificate"));
         assert!(cert_text.contains("SOUND"));

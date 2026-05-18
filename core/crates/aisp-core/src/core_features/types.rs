@@ -6,8 +6,8 @@ use crate::{
     error::{AispError, AispResult},
     pocket_architecture::ContentHash,
 };
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// F₄: Four-State Binding System
 /// Implements: Δ⊗λ∈{0,1,2,3} for API compatibility classification
@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 pub enum BindingState {
     /// ⊥: Crash - Logical contradiction, fatal error (0)
     Crash = 0,
-    /// ∅: Null - Socket mismatch, connection fails (1) 
+    /// ∅: Null - Socket mismatch, connection fails (1)
     Null = 1,
     /// λ: Adapt - Type mismatch, adaptation possible (2)
     Adapt = 2,
@@ -61,8 +61,8 @@ pub struct SocketInterface {
 /// Compatibility level between components
 #[derive(Debug, Clone, PartialEq)]
 pub enum CompatibilityLevel {
-    Perfect,     // Direct compatibility
-    Adaptable,   // Requires adaptation
+    Perfect,      // Direct compatibility
+    Adaptable,    // Requires adaptation
     Incompatible, // No compatibility possible
 }
 
@@ -335,11 +335,13 @@ impl SemanticVector {
     pub fn dot_product(&self, other: &SemanticVector) -> AispResult<f64> {
         if self.dimensions.len() != other.dimensions.len() {
             return Err(AispError::validation_error(
-                "Vector dimensions must match for dot product".to_string()
+                "Vector dimensions must match for dot product".to_string(),
             ));
         }
 
-        Ok(self.dimensions.iter()
+        Ok(self
+            .dimensions
+            .iter()
             .zip(other.dimensions.iter())
             .map(|(&a, &b)| a * b)
             .sum())
@@ -349,11 +351,13 @@ impl SemanticVector {
     pub fn distance(&self, other: &SemanticVector) -> AispResult<f64> {
         if self.dimensions.len() != other.dimensions.len() {
             return Err(AispError::validation_error(
-                "Vector dimensions must match for distance calculation".to_string()
+                "Vector dimensions must match for distance calculation".to_string(),
             ));
         }
 
-        let squared_diff: f64 = self.dimensions.iter()
+        let squared_diff: f64 = self
+            .dimensions
+            .iter()
             .zip(other.dimensions.iter())
             .map(|(&a, &b)| (a - b).powi(2))
             .sum();

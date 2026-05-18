@@ -118,7 +118,7 @@ pub struct OperatorValidationResult {
 
 impl TemporalOperatorAnalyzer {
     /// Create a new temporal operator analyzer
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** None
     /// - **Postcondition:** Returns an analyzer with 7 predefined temporal operators (□, ◊, X, U, R, W, M)
@@ -141,7 +141,7 @@ impl TemporalOperatorAnalyzer {
     }
 
     /// Analyze temporal operators in the document
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** `document` is a valid AISP document reference
     /// - **Postcondition:** Returns complete validation result with operators, path quantifiers, and complexity metrics
@@ -205,7 +205,7 @@ impl TemporalOperatorAnalyzer {
         for rule in &rules_block.rules {
             let rule_id = format!("rule_{:?}", rule.span);
             let rule_text = self.extract_rule_text(&rule.expression);
-            
+
             let operators = self.extract_operators_from_text(
                 &rule_text,
                 OperatorContext::Rule(rule_id.clone()),
@@ -216,7 +216,10 @@ impl TemporalOperatorAnalyzer {
             for operator in &operators {
                 if self.is_operator_malformed(operator) {
                     errors.push(AispError::ValidationError {
-                        message: format!("Invalid temporal operator {:?} in rule {}", operator.operator, rule_id),
+                        message: format!(
+                            "Invalid temporal operator {:?} in rule {}",
+                            operator.operator, rule_id
+                        ),
                     });
                 }
             }
@@ -235,7 +238,7 @@ impl TemporalOperatorAnalyzer {
         for function in &functions_block.functions {
             let function_name = &function.name;
             let function_text = self.extract_function_text(&function.lambda);
-            
+
             let operators = self.extract_operators_from_text(
                 &function_text,
                 OperatorContext::Function(function_name.clone()),
@@ -246,7 +249,8 @@ impl TemporalOperatorAnalyzer {
             if operators.len() > 3 {
                 warnings.push(AispWarning::warning(format!(
                     "Function '{}' contains {} temporal operators - consider simplifying",
-                    function_name, operators.len()
+                    function_name,
+                    operators.len()
                 )));
             }
 
@@ -264,7 +268,7 @@ impl TemporalOperatorAnalyzer {
         for (key, entry) in &meta_block.entries {
             if let MetaValue::Constraint(logical_expr) = &entry.value {
                 let constraint_text = format!("{:?}", logical_expr);
-                
+
                 let operators = self.extract_operators_from_text(
                     &constraint_text,
                     OperatorContext::MetaConstraint(key.clone()),
@@ -284,7 +288,7 @@ impl TemporalOperatorAnalyzer {
     ) {
         // Evidence block has specific fields, not general entries
         let value_text = format!("{:?}", evidence_block);
-        
+
         let operators = self.extract_operators_from_text(
             &value_text,
             OperatorContext::Evidence("evidence".to_string()),
@@ -303,7 +307,7 @@ impl TemporalOperatorAnalyzer {
     ) -> Vec<OperatorInstance> {
         let mut operators = Vec::new();
         let mut nesting_level: usize = 0;
-        
+
         let chars: Vec<char> = text.chars().collect();
         for (i, &ch) in chars.iter().enumerate() {
             // Track nesting level with parentheses
@@ -315,10 +319,15 @@ impl TemporalOperatorAnalyzer {
 
             if let Some(operator) = self.operator_symbols.get(&ch) {
                 let mut operands = Vec::new();
-                
+
                 // Extract operands for binary operators
-                if matches!(operator, TemporalOperator::Until | TemporalOperator::Release | 
-                           TemporalOperator::WeakUntil | TemporalOperator::StrongRelease) {
+                if matches!(
+                    operator,
+                    TemporalOperator::Until
+                        | TemporalOperator::Release
+                        | TemporalOperator::WeakUntil
+                        | TemporalOperator::StrongRelease
+                ) {
                     operands = self.extract_operands(&chars, i);
                 }
 
@@ -338,24 +347,24 @@ impl TemporalOperatorAnalyzer {
     /// Extract operands for binary temporal operators
     fn extract_operands(&self, chars: &[char], operator_pos: usize) -> Vec<String> {
         let mut operands = Vec::new();
-        
+
         // Simple operand extraction (left and right of operator)
         // In practice, this would need more sophisticated parsing
-        
+
         // Left operand (preceding tokens)
         let left_start = operator_pos.saturating_sub(10);
         if left_start < operator_pos {
             let left_chars: String = chars[left_start..operator_pos].iter().collect();
             operands.push(left_chars.trim().to_string());
         }
-        
+
         // Right operand (following tokens)
         let right_end = std::cmp::min(operator_pos + 10, chars.len());
         if operator_pos + 1 < right_end {
             let right_chars: String = chars[operator_pos + 1..right_end].iter().collect();
             operands.push(right_chars.trim().to_string());
         }
-        
+
         operands
     }
 
@@ -388,12 +397,12 @@ impl TemporalOperatorAnalyzer {
     /// Detect path quantifiers for CTL
     fn detect_path_quantifiers(&self) -> Vec<PathQuantifier> {
         let mut quantifiers = Vec::new();
-        
+
         // Look for patterns like "A□", "E◊", etc.
         for operator in &self.detected_operators {
             // Check if preceded by path quantifier
             // This is a simplified detection - real implementation would parse more carefully
-            
+
             quantifiers.push(PathQuantifier {
                 quantifier_type: PathQuantifierType::AllPaths, // Simplified
                 temporal_op: operator.operator.clone(),
@@ -401,12 +410,12 @@ impl TemporalOperatorAnalyzer {
                 location: operator.location.clone(),
             });
         }
-        
+
         quantifiers
     }
 
     /// Calculate operator complexity metrics
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** `detected_operators` contains all analyzed operators
     /// - **Postcondition:** Returns metrics with `complexity_score` ∈ [0.0, 1.0] and consistent statistics
@@ -425,14 +434,16 @@ impl TemporalOperatorAnalyzer {
         }
 
         let operator_count = self.detected_operators.len();
-        
-        let max_nesting = self.detected_operators
+
+        let max_nesting = self
+            .detected_operators
             .iter()
             .map(|op| op.nesting_level)
             .max()
             .unwrap_or(0);
-            
-        let total_nesting: usize = self.detected_operators
+
+        let total_nesting: usize = self
+            .detected_operators
             .iter()
             .map(|op| op.nesting_level)
             .sum();
@@ -440,14 +451,16 @@ impl TemporalOperatorAnalyzer {
 
         let mut operator_frequency = HashMap::new();
         for operator in &self.detected_operators {
-            *operator_frequency.entry(operator.operator.clone()).or_insert(0) += 1;
+            *operator_frequency
+                .entry(operator.operator.clone())
+                .or_insert(0) += 1;
         }
 
         // Calculate complexity score based on various factors
         let nesting_factor = (max_nesting as f64 / 10.0).min(1.0);
         let count_factor = (operator_count as f64 / 20.0).min(1.0);
         let diversity_factor = operator_frequency.len() as f64 / 7.0; // 7 total operator types
-        
+
         let complexity_score = (nesting_factor + count_factor + diversity_factor) / 3.0;
 
         OperatorComplexity {
@@ -460,15 +473,20 @@ impl TemporalOperatorAnalyzer {
     }
 
     /// Validate operator usage patterns
-    fn validate_operator_usage(&self, errors: &mut Vec<AispError>, warnings: &mut Vec<AispWarning>) {
+    fn validate_operator_usage(
+        &self,
+        errors: &mut Vec<AispError>,
+        warnings: &mut Vec<AispWarning>,
+    ) {
         // Check for common anti-patterns
-        
+
         // 1. Excessive nesting
-        let high_nesting = self.detected_operators
+        let high_nesting = self
+            .detected_operators
             .iter()
             .filter(|op| op.nesting_level > 5)
             .count();
-        
+
         if high_nesting > 0 {
             warnings.push(AispWarning::warning(format!(
                 "{} operators with high nesting level (>5) - consider simplifying",
@@ -478,13 +496,19 @@ impl TemporalOperatorAnalyzer {
 
         // 2. Missing operands for binary operators
         for operator in &self.detected_operators {
-            if matches!(operator.operator, 
-                       TemporalOperator::Until | TemporalOperator::Release | 
-                       TemporalOperator::WeakUntil | TemporalOperator::StrongRelease) 
-                && operator.operands.len() < 2 {
-                
+            if matches!(
+                operator.operator,
+                TemporalOperator::Until
+                    | TemporalOperator::Release
+                    | TemporalOperator::WeakUntil
+                    | TemporalOperator::StrongRelease
+            ) && operator.operands.len() < 2
+            {
                 errors.push(AispError::ValidationError {
-                    message: format!("Binary operator {} requires two operands", operator.operator),
+                    message: format!(
+                        "Binary operator {} requires two operands",
+                        operator.operator
+                    ),
                 });
             }
         }
@@ -496,12 +520,14 @@ impl TemporalOperatorAnalyzer {
     /// Check for conflicting temporal requirements
     fn check_temporal_conflicts(&self, warnings: &mut Vec<AispWarning>) {
         // Look for potentially conflicting operators
-        let always_count = self.detected_operators
+        let always_count = self
+            .detected_operators
             .iter()
             .filter(|op| op.operator == TemporalOperator::Always)
             .count();
-            
-        let eventually_count = self.detected_operators
+
+        let eventually_count = self
+            .detected_operators
             .iter()
             .filter(|op| op.operator == TemporalOperator::Eventually)
             .count();
@@ -573,7 +599,7 @@ mod tests {
         let text = "□(p → ◊q)";
         let context = OperatorContext::Rule("test".to_string());
         let span = Span::new(1, 1, 1, 10);
-        
+
         let operators = analyzer.extract_operators_from_text(text, context, &span);
         assert_eq!(operators.len(), 2);
         assert_eq!(operators[0].operator, TemporalOperator::Always);
@@ -583,7 +609,7 @@ mod tests {
     #[test]
     fn test_complexity_calculation() {
         let mut analyzer = TemporalOperatorAnalyzer::new();
-        
+
         // Add some test operators
         analyzer.detected_operators.push(OperatorInstance {
             operator: TemporalOperator::Always,
@@ -592,7 +618,7 @@ mod tests {
             operands: vec![],
             nesting_level: 1,
         });
-        
+
         analyzer.detected_operators.push(OperatorInstance {
             operator: TemporalOperator::Eventually,
             location: Span::new(1, 6, 1, 10),
@@ -637,7 +663,7 @@ mod tests {
         let mut analyzer = TemporalOperatorAnalyzer::new();
         let mut errors = Vec::new();
         let mut warnings = Vec::new();
-        
+
         // Add an operator with missing operands
         analyzer.detected_operators.push(OperatorInstance {
             operator: TemporalOperator::Until,

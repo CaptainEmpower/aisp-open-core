@@ -4,10 +4,10 @@
 //! and Computation Tree Logic (CTL) formulas, including satisfiability checking,
 //! formula evaluation, and constraint solving.
 
-use crate::error::*;
 use crate::ast::canonical::Span;
-use crate::temporal_operator_analyzer::{TemporalOperator, OperatorInstance};
-use crate::temporal_pattern_detector::{TemporalPattern, PatternType};
+use crate::error::*;
+use crate::temporal_operator_analyzer::{OperatorInstance, TemporalOperator};
+use crate::temporal_pattern_detector::{PatternType, TemporalPattern};
 use std::collections::{HashMap, HashSet};
 
 /// Logical value for temporal logic
@@ -290,7 +290,7 @@ impl TemporalLogicSolver {
         // Analyze each formula
         for formula in formulas {
             let formula_start = std::time::Instant::now();
-            
+
             // Check cache first
             if let Some(cached_result) = self.formula_cache.get(&formula.id) {
                 analyzed_formulas.push(AnalyzedFormula {
@@ -326,7 +326,8 @@ impl TemporalLogicSolver {
             };
 
             // Cache the result
-            self.formula_cache.insert(formula.id.clone(), result.clone());
+            self.formula_cache
+                .insert(formula.id.clone(), result.clone());
 
             // Check for warnings
             if result.statistics.solving_time_ms > self.config.timeout_ms / 2 {
@@ -373,7 +374,11 @@ impl TemporalLogicSolver {
     }
 
     /// Extract formulas from operators and patterns
-    fn extract_formulas(&self, operators: &[OperatorInstance], patterns: &[TemporalPattern]) -> Vec<AnalyzedFormula> {
+    fn extract_formulas(
+        &self,
+        operators: &[OperatorInstance],
+        patterns: &[TemporalPattern],
+    ) -> Vec<AnalyzedFormula> {
         let mut formulas = Vec::new();
         let mut formula_id_counter = 0;
 
@@ -382,7 +387,10 @@ impl TemporalLogicSolver {
             if window.len() == 2 {
                 let formula_text = format!("{} {}", window[0].operator, window[1].operator);
                 let complexity = self.calculate_complexity(&formula_text);
-                let formula_type = self.determine_formula_type(&[window[0].operator.clone(), window[1].operator.clone()]);
+                let formula_type = self.determine_formula_type(&[
+                    window[0].operator.clone(),
+                    window[1].operator.clone(),
+                ]);
 
                 formulas.push(AnalyzedFormula {
                     id: format!("formula_{}", formula_id_counter),
@@ -471,7 +479,11 @@ impl TemporalLogicSolver {
         &self,
         _formula: &str,
         _state_space: &StateSpace,
-    ) -> AispResult<(SatisfiabilityStatus, Option<ExecutionTrace>, Option<Counterexample>)> {
+    ) -> AispResult<(
+        SatisfiabilityStatus,
+        Option<ExecutionTrace>,
+        Option<Counterexample>,
+    )> {
         // TODO: Implement proper LTL satisfiability checking using tableau method or automata construction
         // For now, return satisfiable as a placeholder
         Ok((SatisfiabilityStatus::Satisfiable, None, None))
@@ -482,7 +494,11 @@ impl TemporalLogicSolver {
         &self,
         _formula: &str,
         _state_space: &StateSpace,
-    ) -> AispResult<(SatisfiabilityStatus, Option<ExecutionTrace>, Option<Counterexample>)> {
+    ) -> AispResult<(
+        SatisfiabilityStatus,
+        Option<ExecutionTrace>,
+        Option<Counterexample>,
+    )> {
         // TODO: Implement CTL model checking algorithm
         // For now, return satisfiable as a placeholder
         Ok((SatisfiabilityStatus::Satisfiable, None, None))
@@ -502,22 +518,28 @@ impl TemporalLogicSolver {
         let final_states = HashSet::from_iter(vec!["sf".to_string()]);
 
         // Create initial state
-        states.insert("s0".to_string(), StateNode {
-            id: "s0".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: true,
-            is_final: false,
-        });
+        states.insert(
+            "s0".to_string(),
+            StateNode {
+                id: "s0".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: true,
+                is_final: false,
+            },
+        );
 
         // Create final state
-        states.insert("sf".to_string(), StateNode {
-            id: "sf".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: false,
-            is_final: true,
-        });
+        states.insert(
+            "sf".to_string(),
+            StateNode {
+                id: "sf".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: false,
+                is_final: true,
+            },
+        );
 
         // Add transition
         transitions.push(StateTransition {
@@ -535,7 +557,8 @@ impl TemporalLogicSolver {
         };
 
         // Cache the result
-        self.state_cache.insert(formula.to_string(), state_space.clone());
+        self.state_cache
+            .insert(formula.to_string(), state_space.clone());
         Ok(state_space)
     }
 
@@ -546,7 +569,8 @@ impl TemporalLogicSolver {
         let nesting_depth = self.calculate_nesting_depth(formula);
         let atomic_props = self.count_atomic_propositions(formula);
 
-        let complexity_score = ((temporal_ops + boolean_ops) as f64 / 10.0 + nesting_depth as f64 / 5.0).min(1.0);
+        let complexity_score =
+            ((temporal_ops + boolean_ops) as f64 / 10.0 + nesting_depth as f64 / 5.0).min(1.0);
 
         FormulaComplexity {
             temporal_operators: temporal_ops,
@@ -603,8 +627,10 @@ impl TemporalLogicSolver {
         // Simplified heuristic: if only basic temporal operators, assume LTL
         for op in operators {
             match op {
-                TemporalOperator::Always | TemporalOperator::Eventually | 
-                TemporalOperator::Next | TemporalOperator::Until => continue,
+                TemporalOperator::Always
+                | TemporalOperator::Eventually
+                | TemporalOperator::Next
+                | TemporalOperator::Until => continue,
                 _ => return FormulaType::Mixed,
             }
         }
@@ -657,15 +683,18 @@ impl TemporalLogicSolver {
     }
 
     /// Extract formula dependencies
-    fn extract_formula_dependencies(&self, formulas: &[AnalyzedFormula]) -> HashMap<String, Vec<String>> {
+    fn extract_formula_dependencies(
+        &self,
+        formulas: &[AnalyzedFormula],
+    ) -> HashMap<String, Vec<String>> {
         let mut dependencies = HashMap::new();
-        
+
         // TODO: Implement actual dependency analysis
         // For now, return empty dependencies
         for formula in formulas {
             dependencies.insert(formula.id.clone(), Vec::new());
         }
-        
+
         dependencies
     }
 
@@ -736,7 +765,7 @@ mod tests {
         let solver = TemporalLogicSolver::new();
         let formula = "□(p → ◊q)";
         let complexity = solver.calculate_complexity(formula);
-        
+
         assert_eq!(complexity.temporal_operators, 2); // □ and ◊
         assert!(complexity.nesting_depth > 0);
         assert!(complexity.complexity_score > 0.0);
@@ -763,7 +792,7 @@ mod tests {
         let mut solver = TemporalLogicSolver::new();
         let operators = vec![];
         let patterns = vec![];
-        
+
         let result = solver.solve_formulas(&operators, &patterns, 0);
         assert!(result.formulas.is_empty());
         assert_eq!(result.overall_status, SatisfiabilityStatus::Valid);
@@ -777,7 +806,7 @@ mod tests {
             enable_simplification: false,
             use_approximation: true,
         };
-        
+
         let solver = TemporalLogicSolver::with_config(config.clone());
         assert_eq!(solver.config.max_depth, 50);
         assert_eq!(solver.config.timeout_ms, 1000);

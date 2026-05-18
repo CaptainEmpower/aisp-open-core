@@ -15,10 +15,10 @@
 
 //! and maintain stable knowledge acquisition patterns.
 
-use crate::ast::canonical::{LogicalRule, LogicalExpression};
+use crate::ast::canonical::{LogicalExpression, LogicalRule};
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
     error::*,
     semantic::DeepVerificationResult,
 };
@@ -214,23 +214,27 @@ impl HebbianValidator {
     }
 
     /// Validate Hebbian learning constraints for AISP document
-    pub fn validate_hebbian_learning(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<HebbianValidationResult> {
+    pub fn validate_hebbian_learning(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<HebbianValidationResult> {
         let start_time = Instant::now();
-        
+
         // Extract and analyze learning patterns
         let patterns = self.analyze_learning_patterns(document, semantic_result)?;
-        
+
         // Validate Hebbian constraints
         let constraints = self.validate_constraints(document, &patterns)?;
-        
+
         // Calculate overall learning score
         let learning_score = self.calculate_learning_score(&constraints, &patterns)?;
-        
+
         // Update statistics
         self.stats.analysis_time = start_time.elapsed();
         self.stats.constraints_checked += 4; // penalty_ratio, learning_rate, weight_update, temporal
         self.stats.patterns_analyzed += patterns.episodes.len();
-        
+
         Ok(HebbianValidationResult {
             valid: self.is_validation_successful(&constraints),
             learning_score,
@@ -243,17 +247,21 @@ impl HebbianValidator {
     }
 
     /// Analyze learning patterns in AISP document
-    fn analyze_learning_patterns(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<HebbianPatterns> {
+    fn analyze_learning_patterns(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<HebbianPatterns> {
         let mut episodes = Vec::new();
-        
+
         // Extract learning episodes from rules and functions
         episodes.extend(self.extract_episodes_from_rules(document)?);
         episodes.extend(self.extract_episodes_from_functions(document)?);
         episodes.extend(self.extract_episodes_from_evidence(document, semantic_result)?);
-        
+
         // Calculate pattern statistics
         let pattern_stats = self.calculate_pattern_stats(&episodes);
-        
+
         // Calculate plasticity measures if enabled
         let plasticity = if self.config.enable_plasticity_analysis {
             self.calculate_plasticity_measures(&episodes)?
@@ -265,7 +273,7 @@ impl HebbianValidator {
                 efficiency_score: 0.5,
             }
         };
-        
+
         Ok(HebbianPatterns {
             episodes,
             pattern_stats,
@@ -274,9 +282,12 @@ impl HebbianValidator {
     }
 
     /// Extract learning episodes from rules block
-    fn extract_episodes_from_rules(&mut self, document: &AispDocument) -> AispResult<Vec<LearningEpisode>> {
+    fn extract_episodes_from_rules(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<LearningEpisode>> {
         let mut episodes = Vec::new();
-        
+
         for block in &document.blocks {
             if let AispBlock::Rules(rules_block) = block {
                 for (index, rule) in rules_block.rules.iter().enumerate() {
@@ -291,14 +302,17 @@ impl HebbianValidator {
                 }
             }
         }
-        
+
         Ok(episodes)
     }
 
     /// Extract learning episodes from functions block
-    fn extract_episodes_from_functions(&mut self, document: &AispDocument) -> AispResult<Vec<LearningEpisode>> {
+    fn extract_episodes_from_functions(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<LearningEpisode>> {
         let mut episodes = Vec::new();
-        
+
         for block in &document.blocks {
             if let AispBlock::Functions(functions_block) = block {
                 for (index, function) in functions_block.functions.iter().enumerate() {
@@ -313,14 +327,18 @@ impl HebbianValidator {
                 }
             }
         }
-        
+
         Ok(episodes)
     }
 
     /// Extract learning episodes from evidence block
-    fn extract_episodes_from_evidence(&mut self, document: &AispDocument, semantic_result: &DeepVerificationResult) -> AispResult<Vec<LearningEpisode>> {
+    fn extract_episodes_from_evidence(
+        &mut self,
+        document: &AispDocument,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<Vec<LearningEpisode>> {
         let mut episodes = Vec::new();
-        
+
         for block in &document.blocks {
             if let AispBlock::Evidence(evidence_block) = block {
                 // Create episode based on overall evidence quality
@@ -334,7 +352,7 @@ impl HebbianValidator {
                 episodes.push(episode);
             }
         }
-        
+
         Ok(episodes)
     }
 
@@ -342,22 +360,25 @@ impl HebbianValidator {
     fn classify_rule_outcome(&self, rule: &LogicalRule) -> AispResult<LearningOutcome> {
         // Analyze rule complexity and structure to classify outcome
         let complexity = self.calculate_expression_complexity(&rule.expression);
-        
+
         match complexity {
-            0.0..=0.3 => Ok(LearningOutcome::Failure),   // Too simple, likely failed learning
-            0.3..=0.7 => Ok(LearningOutcome::Success),   // Good complexity, successful learning
-            _ => Ok(LearningOutcome::Neutral),           // Overly complex, neutral outcome
+            0.0..=0.3 => Ok(LearningOutcome::Failure), // Too simple, likely failed learning
+            0.3..=0.7 => Ok(LearningOutcome::Success), // Good complexity, successful learning
+            _ => Ok(LearningOutcome::Neutral),         // Overly complex, neutral outcome
         }
     }
 
     /// Classify learning outcome for a function definition
-    fn classify_function_outcome(&self, function: &FunctionDefinition) -> AispResult<LearningOutcome> {
+    fn classify_function_outcome(
+        &self,
+        function: &FunctionDefinition,
+    ) -> AispResult<LearningOutcome> {
         // Analyze function complexity
         let param_count = function.lambda.parameters.len() as f64;
         let body_complexity = self.calculate_expression_complexity(&function.lambda.body);
-        
+
         let overall_complexity = (param_count / 10.0) + body_complexity;
-        
+
         match overall_complexity {
             0.0..=0.2 => Ok(LearningOutcome::Failure),
             0.2..=0.8 => Ok(LearningOutcome::Success),
@@ -366,7 +387,11 @@ impl HebbianValidator {
     }
 
     /// Classify learning outcome for evidence block
-    fn classify_evidence_outcome(&self, _evidence_block: &EvidenceBlock, semantic_result: &DeepVerificationResult) -> AispResult<LearningOutcome> {
+    fn classify_evidence_outcome(
+        &self,
+        _evidence_block: &EvidenceBlock,
+        semantic_result: &DeepVerificationResult,
+    ) -> AispResult<LearningOutcome> {
         // Base classification on semantic analysis results
         if semantic_result.delta() >= 0.7 && semantic_result.ambiguity() < 0.02 {
             Ok(LearningOutcome::Success)
@@ -382,19 +407,25 @@ impl HebbianValidator {
         match expr {
             LogicalExpression::Variable(_) | LogicalExpression::Constant(_) => 0.1,
             LogicalExpression::Binary { left, right, .. } => {
-                0.3 + (self.calculate_expression_complexity(left) + self.calculate_expression_complexity(right)) / 2.0
+                0.3 + (self.calculate_expression_complexity(left)
+                    + self.calculate_expression_complexity(right))
+                    / 2.0
             }
             LogicalExpression::Unary { operand, .. } => {
                 0.2 + self.calculate_expression_complexity(operand)
             }
             LogicalExpression::Application { arguments, .. } => {
-                let arg_complexity: f64 = arguments.iter()
+                let arg_complexity: f64 = arguments
+                    .iter()
                     .map(|arg| self.calculate_expression_complexity(arg))
-                    .sum::<f64>() / arguments.len() as f64;
+                    .sum::<f64>()
+                    / arguments.len() as f64;
                 0.4 + arg_complexity
             }
             LogicalExpression::Membership { element, set } => {
-                0.3 + (self.calculate_expression_complexity(element) + self.calculate_expression_complexity(set)) / 2.0
+                0.3 + (self.calculate_expression_complexity(element)
+                    + self.calculate_expression_complexity(set))
+                    / 2.0
             }
             LogicalExpression::Temporal { operand, .. } => {
                 0.5 + self.calculate_expression_complexity(operand)
@@ -409,7 +440,7 @@ impl HebbianValidator {
     fn estimate_rule_weight_change(&self, rule: &LogicalRule) -> AispResult<f64> {
         let complexity = self.calculate_expression_complexity(&rule.expression);
         let quantifier_weight = if rule.quantifier.is_some() { 0.3 } else { 0.1 };
-        
+
         Ok((complexity + quantifier_weight).min(2.0))
     }
 
@@ -417,29 +448,38 @@ impl HebbianValidator {
     fn estimate_function_weight_change(&self, function: &FunctionDefinition) -> AispResult<f64> {
         let param_weight = function.lambda.parameters.len() as f64 * 0.1;
         let body_complexity = self.calculate_expression_complexity(&function.lambda.body);
-        
+
         Ok((param_weight + body_complexity).min(2.0))
     }
 
     /// Calculate pattern statistics
     fn calculate_pattern_stats(&self, episodes: &[LearningEpisode]) -> PatternStats {
         let total_episodes = episodes.len();
-        let success_count = episodes.iter().filter(|e| e.outcome == LearningOutcome::Success).count();
-        let failure_count = episodes.iter().filter(|e| e.outcome == LearningOutcome::Failure).count();
-        let neutral_count = episodes.iter().filter(|e| e.outcome == LearningOutcome::Neutral).count();
-        
+        let success_count = episodes
+            .iter()
+            .filter(|e| e.outcome == LearningOutcome::Success)
+            .count();
+        let failure_count = episodes
+            .iter()
+            .filter(|e| e.outcome == LearningOutcome::Failure)
+            .count();
+        let neutral_count = episodes
+            .iter()
+            .filter(|e| e.outcome == LearningOutcome::Neutral)
+            .count();
+
         let success_rate = if total_episodes > 0 {
             success_count as f64 / total_episodes as f64
         } else {
             0.0
         };
-        
+
         let average_weight_change = if total_episodes > 0 {
             episodes.iter().map(|e| e.weight_change).sum::<f64>() / total_episodes as f64
         } else {
             0.0
         };
-        
+
         PatternStats {
             total_episodes,
             success_count,
@@ -451,40 +491,51 @@ impl HebbianValidator {
     }
 
     /// Calculate plasticity measures
-    fn calculate_plasticity_measures(&mut self, episodes: &[LearningEpisode]) -> AispResult<PlasticityMeasures> {
+    fn calculate_plasticity_measures(
+        &mut self,
+        episodes: &[LearningEpisode],
+    ) -> AispResult<PlasticityMeasures> {
         self.stats.plasticity_calculations += 1;
-        
-        let successful_changes: f64 = episodes.iter()
+
+        let successful_changes: f64 = episodes
+            .iter()
             .filter(|e| e.outcome == LearningOutcome::Success)
             .map(|e| e.weight_change)
             .sum();
-        
-        let failed_changes: f64 = episodes.iter()
+
+        let failed_changes: f64 = episodes
+            .iter()
             .filter(|e| e.outcome == LearningOutcome::Failure)
             .map(|e| e.weight_change)
             .sum();
-        
+
         // LTP (Long-Term Potentiation) from successful learning
-        let ltp_strength = if episodes.iter().any(|e| e.outcome == LearningOutcome::Success) {
+        let ltp_strength = if episodes
+            .iter()
+            .any(|e| e.outcome == LearningOutcome::Success)
+        {
             successful_changes / episodes.len() as f64
         } else {
             0.0
         };
-        
+
         // LTD (Long-Term Depression) from failed learning (with 10x penalty)
-        let ltd_strength = if episodes.iter().any(|e| e.outcome == LearningOutcome::Failure) {
+        let ltd_strength = if episodes
+            .iter()
+            .any(|e| e.outcome == LearningOutcome::Failure)
+        {
             (failed_changes * self.config.target_penalty_ratio) / episodes.len() as f64
         } else {
             0.0
         };
-        
+
         // Balance ratio (should be close to target penalty ratio)
         let balance_ratio = if ltp_strength > 0.0 {
             ltd_strength / ltp_strength
         } else {
             0.0
         };
-        
+
         // Efficiency score based on how close we are to optimal balance
         let efficiency_score = if balance_ratio > 0.0 {
             let ratio_diff = (balance_ratio - self.config.target_penalty_ratio).abs();
@@ -492,7 +543,7 @@ impl HebbianValidator {
         } else {
             0.0
         };
-        
+
         Ok(PlasticityMeasures {
             ltp_strength,
             ltd_strength,
@@ -502,26 +553,34 @@ impl HebbianValidator {
     }
 
     /// Validate Hebbian learning constraints
-    fn validate_constraints(&mut self, _document: &AispDocument, patterns: &HebbianPatterns) -> AispResult<HebbianConstraints> {
+    fn validate_constraints(
+        &mut self,
+        _document: &AispDocument,
+        patterns: &HebbianPatterns,
+    ) -> AispResult<HebbianConstraints> {
         // Validate 10:1 penalty ratio
         let measured_penalty_ratio = patterns.plasticity.balance_ratio;
-        let penalty_ratio_valid = (measured_penalty_ratio - self.config.target_penalty_ratio).abs() <= self.config.penalty_ratio_tolerance;
-        
+        let penalty_ratio_valid = (measured_penalty_ratio - self.config.target_penalty_ratio).abs()
+            <= self.config.penalty_ratio_tolerance;
+
         // Validate learning rate (estimated from average weight change)
         let estimated_learning_rate = patterns.pattern_stats.average_weight_change;
-        let learning_rate_valid = estimated_learning_rate >= self.config.min_learning_rate && 
-                                 estimated_learning_rate <= self.config.max_learning_rate;
-        
+        let learning_rate_valid = estimated_learning_rate >= self.config.min_learning_rate
+            && estimated_learning_rate <= self.config.max_learning_rate;
+
         // Validate weight update magnitude
-        let max_weight_change = patterns.episodes.iter()
+        let max_weight_change = patterns
+            .episodes
+            .iter()
             .map(|e| e.weight_change)
             .fold(0.0, f64::max);
         let weight_update_valid = max_weight_change <= self.config.max_weight_update;
-        
+
         // Validate temporal consistency
         let temporal_consistency = self.calculate_temporal_consistency(&patterns.episodes);
-        let temporal_consistency_valid = temporal_consistency >= self.config.min_temporal_consistency;
-        
+        let temporal_consistency_valid =
+            temporal_consistency >= self.config.min_temporal_consistency;
+
         Ok(HebbianConstraints {
             penalty_ratio_valid,
             learning_rate_valid,
@@ -541,22 +600,22 @@ impl HebbianValidator {
         if episodes.len() < 2 {
             return 1.0; // Perfect consistency for single or no episodes
         }
-        
+
         // Calculate consistency based on temporal ordering and outcome patterns
         let mut consistency_sum = 0.0;
         let mut comparisons = 0;
-        
+
         for window in episodes.windows(2) {
             let episode1 = &window[0];
             let episode2 = &window[1];
-            
+
             // Check temporal ordering
             let temporal_consistency = if episode2.temporal_position > episode1.temporal_position {
                 1.0
             } else {
                 0.0
             };
-            
+
             // Check outcome consistency (similar outcomes should have similar weight changes)
             let outcome_consistency = if episode1.outcome == episode2.outcome {
                 let weight_diff = (episode1.weight_change - episode2.weight_change).abs();
@@ -564,11 +623,11 @@ impl HebbianValidator {
             } else {
                 0.5 // Neutral for different outcomes
             };
-            
+
             consistency_sum += (temporal_consistency + outcome_consistency) / 2.0;
             comparisons += 1;
         }
-        
+
         if comparisons > 0 {
             consistency_sum / comparisons as f64
         } else {
@@ -577,15 +636,20 @@ impl HebbianValidator {
     }
 
     /// Calculate overall learning score
-    fn calculate_learning_score(&self, constraints: &HebbianConstraints, patterns: &HebbianPatterns) -> AispResult<f64> {
+    fn calculate_learning_score(
+        &self,
+        constraints: &HebbianConstraints,
+        patterns: &HebbianPatterns,
+    ) -> AispResult<f64> {
         // Weight different aspects of learning validation
         let constraint_score = self.calculate_constraint_score(constraints);
         let pattern_score = patterns.pattern_stats.success_rate;
         let plasticity_score = patterns.plasticity.efficiency_score;
-        
+
         // Weighted average
-        let learning_score = (constraint_score * 0.5) + (pattern_score * 0.3) + (plasticity_score * 0.2);
-        
+        let learning_score =
+            (constraint_score * 0.5) + (pattern_score * 0.3) + (plasticity_score * 0.2);
+
         Ok(learning_score.min(1.0))
     }
 
@@ -593,27 +657,27 @@ impl HebbianValidator {
     fn calculate_constraint_score(&self, constraints: &HebbianConstraints) -> f64 {
         let mut score = 0.0;
         let mut total_constraints = 0;
-        
+
         if constraints.penalty_ratio_valid {
             score += 1.0;
         }
         total_constraints += 1;
-        
+
         if constraints.learning_rate_valid {
             score += 1.0;
         }
         total_constraints += 1;
-        
+
         if constraints.weight_update_valid {
             score += 1.0;
         }
         total_constraints += 1;
-        
+
         if constraints.temporal_consistency_valid {
             score += 1.0;
         }
         total_constraints += 1;
-        
+
         if total_constraints > 0 {
             score / total_constraints as f64
         } else {
@@ -623,16 +687,16 @@ impl HebbianValidator {
 
     /// Check if validation is successful
     fn is_validation_successful(&self, constraints: &HebbianConstraints) -> bool {
-        constraints.penalty_ratio_valid && 
-        constraints.learning_rate_valid &&
-        constraints.weight_update_valid &&
-        constraints.temporal_consistency_valid
+        constraints.penalty_ratio_valid
+            && constraints.learning_rate_valid
+            && constraints.weight_update_valid
+            && constraints.temporal_consistency_valid
     }
 
     /// Generate analysis warnings
     fn generate_warnings(&self, constraints: &HebbianConstraints) -> Vec<String> {
         let mut warnings = Vec::new();
-        
+
         if !constraints.penalty_ratio_valid {
             warnings.push(format!(
                 "Penalty ratio {:.2} deviates from target {:.2} beyond tolerance {:.2}",
@@ -641,7 +705,7 @@ impl HebbianValidator {
                 self.config.penalty_ratio_tolerance
             ));
         }
-        
+
         if !constraints.learning_rate_valid {
             warnings.push(format!(
                 "Learning rate {:.4} is outside acceptable range [{:.4}, {:.4}]",
@@ -650,7 +714,7 @@ impl HebbianValidator {
                 self.config.max_learning_rate
             ));
         }
-        
+
         if !constraints.weight_update_valid {
             warnings.push(format!(
                 "Maximum weight update {:.3} exceeds limit {:.3}",
@@ -658,7 +722,7 @@ impl HebbianValidator {
                 self.config.max_weight_update
             ));
         }
-        
+
         if !constraints.temporal_consistency_valid {
             warnings.push(format!(
                 "Temporal consistency {:.3} is below minimum {:.3}",
@@ -666,11 +730,11 @@ impl HebbianValidator {
                 self.config.min_temporal_consistency
             ));
         }
-        
+
         if self.stats.analysis_time > self.config.max_analysis_time {
             warnings.push("Hebbian learning analysis exceeded maximum time limit".to_string());
         }
-        
+
         warnings
     }
 
@@ -711,7 +775,7 @@ mod tests {
     fn test_hebbian_validator_creation() {
         let config = HebbianConfig::default();
         let validator = HebbianValidator::new(config);
-        
+
         assert_eq!(validator.stats.constraints_checked, 0);
         assert_eq!(validator.stats.patterns_analyzed, 0);
     }
@@ -720,7 +784,7 @@ mod tests {
     fn test_learning_outcome_classification() {
         let config = HebbianConfig::default();
         let validator = HebbianValidator::new(config);
-        
+
         let simple_expr = LogicalExpression::Variable("x".to_string());
         let complexity = validator.calculate_expression_complexity(&simple_expr);
         assert!(complexity <= 0.3);
@@ -730,7 +794,7 @@ mod tests {
     fn test_pattern_stats_calculation() {
         let config = HebbianConfig::default();
         let validator = HebbianValidator::new(config);
-        
+
         let episodes = vec![
             LearningEpisode {
                 id: "ep1".to_string(),
@@ -747,9 +811,9 @@ mod tests {
                 associated_element: "rule2".to_string(),
             },
         ];
-        
+
         let stats = validator.calculate_pattern_stats(&episodes);
-        
+
         assert_eq!(stats.total_episodes, 2);
         assert_eq!(stats.success_count, 1);
         assert_eq!(stats.failure_count, 1);
@@ -761,7 +825,7 @@ mod tests {
     fn test_temporal_consistency_calculation() {
         let config = HebbianConfig::default();
         let validator = HebbianValidator::new(config);
-        
+
         let ordered_episodes = vec![
             LearningEpisode {
                 id: "ep1".to_string(),
@@ -778,7 +842,7 @@ mod tests {
                 associated_element: "rule2".to_string(),
             },
         ];
-        
+
         let consistency = validator.calculate_temporal_consistency(&ordered_episodes);
         assert!(consistency > 0.8); // Should be high for ordered, similar episodes
     }
@@ -791,7 +855,7 @@ mod tests {
             ..Default::default()
         };
         let mut validator = HebbianValidator::new(config);
-        
+
         let episodes = vec![
             LearningEpisode {
                 id: "success".to_string(),
@@ -808,9 +872,9 @@ mod tests {
                 associated_element: "rule2".to_string(),
             },
         ];
-        
+
         let plasticity = validator.calculate_plasticity_measures(&episodes).unwrap();
-        
+
         // LTD should be approximately 10x LTP due to penalty ratio
         assert!(plasticity.balance_ratio > 5.0); // Should be close to target 10.0
     }
@@ -829,12 +893,12 @@ mod tests {
                 temporal_consistency: 0.9,
             },
         };
-        
+
         let config = HebbianConfig::default();
         let validator = HebbianValidator::new(config);
-        
+
         assert!(!validator.is_validation_successful(&constraints));
-        
+
         let score = validator.calculate_constraint_score(&constraints);
         assert_eq!(score, 0.75); // 3 out of 4 constraints pass
     }

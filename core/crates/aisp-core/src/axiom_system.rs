@@ -332,8 +332,12 @@ impl AxiomSystemBuilder {
         let always_p_implies_q = FormulaStructure::TemporalAlways(Box::new(p_implies_q));
         let always_p = FormulaStructure::TemporalAlways(Box::new(p));
         let always_q = FormulaStructure::TemporalAlways(Box::new(q));
-        let always_p_implies_always_q = FormulaStructure::Implication(Box::new(always_p), Box::new(always_q));
-        FormulaStructure::Implication(Box::new(always_p_implies_q), Box::new(always_p_implies_always_q))
+        let always_p_implies_always_q =
+            FormulaStructure::Implication(Box::new(always_p), Box::new(always_q));
+        FormulaStructure::Implication(
+            Box::new(always_p_implies_q),
+            Box::new(always_p_implies_always_q),
+        )
     }
 
     fn create_duality_formula(&self) -> FormulaStructure {
@@ -387,7 +391,8 @@ impl AxiomSystemBuilder {
             "structurallyValid".to_string(),
             vec![Term::Variable("x".to_string(), Some("Any".to_string()))],
         );
-        let implication = FormulaStructure::Implication(Box::new(well_formed), Box::new(structurally_valid));
+        let implication =
+            FormulaStructure::Implication(Box::new(well_formed), Box::new(structurally_valid));
         FormulaStructure::Universal(quantifier, Box::new(implication))
     }
 
@@ -475,7 +480,12 @@ impl Default for AxiomSystemBuilder {
 
 impl Axiom {
     /// Create new axiom
-    pub fn new(name: String, formula: FormulaStructure, axiom_type: AxiomType, priority: u8) -> Self {
+    pub fn new(
+        name: String,
+        formula: FormulaStructure,
+        axiom_type: AxiomType,
+        priority: u8,
+    ) -> Self {
         Self {
             name,
             formula,
@@ -559,12 +569,10 @@ mod tests {
         let rule = InferenceRule::new(
             "test".to_string(),
             RuleType::Introduction,
-            vec![
-                FormulaPattern {
-                    pattern: PatternStructure::Variable("P".to_string()),
-                    variables: HashMap::new(),
-                },
-            ],
+            vec![FormulaPattern {
+                pattern: PatternStructure::Variable("P".to_string()),
+                variables: HashMap::new(),
+            }],
             FormulaPattern {
                 pattern: PatternStructure::Variable("Q".to_string()),
                 variables: HashMap::new(),

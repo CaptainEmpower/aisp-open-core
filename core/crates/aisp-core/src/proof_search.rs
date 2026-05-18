@@ -3,10 +3,10 @@
 //! This module implements various proof search algorithms including
 //! natural deduction, resolution, and forward/backward chaining.
 
-use crate::error::*;
-use crate::property_types::*;
-use crate::proof_types::*;
 use crate::axiom_system::*;
+use crate::error::*;
+use crate::proof_types::*;
+use crate::property_types::*;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
 
@@ -132,16 +132,19 @@ impl ProofSearchEngine {
     }
 
     /// Execute natural deduction proof search
-    pub fn natural_deduction_search(&mut self, goal: &FormulaStructure) -> AispResult<ProofOutcome> {
+    pub fn natural_deduction_search(
+        &mut self,
+        goal: &FormulaStructure,
+    ) -> AispResult<ProofOutcome> {
         let start_time = Instant::now();
         let mut context = SearchContext::new(goal.clone());
-        
+
         self.stats = ProofSearchStats::default();
-        
+
         let result = self.natural_deduction_recursive(&mut context, 0);
-        
+
         self.stats.search_time = start_time.elapsed();
-        
+
         match result {
             Ok(proof_steps) => {
                 // Construct formal proof
@@ -156,14 +159,22 @@ impl ProofSearchEngine {
     }
 
     /// Recursive natural deduction search
-    fn natural_deduction_recursive(&mut self, context: &mut SearchContext, depth: usize) -> AispResult<Vec<ProofStep>> {
+    fn natural_deduction_recursive(
+        &mut self,
+        context: &mut SearchContext,
+        depth: usize,
+    ) -> AispResult<Vec<ProofStep>> {
         // Check termination conditions
         if depth >= self.config.max_depth {
-            return Err(AispError::validation_error("Maximum depth reached".to_string()));
+            return Err(AispError::validation_error(
+                "Maximum depth reached".to_string(),
+            ));
         }
 
         if self.stats.steps_explored >= self.config.max_steps {
-            return Err(AispError::validation_error("Maximum steps reached".to_string()));
+            return Err(AispError::validation_error(
+                "Maximum steps reached".to_string(),
+            ));
         }
 
         self.stats.steps_explored += 1;
@@ -177,14 +188,16 @@ impl ProofSearchEngine {
         for rule in &self.inference_rules.clone() {
             if let Ok(step) = self.try_apply_rule(rule, context, depth) {
                 context.proof_steps.push(step.clone());
-                
+
                 // Continue search with new state
-                if let Ok(mut remaining_steps) = self.natural_deduction_recursive(context, depth + 1) {
+                if let Ok(mut remaining_steps) =
+                    self.natural_deduction_recursive(context, depth + 1)
+                {
                     let mut all_steps = vec![step];
                     all_steps.append(&mut remaining_steps);
                     return Ok(all_steps);
                 }
-                
+
                 // Backtrack
                 context.proof_steps.pop();
                 self.stats.backtrack_count += 1;
@@ -196,33 +209,40 @@ impl ProofSearchEngine {
             if self.axiom_applies_to_goal(axiom, &context.goal) {
                 let step = self.create_axiom_step(axiom, context, depth);
                 context.proof_steps.push(step.clone());
-                
-                if let Ok(mut remaining_steps) = self.natural_deduction_recursive(context, depth + 1) {
+
+                if let Ok(mut remaining_steps) =
+                    self.natural_deduction_recursive(context, depth + 1)
+                {
                     let mut all_steps = vec![step];
                     all_steps.append(&mut remaining_steps);
                     return Ok(all_steps);
                 }
-                
+
                 // Backtrack
                 context.proof_steps.pop();
                 self.stats.backtrack_count += 1;
             }
         }
 
-        Err(AispError::validation_error("No applicable rules found".to_string()))
+        Err(AispError::validation_error(
+            "No applicable rules found".to_string(),
+        ))
     }
 
     /// Execute backward chaining proof search
-    pub fn backward_chaining_search(&mut self, goal: &FormulaStructure) -> AispResult<ProofOutcome> {
+    pub fn backward_chaining_search(
+        &mut self,
+        goal: &FormulaStructure,
+    ) -> AispResult<ProofOutcome> {
         let start_time = Instant::now();
         let mut context = SearchContext::new(goal.clone());
-        
+
         self.stats = ProofSearchStats::default();
-        
+
         let result = self.backward_chaining_recursive(&mut context, 0);
-        
+
         self.stats.search_time = start_time.elapsed();
-        
+
         match result {
             Ok(_) => Ok(ProofOutcome::Proven),
             Err(_) => Ok(ProofOutcome::Unknown),
@@ -230,10 +250,16 @@ impl ProofSearchEngine {
     }
 
     /// Recursive backward chaining search
-    fn backward_chaining_recursive(&mut self, context: &mut SearchContext, depth: usize) -> AispResult<()> {
+    fn backward_chaining_recursive(
+        &mut self,
+        context: &mut SearchContext,
+        depth: usize,
+    ) -> AispResult<()> {
         // Check termination conditions
         if depth >= self.config.max_depth {
-            return Err(AispError::validation_error("Maximum depth reached".to_string()));
+            return Err(AispError::validation_error(
+                "Maximum depth reached".to_string(),
+            ));
         }
 
         self.stats.steps_explored += 1;
@@ -252,7 +278,8 @@ impl ProofSearchEngine {
                 // Create subgoals for rule premises
                 let mut subgoals = Vec::new();
                 for premise in &rule.premises {
-                    if let Some(subgoal) = self.instantiate_pattern(&premise.pattern, &context.goal) {
+                    if let Some(subgoal) = self.instantiate_pattern(&premise.pattern, &context.goal)
+                    {
                         subgoals.push(subgoal);
                     }
                 }
@@ -262,8 +289,11 @@ impl ProofSearchEngine {
                 for subgoal in subgoals {
                     let mut subcontext = context.clone();
                     subcontext.goal = subgoal;
-                    
-                    if self.backward_chaining_recursive(&mut subcontext, depth + 1).is_err() {
+
+                    if self
+                        .backward_chaining_recursive(&mut subcontext, depth + 1)
+                        .is_err()
+                    {
                         all_proved = false;
                         break;
                     }
@@ -276,7 +306,9 @@ impl ProofSearchEngine {
             }
         }
 
-        Err(AispError::validation_error("Goal cannot be proven".to_string()))
+        Err(AispError::validation_error(
+            "Goal cannot be proven".to_string(),
+        ))
     }
 
     /// Execute forward chaining proof search
@@ -284,9 +316,9 @@ impl ProofSearchEngine {
         let start_time = Instant::now();
         let mut derived = HashSet::new();
         let mut queue = VecDeque::new();
-        
+
         self.stats = ProofSearchStats::default();
-        
+
         // Initialize with axioms
         for axiom in &self.axioms {
             let formula_str = format!("{:?}", axiom.formula);
@@ -298,7 +330,7 @@ impl ProofSearchEngine {
         // Forward chaining loop
         while let Some(current_formula) = queue.pop_front() {
             self.stats.steps_explored += 1;
-            
+
             // Check if we reached the goal
             if self.formula_matches(&current_formula, goal) {
                 self.stats.search_time = start_time.elapsed();
@@ -312,7 +344,8 @@ impl ProofSearchEngine {
 
             // Apply inference rules to derive new formulas
             for rule in &self.inference_rules {
-                if let Some(new_formula) = self.apply_forward_rule(rule, &current_formula, &derived) {
+                if let Some(new_formula) = self.apply_forward_rule(rule, &current_formula, &derived)
+                {
                     let formula_str = format!("{:?}", new_formula);
                     if derived.insert(formula_str) {
                         queue.push_back(new_formula);
@@ -329,13 +362,13 @@ impl ProofSearchEngine {
     /// Execute resolution-based proof search
     pub fn resolution_search(&mut self, goal: &FormulaStructure) -> AispResult<ProofOutcome> {
         let start_time = Instant::now();
-        
+
         // Convert to CNF and negate goal
         let negated_goal = FormulaStructure::Negation(Box::new(goal.clone()));
-        
+
         // Initialize clause set with axioms and negated goal
         let mut clauses = Vec::new();
-        
+
         // Convert axioms to clauses (simplified)
         for axiom in &self.axioms {
             clauses.push(self.to_clause(&axiom.formula));
@@ -346,9 +379,9 @@ impl ProofSearchEngine {
         let mut iteration = 0;
         while iteration < self.config.max_steps {
             self.stats.steps_explored += 1;
-            
+
             let mut new_clauses = Vec::new();
-            
+
             // Try to resolve each pair of clauses
             for i in 0..clauses.len() {
                 for j in i + 1..clauses.len() {
@@ -358,7 +391,7 @@ impl ProofSearchEngine {
                             self.stats.search_time = start_time.elapsed();
                             return Ok(ProofOutcome::Proven);
                         }
-                        
+
                         if !clauses.contains(&resolvent) && !new_clauses.contains(&resolvent) {
                             new_clauses.push(resolvent);
                             self.stats.rules_applied += 1;
@@ -366,7 +399,7 @@ impl ProofSearchEngine {
                     }
                 }
             }
-            
+
             // Add new clauses
             if new_clauses.is_empty() {
                 break; // No new clauses derived
@@ -380,7 +413,12 @@ impl ProofSearchEngine {
     }
 
     // Helper methods
-    fn try_apply_rule(&self, rule: &InferenceRule, context: &SearchContext, depth: usize) -> AispResult<ProofStep> {
+    fn try_apply_rule(
+        &self,
+        rule: &InferenceRule,
+        context: &SearchContext,
+        depth: usize,
+    ) -> AispResult<ProofStep> {
         // Simplified rule application
         if rule.premises.len() <= context.current_state.hypotheses.len() {
             Ok(ProofStep {
@@ -392,7 +430,9 @@ impl ProofSearchEngine {
                 annotations: HashMap::new(),
             })
         } else {
-            Err(AispError::validation_error("Rule not applicable".to_string()))
+            Err(AispError::validation_error(
+                "Rule not applicable".to_string(),
+            ))
         }
     }
 
@@ -400,7 +440,12 @@ impl ProofSearchEngine {
         self.formula_matches(&axiom.formula, goal)
     }
 
-    fn create_axiom_step(&self, axiom: &Axiom, _context: &SearchContext, depth: usize) -> ProofStep {
+    fn create_axiom_step(
+        &self,
+        axiom: &Axiom,
+        _context: &SearchContext,
+        depth: usize,
+    ) -> ProofStep {
         ProofStep {
             step_id: depth,
             formula: axiom.formula.clone(),
@@ -421,12 +466,21 @@ impl ProofSearchEngine {
         matches!(pattern.pattern, PatternStructure::Variable(_))
     }
 
-    fn instantiate_pattern(&self, _pattern: &PatternStructure, goal: &FormulaStructure) -> Option<FormulaStructure> {
+    fn instantiate_pattern(
+        &self,
+        _pattern: &PatternStructure,
+        goal: &FormulaStructure,
+    ) -> Option<FormulaStructure> {
         // Simplified instantiation
         Some(goal.clone())
     }
 
-    fn apply_forward_rule(&self, _rule: &InferenceRule, _formula: &FormulaStructure, _derived: &HashSet<String>) -> Option<FormulaStructure> {
+    fn apply_forward_rule(
+        &self,
+        _rule: &InferenceRule,
+        _formula: &FormulaStructure,
+        _derived: &HashSet<String>,
+    ) -> Option<FormulaStructure> {
         // Simplified forward rule application
         None
     }

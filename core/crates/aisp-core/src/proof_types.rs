@@ -230,11 +230,12 @@ impl FormalProof {
         let assumption_count = self.count_assumptions();
         let rule_applications = self.count_rule_applications();
         let branching_factor = self.calculate_branching_factor();
-        
+
         // Calculate complexity score (1-10)
-        let complexity_score = ((step_count.min(50) as f64 / 5.0) + 
-                               (max_depth.min(20) as f64 / 2.0) +
-                               (assumption_count.min(10) as f64)).min(10.0) as u8;
+        let complexity_score = ((step_count.min(50) as f64 / 5.0)
+            + (max_depth.min(20) as f64 / 2.0)
+            + (assumption_count.min(10) as f64))
+            .min(10.0) as u8;
 
         self.complexity = ProofComplexity {
             step_count,
@@ -248,7 +249,8 @@ impl FormalProof {
 
     /// Calculate maximum proof depth
     fn calculate_max_depth(&self) -> usize {
-        self.steps.iter()
+        self.steps
+            .iter()
             .map(|step| step.discharge_level)
             .max()
             .unwrap_or(0)
@@ -256,14 +258,16 @@ impl FormalProof {
 
     /// Count assumption steps
     fn count_assumptions(&self) -> usize {
-        self.steps.iter()
+        self.steps
+            .iter()
             .filter(|step| matches!(step.justification, StepJustification::Assumption))
             .count()
     }
 
     /// Count rule applications
     fn count_rule_applications(&self) -> usize {
-        self.steps.iter()
+        self.steps
+            .iter()
             .filter(|step| matches!(step.justification, StepJustification::InferenceRule(_, _)))
             .count()
     }
@@ -273,11 +277,9 @@ impl FormalProof {
         if self.steps.is_empty() {
             return 0.0;
         }
-        
-        let total_deps: usize = self.steps.iter()
-            .map(|step| step.dependencies.len())
-            .sum();
-        
+
+        let total_deps: usize = self.steps.iter().map(|step| step.dependencies.len()).sum();
+
         total_deps as f64 / self.steps.len() as f64
     }
 }
@@ -308,7 +310,12 @@ impl ProofTree {
         if self.children.is_empty() {
             1
         } else {
-            1 + self.children.iter().map(|child| child.depth()).max().unwrap_or(0)
+            1 + self
+                .children
+                .iter()
+                .map(|child| child.depth())
+                .max()
+                .unwrap_or(0)
         }
     }
 }
@@ -364,7 +371,10 @@ mod tests {
     fn test_proof_outcome_equality() {
         assert_eq!(ProofOutcome::Proven, ProofOutcome::Proven);
         assert_ne!(ProofOutcome::Proven, ProofOutcome::Disproven);
-        assert_eq!(ProofOutcome::Error("test".to_string()), ProofOutcome::Error("test".to_string()));
+        assert_eq!(
+            ProofOutcome::Error("test".to_string()),
+            ProofOutcome::Error("test".to_string())
+        );
     }
 
     #[test]
@@ -429,7 +439,7 @@ mod tests {
     fn test_counterexample_creation() {
         let mut counterexample = Counterexample::new();
         counterexample.assign_variable("x".to_string(), "42".to_string());
-        
+
         assert!(counterexample.validate());
         assert!(counterexample.is_valid);
     }

@@ -28,21 +28,21 @@
 
 use crate::{
     ast::*,
-    error::{AispError, AispResult}, 
+    error::{AispError, AispResult},
     mathematical_semantics::*,
 };
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
-use std::process::Command;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 // Re-export all public items from modular implementation
+pub use coq_legacy::*;
+pub use proof_automation::*;
 pub use proof_foundations::*;
 pub use rocq_integration::*;
-pub use coq_legacy::*;
 pub use theorem_library::*;
-pub use proof_automation::*;
 
 //
 // MODULE: PROOF SYSTEM FOUNDATIONS
@@ -139,18 +139,21 @@ mod proof_foundations {
         /// Create new proof checker with basic logical axioms
         pub fn new(working_dir: PathBuf) -> Self {
             let mut context = HashMap::new();
-            
+
             // Add basic logical axioms
             context.insert("True".to_string(), ProofType::Proposition);
             context.insert("False".to_string(), ProofType::Proposition);
-            context.insert("and".to_string(), ProofType::Arrow(
-                Box::new(ProofType::Proposition),
-                Box::new(ProofType::Arrow(
+            context.insert(
+                "and".to_string(),
+                ProofType::Arrow(
                     Box::new(ProofType::Proposition),
-                    Box::new(ProofType::Proposition)
-                ))
-            ));
-            
+                    Box::new(ProofType::Arrow(
+                        Box::new(ProofType::Proposition),
+                        Box::new(ProofType::Proposition),
+                    )),
+                ),
+            );
+
             Self {
                 context,
                 theorems: HashMap::new(),
@@ -158,23 +161,23 @@ mod proof_foundations {
                 working_dir,
             }
         }
-        
+
         /// Find Coq installation in common paths and PATH
         fn find_coq_installation() -> Option<PathBuf> {
             // Try common installation paths
             let possible_paths = [
                 "/usr/bin/coqc",
-                "/usr/local/bin/coqc", 
+                "/usr/local/bin/coqc",
                 "/opt/coq/bin/coqc",
                 "/home/coq/bin/coqc",
             ];
-            
+
             for path in &possible_paths {
                 if Path::new(path).exists() {
                     return Some(PathBuf::from(path).parent()?.to_path_buf());
                 }
             }
-            
+
             // Try to find in PATH
             if let Ok(output) = Command::new("which").arg("coqc").output() {
                 if output.status.success() {
@@ -185,49 +188,47 @@ mod proof_foundations {
                     }
                 }
             }
-            
+
             None
         }
-        
+
         /// Type check a proof term against expected type
         pub fn type_check(&self, term: &ProofTerm, expected_type: &ProofType) -> AispResult<bool> {
             match self.infer_type(term)? {
                 inferred_type => Ok(self.types_equal(&inferred_type, expected_type)),
             }
         }
-        
+
         /// Type inference for proof terms using bidirectional checking
         pub fn infer_type(&self, term: &ProofTerm) -> AispResult<ProofType> {
             match term {
-                ProofTerm::Variable(name) => {
-                    self.context.get(name)
-                        .cloned()
-                        .ok_or_else(|| AispError::parse_error(0, 0, format!("Unbound variable: {}", name)))
-                },
-                
+                ProofTerm::Variable(name) => self.context.get(name).cloned().ok_or_else(|| {
+                    AispError::parse_error(0, 0, format!("Unbound variable: {}", name))
+                }),
+
                 ProofTerm::Lambda(var, var_type, body) => {
                     let mut extended_context = self.context.clone();
                     extended_context.insert(var.clone(), var_type.clone());
-                    
+
                     let checker = ProofChecker {
                         context: extended_context,
                         theorems: self.theorems.clone(),
                         coq_path: self.coq_path.clone(),
                         working_dir: self.working_dir.clone(),
                     };
-                    
+
                     let body_type = checker.infer_type(body)?;
-                    
+
                     Ok(ProofType::Arrow(
                         Box::new(var_type.clone()),
-                        Box::new(body_type)
+                        Box::new(body_type),
                     ))
-                },
-                
+                }
+
                 ProofTerm::Application(func, arg) => {
                     let func_type = self.infer_type(func)?;
                     let arg_type = self.infer_type(arg)?;
-                    
+
                     match func_type {
                         ProofType::Arrow(expected_arg_type, return_type) => {
                             if self.types_equal(&arg_type, &expected_arg_type) {
@@ -235,49 +236,53 @@ mod proof_foundations {
                             } else {
                                 Err(AispError::parse_error(0, 0, "Type mismatch in application"))
                             }
-                        },
-                        _ => Err(AispError::parse_error(0, 0, "Application to non-function type")),
+                        }
+                        _ => Err(AispError::parse_error(
+                            0,
+                            0,
+                            "Application to non-function type",
+                        )),
                     }
-                },
-                
+                }
+
                 ProofTerm::Type(_level) => {
                     Ok(ProofType::Type) // Type_i : Type_{i+1}
-                },
-                
+                }
+
                 ProofTerm::Pi(var, var_type, _body_type) => {
                     // Check body_type in extended context
                     let mut extended_context = self.context.clone();
                     extended_context.insert(var.clone(), var_type.clone());
-                    
+
                     // For now, return Type (proper universe level checking would be more complex)
                     Ok(ProofType::Type)
-                },
-                
+                }
+
                 _ => {
                     // Placeholder for other cases
                     Ok(ProofType::Type)
-                },
+                }
             }
         }
-        
+
         /// Check type equality with α-equivalence
         pub fn types_equal(&self, t1: &ProofType, t2: &ProofType) -> bool {
             match (t1, t2) {
                 (ProofType::Variable(v1), ProofType::Variable(v2)) => v1 == v2,
                 (ProofType::Arrow(a1, b1), ProofType::Arrow(a2, b2)) => {
                     self.types_equal(a1, a2) && self.types_equal(b1, b2)
-                },
+                }
                 (ProofType::Pi(v1, a1, b1), ProofType::Pi(v2, a2, b2)) => {
                     // Proper α-equivalence checking would require variable renaming
                     v1 == v2 && self.types_equal(a1, a2) && self.types_equal(b1, b2)
-                },
+                }
                 (ProofType::Proposition, ProofType::Proposition) => true,
                 (ProofType::Set, ProofType::Set) => true,
                 (ProofType::Type, ProofType::Type) => true,
                 _ => false,
             }
         }
-        
+
         /// Add a verified theorem to the context
         pub fn add_theorem(&mut self, theorem: Theorem) -> AispResult<()> {
             // Verify the proof
@@ -285,7 +290,11 @@ mod proof_foundations {
                 self.theorems.insert(theorem.name.clone(), theorem);
                 Ok(())
             } else {
-                Err(AispError::parse_error(0, 0, "Theorem proof does not type check"))
+                Err(AispError::parse_error(
+                    0,
+                    0,
+                    "Theorem proof does not type check",
+                ))
             }
         }
     }
@@ -299,9 +308,9 @@ mod proof_foundations {
         fn test_proof_checker_creation() {
             let temp_dir = env::temp_dir().join("test_proof_foundations");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
-            
+
             // Should have basic logical axioms
             assert!(checker.context.contains_key("True"));
             assert!(checker.context.contains_key("False"));
@@ -313,21 +322,21 @@ mod proof_foundations {
         fn test_type_checking_identity_function() {
             let temp_dir = env::temp_dir().join("test_type_checking");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
-            
+
             // Identity function: λx:Prop. x
             let identity = ProofTerm::Lambda(
                 "x".to_string(),
                 ProofType::Proposition,
-                Box::new(ProofTerm::Variable("x".to_string()))
+                Box::new(ProofTerm::Variable("x".to_string())),
             );
-            
+
             let expected_type = ProofType::Arrow(
                 Box::new(ProofType::Proposition),
-                Box::new(ProofType::Proposition)
+                Box::new(ProofType::Proposition),
             );
-            
+
             assert!(checker.type_check(&identity, &expected_type).unwrap());
         }
 
@@ -335,19 +344,19 @@ mod proof_foundations {
         fn test_type_equality() {
             let temp_dir = env::temp_dir().join("test_type_equality");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
-            
+
             let type1 = ProofType::Arrow(
                 Box::new(ProofType::Proposition),
-                Box::new(ProofType::Proposition)
+                Box::new(ProofType::Proposition),
             );
-            
+
             let type2 = ProofType::Arrow(
                 Box::new(ProofType::Proposition),
-                Box::new(ProofType::Proposition)
+                Box::new(ProofType::Proposition),
             );
-            
+
             assert!(checker.types_equal(&type1, &type2));
             assert!(!checker.types_equal(&ProofType::Proposition, &ProofType::Set));
         }
@@ -356,9 +365,9 @@ mod proof_foundations {
         fn test_theorem_addition() {
             let temp_dir = env::temp_dir().join("test_theorem_addition");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let mut checker = ProofChecker::new(temp_dir);
-            
+
             let theorem = Theorem {
                 name: "test_theorem".to_string(),
                 statement: ProofType::Proposition,
@@ -366,7 +375,7 @@ mod proof_foundations {
                 dependencies: vec![],
                 verified: false,
             };
-            
+
             // Should succeed as True : Prop is in the context
             assert!(checker.add_theorem(theorem).is_ok());
             assert!(checker.theorems.contains_key("test_theorem"));
@@ -377,9 +386,9 @@ mod proof_foundations {
             let dep_type = ProofType::Pi(
                 "n".to_string(),
                 Box::new(ProofType::Variable("nat".to_string())),
-                Box::new(ProofType::Variable("Vector".to_string()))
+                Box::new(ProofType::Variable("Vector".to_string())),
             );
-            
+
             // Verify dependent type structure
             assert!(matches!(dep_type, ProofType::Pi(_, _, _)));
         }
@@ -399,7 +408,7 @@ mod rocq_integration {
         /// Generate Rocq code for verification using Rocq-of-Rust framework
         pub fn generate_rocq_code(&self, theorem: &Theorem) -> String {
             let mut rocq_code = String::new();
-            
+
             // Add Rocq-of-Rust imports
             rocq_code.push_str("Require Import RocqOfRust.RocqOfRust.\n");
             rocq_code.push_str("Require Import RocqOfRust.links.M.\n");
@@ -407,55 +416,66 @@ mod rocq_integration {
             rocq_code.push_str("From Stdlib Require Export Lia.\n");
             rocq_code.push_str("From Hammer Require Export Tactics.\n");
             rocq_code.push_str("Require Export smpl.Smpl.\n\n");
-            
+
             // Add AISP semantic definitions using Rocq framework
             rocq_code.push_str(&self.generate_aisp_rocq_definitions());
-            
+
             // Add theorem statement
-            rocq_code.push_str(&format!("Theorem {} : {}.\n", 
-                theorem.name, 
+            rocq_code.push_str(&format!(
+                "Theorem {} : {}.\n",
+                theorem.name,
                 self.proof_type_to_rocq(&theorem.statement)
             ));
-            
+
             // Add proof script using Rocq tactics
             rocq_code.push_str("Proof.\n");
             rocq_code.push_str(&self.proof_term_to_rocq_tactic(&theorem.proof));
             rocq_code.push_str("\nQed.\n\n");
-            
+
             rocq_code
         }
-        
+
         /// Verify theorem using Rocq-of-Rust framework
         pub fn verify_with_rocq(&self, theorem: &Theorem) -> AispResult<bool> {
             // Generate Rocq code with proper links and simulate patterns
             let rocq_code = self.generate_rocq_code(theorem);
             let rocq_file = self.working_dir.join(format!("{}.v", theorem.name));
-            
+
             // Write Rocq file with proper imports
-            fs::write(&rocq_file, rocq_code)
-                .map_err(|e| AispError::parse_error(0, 0, format!("Failed to write Rocq file: {}", e)))?;
-            
+            fs::write(&rocq_file, rocq_code).map_err(|e| {
+                AispError::parse_error(0, 0, format!("Failed to write Rocq file: {}", e))
+            })?;
+
             // Verify using Rocq-of-Rust compilation pipeline
             self.compile_rocq_proof(&rocq_file)
         }
-        
+
         /// Compile Rocq proof using make system
         fn compile_rocq_proof(&self, rocq_file: &std::path::Path) -> AispResult<bool> {
             // Use Rocq-of-Rust's make system for verification
             let output = Command::new("make")
-                .arg(format!("{}.vo", rocq_file.with_extension("").to_string_lossy()))
+                .arg(format!(
+                    "{}.vo",
+                    rocq_file.with_extension("").to_string_lossy()
+                ))
                 .current_dir(&self.working_dir)
                 .output()
-                .map_err(|e| AispError::parse_error(0, 0, format!("Failed to run Rocq compilation: {}", e)))?;
-            
+                .map_err(|e| {
+                    AispError::parse_error(0, 0, format!("Failed to run Rocq compilation: {}", e))
+                })?;
+
             if output.status.success() {
                 Ok(true)
             } else {
                 let error_msg = String::from_utf8_lossy(&output.stderr);
-                Err(AispError::parse_error(0, 0, format!("Rocq verification failed: {}", error_msg)))
+                Err(AispError::parse_error(
+                    0,
+                    0,
+                    format!("Rocq verification failed: {}", error_msg),
+                ))
             }
         }
-        
+
         /// Generate Garden-inspired AISP verification modules using Rocq framework
         fn generate_aisp_rocq_definitions(&self) -> String {
             r#"
@@ -512,46 +532,55 @@ Module AispSemantics.
 End AispSemantics.
 "#.to_string()
         }
-        
+
         /// Convert proof type to Rocq syntax
         pub fn proof_type_to_rocq(&self, ptype: &ProofType) -> String {
             match ptype {
                 ProofType::Variable(v) => v.clone(),
                 ProofType::Arrow(a, b) => {
-                    format!("({} -> {})", self.proof_type_to_rocq(a), self.proof_type_to_rocq(b))
-                },
+                    format!(
+                        "({} -> {})",
+                        self.proof_type_to_rocq(a),
+                        self.proof_type_to_rocq(b)
+                    )
+                }
                 ProofType::Pi(var, a, b) => {
-                    format!("(forall {}: {}, {})", var, self.proof_type_to_rocq(a), self.proof_type_to_rocq(b))
-                },
+                    format!(
+                        "(forall {}: {}, {})",
+                        var,
+                        self.proof_type_to_rocq(a),
+                        self.proof_type_to_rocq(b)
+                    )
+                }
                 ProofType::Proposition => "Prop".to_string(),
                 ProofType::Set => "Set".to_string(),
                 ProofType::Type => "Type".to_string(),
                 _ => "Type".to_string(),
             }
         }
-        
+
         /// Convert proof term to Rocq tactic script with Rocq-of-Rust patterns
         pub fn proof_term_to_rocq_tactic(&self, term: &ProofTerm) -> String {
             match term {
                 ProofTerm::Variable(_) => "assumption".to_string(),
                 ProofTerm::Lambda(_, _, body) => {
                     format!("intro. {}", self.proof_term_to_rocq_tactic(body))
-                },
+                }
                 ProofTerm::Application(func, arg) => {
-                    format!("eapply Run.Call. {{ apply {}. }} {}",
+                    format!(
+                        "eapply Run.Call. {{ apply {}. }} {}",
                         self.proof_term_to_rocq_tactic(func),
                         self.proof_term_to_rocq_tactic(arg)
                     )
-                },
-                ProofTerm::Inductive(_name, _) => {
-                    "constructor; run_symbolic".to_string()
-                },
+                }
+                ProofTerm::Inductive(_name, _) => "constructor; run_symbolic".to_string(),
                 ProofTerm::Match(_, patterns) => {
-                    let pattern_tactics: Vec<String> = patterns.iter()
+                    let pattern_tactics: Vec<String> = patterns
+                        .iter()
                         .map(|(_, term)| self.proof_term_to_rocq_tactic(term))
                         .collect();
                     format!("destruct; [ {} ]", pattern_tactics.join(" | "))
-                },
+                }
                 _ => "run_symbolic; apply Run.Pure".to_string(),
             }
         }
@@ -566,7 +595,7 @@ End AispSemantics.
         fn test_rocq_code_generation() {
             let temp_dir = env::temp_dir().join("test_rocq_integration");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
             let theorem = Theorem {
                 name: "test_theorem".to_string(),
@@ -575,7 +604,7 @@ End AispSemantics.
                 dependencies: vec![],
                 verified: false,
             };
-            
+
             let rocq_code = checker.generate_rocq_code(&theorem);
             assert!(rocq_code.contains("Require Import RocqOfRust.RocqOfRust"));
             assert!(rocq_code.contains("run_symbolic"));
@@ -587,17 +616,17 @@ End AispSemantics.
         fn test_proof_type_to_rocq() {
             let temp_dir = env::temp_dir().join("test_rocq_types");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
-            
+
             // Test basic types
             assert_eq!(checker.proof_type_to_rocq(&ProofType::Proposition), "Prop");
             assert_eq!(checker.proof_type_to_rocq(&ProofType::Set), "Set");
-            
+
             // Test arrow type
             let arrow_type = ProofType::Arrow(
                 Box::new(ProofType::Proposition),
-                Box::new(ProofType::Proposition)
+                Box::new(ProofType::Proposition),
             );
             assert_eq!(checker.proof_type_to_rocq(&arrow_type), "(Prop -> Prop)");
         }
@@ -606,20 +635,23 @@ End AispSemantics.
         fn test_proof_term_to_rocq_tactic() {
             let temp_dir = env::temp_dir().join("test_rocq_tactics");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
-            
+
             // Test variable
             let var_term = ProofTerm::Variable("H".to_string());
             assert_eq!(checker.proof_term_to_rocq_tactic(&var_term), "assumption");
-            
+
             // Test lambda
             let lambda_term = ProofTerm::Lambda(
                 "x".to_string(),
                 ProofType::Proposition,
-                Box::new(ProofTerm::Variable("x".to_string()))
+                Box::new(ProofTerm::Variable("x".to_string())),
             );
-            assert_eq!(checker.proof_term_to_rocq_tactic(&lambda_term), "intro. assumption");
+            assert_eq!(
+                checker.proof_term_to_rocq_tactic(&lambda_term),
+                "intro. assumption"
+            );
         }
     }
 }
@@ -637,30 +669,31 @@ mod coq_legacy {
         /// Generate Coq code for verification (legacy support)
         pub fn generate_coq_code(&self, theorem: &Theorem) -> String {
             let mut coq_code = String::new();
-            
+
             // Add imports
             coq_code.push_str("Require Import Coq.Logic.Classical_Prop.\n");
             coq_code.push_str("Require Import Coq.Arith.Arith.\n");
             coq_code.push_str("Require Import Coq.Lists.List.\n");
             coq_code.push_str("Import ListNotations.\n\n");
-            
+
             // Add AISP semantic definitions
             coq_code.push_str(&self.generate_aisp_definitions());
-            
+
             // Add theorem statement
-            coq_code.push_str(&format!("Theorem {} : {}.\n", 
-                theorem.name, 
+            coq_code.push_str(&format!(
+                "Theorem {} : {}.\n",
+                theorem.name,
                 self.proof_type_to_coq(&theorem.statement)
             ));
-            
+
             // Add proof script
             coq_code.push_str("Proof.\n");
             coq_code.push_str(&self.proof_term_to_coq_tactic(&theorem.proof));
             coq_code.push_str("\nQed.\n\n");
-            
+
             coq_code
         }
-        
+
         /// Generate AISP semantic definitions in Coq
         fn generate_aisp_definitions(&self) -> String {
             r#"
@@ -689,71 +722,87 @@ Definition validate (doc : AispDocument) : Prop := True.
 Definition semantic_interp (doc : AispDocument) : SemanticValue :=
   SV_Boolean true.
 
-"#.to_string()
+"#
+            .to_string()
         }
-        
+
         /// Convert proof type to Coq syntax
         pub fn proof_type_to_coq(&self, ptype: &ProofType) -> String {
             match ptype {
                 ProofType::Variable(v) => v.clone(),
                 ProofType::Arrow(a, b) => {
-                    format!("({} -> {})", self.proof_type_to_coq(a), self.proof_type_to_coq(b))
-                },
+                    format!(
+                        "({} -> {})",
+                        self.proof_type_to_coq(a),
+                        self.proof_type_to_coq(b)
+                    )
+                }
                 ProofType::Pi(var, a, b) => {
-                    format!("(forall {}: {}, {})", var, self.proof_type_to_coq(a), self.proof_type_to_coq(b))
-                },
+                    format!(
+                        "(forall {}: {}, {})",
+                        var,
+                        self.proof_type_to_coq(a),
+                        self.proof_type_to_coq(b)
+                    )
+                }
                 ProofType::Proposition => "Prop".to_string(),
                 ProofType::Set => "Set".to_string(),
                 ProofType::Type => "Type".to_string(),
                 _ => "Type".to_string(),
             }
         }
-        
+
         /// Convert proof term to Coq tactic script
         pub fn proof_term_to_coq_tactic(&self, term: &ProofTerm) -> String {
             match term {
                 ProofTerm::Variable(_) => "assumption".to_string(),
                 ProofTerm::Lambda(_, _, body) => {
                     format!("intro. {}", self.proof_term_to_coq_tactic(body))
-                },
+                }
                 ProofTerm::Application(func, arg) => {
-                    format!("apply {}. {}", 
+                    format!(
+                        "apply {}. {}",
                         self.proof_term_to_coq_tactic(func),
                         self.proof_term_to_coq_tactic(arg)
                     )
-                },
+                }
                 _ => "auto".to_string(),
             }
         }
-        
+
         /// Verify theorem using Coq
         pub fn verify_with_coq(&self, theorem: &Theorem) -> AispResult<bool> {
             if self.coq_path.is_none() {
                 return Err(AispError::parse_error(0, 0, "Coq not found"));
             }
-            
+
             let coq_code = self.generate_coq_code(theorem);
             let coq_file = self.working_dir.join(format!("{}.v", theorem.name));
-            
+
             // Write Coq file
-            fs::write(&coq_file, coq_code)
-                .map_err(|e| AispError::parse_error(0, 0, format!("Failed to write Coq file: {}", e)))?;
-            
+            fs::write(&coq_file, coq_code).map_err(|e| {
+                AispError::parse_error(0, 0, format!("Failed to write Coq file: {}", e))
+            })?;
+
             // Compile with Coq
             let mut coqc_path = self.coq_path.as_ref().unwrap().clone();
             coqc_path.push("coqc");
-            
+
             let output = Command::new(coqc_path)
                 .arg(coq_file.to_str().unwrap())
                 .current_dir(&self.working_dir)
                 .output()
                 .map_err(|e| AispError::parse_error(0, 0, format!("Failed to run Coq: {}", e)))?;
-            
+
             if output.status.success() {
                 Ok(true)
             } else {
                 let error_msg = String::from_utf8_lossy(&output.stderr);
-                Err(AispError::parse_error(0, 0, format!("Coq verification failed: {}", error_msg)))
+                Err(AispError::parse_error(
+                    0,
+                    0,
+                    format!("Coq verification failed: {}", error_msg),
+                ))
             }
         }
     }
@@ -767,7 +816,7 @@ Definition semantic_interp (doc : AispDocument) : SemanticValue :=
         fn test_coq_code_generation() {
             let temp_dir = env::temp_dir().join("test_coq_legacy");
             std::fs::create_dir_all(&temp_dir).unwrap();
-            
+
             let checker = ProofChecker::new(temp_dir);
             let theorem = Theorem {
                 name: "test_theorem".to_string(),
@@ -776,7 +825,7 @@ Definition semantic_interp (doc : AispDocument) : SemanticValue :=
                 dependencies: vec![],
                 verified: false,
             };
-            
+
             let coq_code = checker.generate_coq_code(&theorem);
             assert!(coq_code.contains("Theorem test_theorem"));
             assert!(coq_code.contains("Require Import"));
@@ -802,10 +851,10 @@ mod theorem_library {
             Box::new(ProofType::Variable("AispDocument".to_string())),
             Box::new(ProofType::Arrow(
                 Box::new(ProofType::Variable("validate_result".to_string())),
-                Box::new(ProofType::Variable("semantic_validity".to_string()))
-            ))
+                Box::new(ProofType::Variable("semantic_validity".to_string())),
+            )),
         );
-        
+
         // Proof sketch (would be a complete proof term in practice)
         let proof = ProofTerm::Lambda(
             "doc".to_string(),
@@ -813,10 +862,10 @@ mod theorem_library {
             Box::new(ProofTerm::Lambda(
                 "valid_proof".to_string(),
                 ProofType::Variable("validate_result".to_string()),
-                Box::new(ProofTerm::Variable("semantic_valid_proof".to_string()))
-            ))
+                Box::new(ProofTerm::Variable("semantic_valid_proof".to_string())),
+            )),
         );
-        
+
         Theorem {
             name: "validator_soundness".to_string(),
             statement,
@@ -833,20 +882,20 @@ mod theorem_library {
             Box::new(ProofType::Variable("AispDocument".to_string())),
             Box::new(ProofType::Arrow(
                 Box::new(ProofType::Variable("semantic_validity".to_string())),
-                Box::new(ProofType::Variable("completeness_bound_exists".to_string()))
-            ))
+                Box::new(ProofType::Variable("completeness_bound_exists".to_string())),
+            )),
         );
-        
+
         let proof = ProofTerm::Lambda(
             "doc".to_string(),
             ProofType::Variable("AispDocument".to_string()),
             Box::new(ProofTerm::Lambda(
                 "sem_valid".to_string(),
                 ProofType::Variable("semantic_validity".to_string()),
-                Box::new(ProofTerm::Variable("completeness_proof".to_string()))
-            ))
+                Box::new(ProofTerm::Variable("completeness_proof".to_string())),
+            )),
         );
-        
+
         Theorem {
             name: "validator_completeness".to_string(),
             statement,
@@ -864,20 +913,20 @@ mod theorem_library {
             Box::new(ProofType::Pi(
                 "transform".to_string(),
                 Box::new(ProofType::Variable("Transform".to_string())),
-                Box::new(ProofType::Variable("semantic_equivalence".to_string()))
-            ))
+                Box::new(ProofType::Variable("semantic_equivalence".to_string())),
+            )),
         );
-        
+
         let proof = ProofTerm::Lambda(
             "doc".to_string(),
             ProofType::Variable("AispDocument".to_string()),
             Box::new(ProofTerm::Lambda(
                 "transform".to_string(),
                 ProofType::Variable("Transform".to_string()),
-                Box::new(ProofTerm::Variable("preservation_proof".to_string()))
-            ))
+                Box::new(ProofTerm::Variable("preservation_proof".to_string())),
+            )),
         );
-        
+
         Theorem {
             name: "semantic_preservation".to_string(),
             statement,
@@ -959,15 +1008,16 @@ mod proof_automation {
                 backtrack_points: Vec::new(),
             }
         }
-        
+
         /// Add a tactic to the strategy
         pub fn add_tactic(&mut self, tactic: ProofTactic) {
             self.tactics.push(tactic);
         }
-        
+
         /// Generate Coq tactic script
         pub fn to_coq_script(&self) -> String {
-            self.tactics.iter()
+            self.tactics
+                .iter()
                 .map(|tactic| match tactic {
                     ProofTactic::Intro(name) => format!("intro {}", name),
                     ProofTactic::Apply(thm) => format!("apply {}", thm),
@@ -1004,7 +1054,7 @@ mod proof_automation {
                 timeout_ms: 5000,
             }
         }
-        
+
         /// Search for a proof of the given theorem
         pub fn search_proof(&self, _theorem: &Theorem) -> Option<ProofStrategy> {
             let mut strategy = ProofStrategy::new();
@@ -1029,7 +1079,7 @@ mod proof_automation {
             strategy.add_tactic(ProofTactic::Intro("H".to_string()));
             strategy.add_tactic(ProofTactic::Apply("lemma".to_string()));
             strategy.add_tactic(ProofTactic::Auto);
-            
+
             let script = strategy.to_coq_script();
             assert_eq!(script, "intro H. apply lemma. auto");
         }
@@ -1038,7 +1088,7 @@ mod proof_automation {
         fn test_proof_searcher() {
             let searcher = ProofSearcher::new();
             let theorem = theorem_library::completeness_theorem();
-            
+
             let strategy = searcher.search_proof(&theorem);
             assert!(strategy.is_some());
         }
@@ -1055,10 +1105,10 @@ impl Display for ProofTerm {
             ProofTerm::Variable(name) => write!(f, "{}", name),
             ProofTerm::Lambda(var, ty, body) => {
                 write!(f, "(λ{}:{}. {})", var, ty, body)
-            },
+            }
             ProofTerm::Application(func, arg) => {
                 write!(f, "({} {})", func, arg)
-            },
+            }
             ProofTerm::Type(level) => write!(f, "Type_{}", level),
             _ => write!(f, "⟨proof-term⟩"),
         }

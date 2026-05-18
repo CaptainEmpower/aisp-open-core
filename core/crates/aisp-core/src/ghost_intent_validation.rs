@@ -16,9 +16,9 @@
 //! and ensuring comprehensive behavior coverage.
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
     error::*,
-    z3_verification::{*, canonical_types::Z3PropertyResult},
+    z3_verification::{canonical_types::Z3PropertyResult, *},
 };
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
@@ -158,24 +158,28 @@ impl GhostIntentValidator {
     }
 
     /// Validate ghost intents in AISP document
-    pub fn validate_ghost_intents(&mut self, document: &AispDocument) -> AispResult<GhostIntentValidationResult> {
+    pub fn validate_ghost_intents(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<GhostIntentValidationResult> {
         let start_time = Instant::now();
-        
+
         // Extract behavior specifications from document
         let intended_behaviors = self.extract_intended_behaviors(document)?;
         let current_behaviors = self.extract_current_behaviors(document)?;
-        
+
         // Perform ghost intent analysis: ψ_g ≜ ψ_* ⊖ ψ_have
-        let ghost_intents = self.analyze_behavioral_gaps(&intended_behaviors, &current_behaviors)?;
-        
+        let ghost_intents =
+            self.analyze_behavioral_gaps(&intended_behaviors, &current_behaviors)?;
+
         // Validate detected ghost intents
         let validated_ghost_intents = self.validate_ghost_intent_detections(ghost_intents)?;
-        
+
         // Update statistics
         self.stats.analysis_time = start_time.elapsed();
         self.stats.total_ghost_intents = validated_ghost_intents.len();
         self.update_confidence_stats(&validated_ghost_intents);
-        
+
         Ok(GhostIntentValidationResult {
             valid: self.is_validation_successful(&validated_ghost_intents),
             ghost_intents: validated_ghost_intents,
@@ -188,7 +192,7 @@ impl GhostIntentValidator {
     /// Extract intended behavior specifications (ψ_*) from AISP document
     fn extract_intended_behaviors(&self, document: &AispDocument) -> AispResult<Vec<BehaviorSpec>> {
         let mut behaviors = Vec::new();
-        
+
         for block in &document.blocks {
             match block {
                 AispBlock::Meta(meta_block) => {
@@ -214,17 +218,17 @@ impl GhostIntentValidator {
                 _ => continue,
             }
         }
-        
+
         Ok(behaviors)
     }
 
     /// Extract current behavior specifications (ψ_have) from AISP document
     fn extract_current_behaviors(&self, document: &AispDocument) -> AispResult<Vec<BehaviorSpec>> {
         let mut behaviors = Vec::new();
-        
+
         // For now, we'll extract behaviors from the basic document structure
         // In a full implementation, this would analyze evidence blocks and function implementations
-        
+
         for block in &document.blocks {
             match block {
                 AispBlock::Evidence(_evidence_block) => {
@@ -239,7 +243,7 @@ impl GhostIntentValidator {
                     behaviors.push(behavior);
                 }
                 AispBlock::Functions(_functions_block) => {
-                    // Placeholder: would extract behaviors from function implementations  
+                    // Placeholder: would extract behaviors from function implementations
                     let behavior = BehaviorSpec {
                         id: "function_behavior".to_string(),
                         preconditions: vec!["input_valid".to_string()],
@@ -252,7 +256,7 @@ impl GhostIntentValidator {
                 _ => continue,
             }
         }
-        
+
         Ok(behaviors)
     }
 
@@ -263,13 +267,13 @@ impl GhostIntentValidator {
         current_behaviors: &[BehaviorSpec],
     ) -> AispResult<Vec<GhostIntent>> {
         let mut ghost_intents = Vec::new();
-        
+
         // Create mapping of current behaviors for efficient lookup
         let current_behavior_map: HashMap<String, &BehaviorSpec> = current_behaviors
             .iter()
             .map(|b| (b.id.clone(), b))
             .collect();
-        
+
         // For each intended behavior, check if it's implemented
         for intended in intended_behaviors {
             if let Some(current) = current_behavior_map.get(&intended.id) {
@@ -290,7 +294,7 @@ impl GhostIntentValidator {
                 ghost_intents.push(ghost_intent);
             }
         }
-        
+
         Ok(ghost_intents)
     }
 
@@ -301,32 +305,41 @@ impl GhostIntentValidator {
         current: &BehaviorSpec,
     ) -> AispResult<Option<GhostIntent>> {
         // Check precondition coverage
-        let missing_preconditions = self.find_missing_conditions(&intended.preconditions, &current.preconditions);
-        
+        let missing_preconditions =
+            self.find_missing_conditions(&intended.preconditions, &current.preconditions);
+
         // Check postcondition coverage
-        let missing_postconditions = self.find_missing_conditions(&intended.postconditions, &current.postconditions);
-        
+        let missing_postconditions =
+            self.find_missing_conditions(&intended.postconditions, &current.postconditions);
+
         // Check invariant preservation
-        let missing_invariants = self.find_missing_conditions(&intended.invariants, &current.invariants);
-        
-        if missing_preconditions.is_empty() && missing_postconditions.is_empty() && missing_invariants.is_empty() {
+        let missing_invariants =
+            self.find_missing_conditions(&intended.invariants, &current.invariants);
+
+        if missing_preconditions.is_empty()
+            && missing_postconditions.is_empty()
+            && missing_invariants.is_empty()
+        {
             return Ok(None); // Behavior is complete
         }
-        
+
         // Calculate confidence based on missing elements
-        let total_intended = intended.preconditions.len() + intended.postconditions.len() + intended.invariants.len();
-        let total_missing = missing_preconditions.len() + missing_postconditions.len() + missing_invariants.len();
+        let total_intended = intended.preconditions.len()
+            + intended.postconditions.len()
+            + intended.invariants.len();
+        let total_missing =
+            missing_preconditions.len() + missing_postconditions.len() + missing_invariants.len();
         let confidence = if total_intended > 0 {
             total_missing as f64 / total_intended as f64
         } else {
             0.5
         };
-        
+
         let description = format!(
             "Incomplete implementation of behavior '{}': missing {} preconditions, {} postconditions, {} invariants",
             intended.id, missing_preconditions.len(), missing_postconditions.len(), missing_invariants.len()
         );
-        
+
         Ok(Some(GhostIntent {
             id: format!("incomplete_{}", intended.id),
             description,
@@ -356,21 +369,24 @@ impl GhostIntentValidator {
         if !self.config.enable_formal_verification || self.z3_verifier.is_none() {
             return Ok(None);
         }
-        
+
         self.stats.smt_queries += 1;
-        
+
         let gap_formula = if let Some(current) = current {
             self.generate_completeness_formula(intended, current)
         } else {
             self.generate_existence_formula(intended)
         };
-        
+
         // For now, return a placeholder proof
         // In a full implementation, this would use Z3 to verify the gap
         Ok(Some(BehaviorGapProof {
             id: format!("gap_proof_{}", intended.id),
             gap_formula,
-            verification_result: Some(Z3PropertyResult::Unknown { reason: "Ghost intent gap detected".to_string(), partial_progress: 0.0 }),
+            verification_result: Some(Z3PropertyResult::Unknown {
+                reason: "Ghost intent gap detected".to_string(),
+                partial_progress: 0.0,
+            }),
             certificate: Some("Behavioral gap detected via specification analysis".to_string()),
         }))
     }
@@ -384,7 +400,11 @@ impl GhostIntentValidator {
     }
 
     /// Generate SMT formula for behavior completeness
-    fn generate_completeness_formula(&self, intended: &BehaviorSpec, current: &BehaviorSpec) -> String {
+    fn generate_completeness_formula(
+        &self,
+        intended: &BehaviorSpec,
+        current: &BehaviorSpec,
+    ) -> String {
         format!(
             "(assert (not (forall ((state State)) \n  (=> (behavior_{}_current state) (behavior_{}_intended state)))))",
             current.id, intended.id
@@ -392,7 +412,10 @@ impl GhostIntentValidator {
     }
 
     /// Validate detected ghost intent detections
-    fn validate_ghost_intent_detections(&self, ghost_intents: Vec<GhostIntent>) -> AispResult<Vec<GhostIntent>> {
+    fn validate_ghost_intent_detections(
+        &self,
+        ghost_intents: Vec<GhostIntent>,
+    ) -> AispResult<Vec<GhostIntent>> {
         Ok(ghost_intents
             .into_iter()
             .filter(|gi| gi.confidence >= self.config.min_confidence_threshold)
@@ -407,26 +430,35 @@ impl GhostIntentValidator {
 
     /// Update confidence-based statistics
     fn update_confidence_stats(&mut self, ghost_intents: &[GhostIntent]) {
-        self.stats.high_confidence_count = ghost_intents.iter().filter(|gi| gi.confidence >= 0.8).count();
-        self.stats.medium_confidence_count = ghost_intents.iter().filter(|gi| gi.confidence >= 0.6 && gi.confidence < 0.8).count();
-        self.stats.low_confidence_count = ghost_intents.iter().filter(|gi| gi.confidence < 0.6).count();
+        self.stats.high_confidence_count = ghost_intents
+            .iter()
+            .filter(|gi| gi.confidence >= 0.8)
+            .count();
+        self.stats.medium_confidence_count = ghost_intents
+            .iter()
+            .filter(|gi| gi.confidence >= 0.6 && gi.confidence < 0.8)
+            .count();
+        self.stats.low_confidence_count = ghost_intents
+            .iter()
+            .filter(|gi| gi.confidence < 0.6)
+            .count();
     }
 
     /// Generate analysis warnings
     fn generate_warnings(&self) -> Vec<String> {
         let mut warnings = Vec::new();
-        
+
         if self.stats.analysis_time > self.config.max_analysis_time {
             warnings.push("Ghost intent analysis exceeded maximum time limit".to_string());
         }
-        
+
         if self.stats.high_confidence_count > 0 {
             warnings.push(format!(
                 "{} high-confidence ghost intents detected - significant behavioral gaps may exist",
                 self.stats.high_confidence_count
             ));
         }
-        
+
         warnings
     }
 
@@ -474,7 +506,7 @@ mod tests {
     fn test_ghost_intent_validator_creation() {
         let config = GhostIntentConfig::default();
         let validator = GhostIntentValidator::new(config);
-        
+
         assert_eq!(validator.stats.total_ghost_intents, 0);
         assert_eq!(validator.stats.smt_queries, 0);
     }
@@ -498,10 +530,14 @@ mod tests {
     fn test_missing_conditions_detection() {
         let config = GhostIntentConfig::default();
         let validator = GhostIntentValidator::new(config);
-        
-        let intended = vec!["cond1".to_string(), "cond2".to_string(), "cond3".to_string()];
+
+        let intended = vec![
+            "cond1".to_string(),
+            "cond2".to_string(),
+            "cond3".to_string(),
+        ];
         let current = vec!["cond1".to_string(), "cond3".to_string()];
-        
+
         let missing = validator.find_missing_conditions(&intended, &current);
         assert_eq!(missing.len(), 1);
         assert_eq!(missing[0], "cond2");
@@ -518,7 +554,7 @@ mod tests {
 
         let result = validator.validate_ghost_intents(&document);
         assert!(result.is_ok());
-        
+
         let validation_result = result.unwrap();
         assert!(validation_result.valid); // No ghost intents in empty document
         assert_eq!(validation_result.ghost_intents.len(), 0);
@@ -562,8 +598,10 @@ mod tests {
             ..Default::default()
         };
         let validator = GhostIntentValidator::new(config);
-        
-        let filtered = validator.validate_ghost_intent_detections(ghost_intents).unwrap();
+
+        let filtered = validator
+            .validate_ghost_intent_detections(ghost_intents)
+            .unwrap();
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].confidence, 0.9);
     }
@@ -572,7 +610,7 @@ mod tests {
     fn test_statistics_update() {
         let config = GhostIntentConfig::default();
         let mut validator = GhostIntentValidator::new(config);
-        
+
         let ghost_intents = vec![
             GhostIntent {
                 id: "high1".to_string(),
@@ -605,7 +643,7 @@ mod tests {
         ];
 
         validator.update_confidence_stats(&ghost_intents);
-        
+
         assert_eq!(validator.stats.high_confidence_count, 1);
         assert_eq!(validator.stats.medium_confidence_count, 1);
         assert_eq!(validator.stats.low_confidence_count, 0);
@@ -615,7 +653,7 @@ mod tests {
     fn test_smt_formula_generation() {
         let config = GhostIntentConfig::default();
         let validator = GhostIntentValidator::new(config);
-        
+
         let intended = BehaviorSpec {
             id: "test_behavior".to_string(),
             preconditions: vec!["pre1".to_string()],

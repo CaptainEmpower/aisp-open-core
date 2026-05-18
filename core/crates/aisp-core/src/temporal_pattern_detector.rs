@@ -5,7 +5,7 @@
 
 use crate::ast::canonical::*;
 use crate::error::*;
-use crate::temporal_operator_analyzer::{TemporalOperator, OperatorInstance};
+use crate::temporal_operator_analyzer::{OperatorInstance, TemporalOperator};
 use std::collections::HashMap;
 
 /// Temporal pattern detector
@@ -213,7 +213,7 @@ impl TemporalPatternDetector {
     /// Create a new temporal pattern detector
     pub fn new() -> Self {
         let pattern_rules = Self::create_pattern_rules();
-        
+
         Self {
             pattern_rules,
             detected_patterns: Vec::new(),
@@ -267,15 +267,14 @@ impl TemporalPatternDetector {
                 min_confidence: 0.8,
                 description_template: "Safety property: {formula} must always hold".to_string(),
             },
-            
             // Liveness pattern: ◊P
             PatternRule {
                 pattern_type: PatternType::Liveness,
                 operator_sequence: vec![TemporalOperator::Eventually],
                 min_confidence: 0.8,
-                description_template: "Liveness property: {formula} must eventually occur".to_string(),
+                description_template: "Liveness property: {formula} must eventually occur"
+                    .to_string(),
             },
-            
             // Response pattern: □(P → ◊Q) - approximated as □...◊
             PatternRule {
                 pattern_type: PatternType::Response,
@@ -283,23 +282,22 @@ impl TemporalPatternDetector {
                 min_confidence: 0.7,
                 description_template: "Response property: if {p} then eventually {q}".to_string(),
             },
-            
             // Persistence pattern: ◊□P
             PatternRule {
                 pattern_type: PatternType::Persistence,
                 operator_sequence: vec![TemporalOperator::Eventually, TemporalOperator::Always],
                 min_confidence: 0.7,
-                description_template: "Persistence property: {formula} eventually holds forever".to_string(),
+                description_template: "Persistence property: {formula} eventually holds forever"
+                    .to_string(),
             },
-            
-            // Recurrence pattern: □◊P  
+            // Recurrence pattern: □◊P
             PatternRule {
                 pattern_type: PatternType::Recurrence,
                 operator_sequence: vec![TemporalOperator::Always, TemporalOperator::Eventually],
                 min_confidence: 0.6,
-                description_template: "Recurrence property: {formula} occurs infinitely often".to_string(),
+                description_template: "Recurrence property: {formula} occurs infinitely often"
+                    .to_string(),
             },
-            
             // Chain pattern: □(P → XQ) - approximated as □...X
             PatternRule {
                 pattern_type: PatternType::Chain,
@@ -318,7 +316,7 @@ impl TemporalPatternDetector {
     ) -> Vec<TemporalPattern> {
         let mut patterns = Vec::new();
         let seq_len = rule.operator_sequence.len();
-        
+
         if seq_len == 0 || operators.len() < seq_len {
             return patterns;
         }
@@ -326,7 +324,7 @@ impl TemporalPatternDetector {
         // Look for operator sequences matching the pattern
         for i in 0..=operators.len().saturating_sub(seq_len) {
             let window = &operators[i..i + seq_len];
-            
+
             if self.sequence_matches(window, &rule.operator_sequence) {
                 let pattern = self.create_pattern_from_sequence(window, rule);
                 if pattern.confidence >= rule.min_confidence {
@@ -388,7 +386,8 @@ impl TemporalPatternDetector {
             quality,
         };
 
-        let description = rule.description_template
+        let description = rule
+            .description_template
             .replace("{formula}", &formula)
             .replace("{p}", variables.get(0).unwrap_or(&"P".to_string()))
             .replace("{q}", variables.get(1).unwrap_or(&"Q".to_string()));
@@ -412,7 +411,11 @@ impl TemporalPatternDetector {
         let semantic = if total_operands > 0 { 0.8 } else { 0.5 };
 
         // Coverage strength - nesting and complexity
-        let max_nesting = operators.iter().map(|op| op.nesting_level).max().unwrap_or(0);
+        let max_nesting = operators
+            .iter()
+            .map(|op| op.nesting_level)
+            .max()
+            .unwrap_or(0);
         let coverage = if max_nesting <= 2 { 0.9 } else { 0.6 };
 
         let overall = (syntactic + semantic + coverage) / 3.0;
@@ -426,10 +429,16 @@ impl TemporalPatternDetector {
     }
 
     /// Assess quality of a pattern instance
-    fn assess_instance_quality(&self, strength: &PatternStrength, variables: &[String]) -> PatternQuality {
+    fn assess_instance_quality(
+        &self,
+        strength: &PatternStrength,
+        variables: &[String],
+    ) -> PatternQuality {
         let score = strength.overall;
-        let has_meaningful_vars = !variables.is_empty() && 
-            variables.iter().any(|v| v.len() > 1 && !v.chars().all(|c| c.is_ascii_punctuation()));
+        let has_meaningful_vars = !variables.is_empty()
+            && variables
+                .iter()
+                .any(|v| v.len() > 1 && !v.chars().all(|c| c.is_ascii_punctuation()));
 
         match (score, has_meaningful_vars) {
             (s, true) if s >= 0.8 => PatternQuality::High,
@@ -442,12 +451,14 @@ impl TemporalPatternDetector {
     /// Calculate pattern statistics
     fn calculate_statistics(&self, document_size: usize) -> PatternStatistics {
         let total_patterns = self.detected_patterns.len();
-        
+
         let mut patterns_by_type = HashMap::new();
         let mut total_strength = 0.0;
 
         for pattern in &self.detected_patterns {
-            *patterns_by_type.entry(pattern.pattern_type.clone()).or_insert(0) += 1;
+            *patterns_by_type
+                .entry(pattern.pattern_type.clone())
+                .or_insert(0) += 1;
             total_strength += pattern.strength.overall;
         }
 
@@ -477,7 +488,7 @@ impl TemporalPatternDetector {
     /// Calculate coverage metrics
     fn calculate_coverage_metrics(&self) -> CoverageMetrics {
         let total_patterns = self.detected_patterns.len() as f64;
-        
+
         if total_patterns == 0.0 {
             return CoverageMetrics {
                 safety_coverage: 0.0,
@@ -486,14 +497,21 @@ impl TemporalPatternDetector {
             };
         }
 
-        let safety_count = self.detected_patterns
+        let safety_count = self
+            .detected_patterns
             .iter()
             .filter(|p| matches!(p.pattern_type, PatternType::Safety | PatternType::Absence))
             .count() as f64;
 
-        let liveness_count = self.detected_patterns
+        let liveness_count = self
+            .detected_patterns
             .iter()
-            .filter(|p| matches!(p.pattern_type, PatternType::Liveness | PatternType::Response | PatternType::Persistence))
+            .filter(|p| {
+                matches!(
+                    p.pattern_type,
+                    PatternType::Liveness | PatternType::Response | PatternType::Persistence
+                )
+            })
             .count() as f64;
 
         CoverageMetrics {
@@ -543,22 +561,30 @@ impl TemporalPatternDetector {
         let mut recommendations = Vec::new();
 
         // Check for missing safety patterns
-        let safety_count = statistics.patterns_by_type.get(&PatternType::Safety).unwrap_or(&0);
+        let safety_count = statistics
+            .patterns_by_type
+            .get(&PatternType::Safety)
+            .unwrap_or(&0);
         if *safety_count == 0 && statistics.total_patterns > 0 {
             recommendations.push(PatternRecommendation {
                 recommendation_type: RecommendationType::AddSafety,
-                message: "Consider adding safety patterns (□P) to specify invariant properties".to_string(),
+                message: "Consider adding safety patterns (□P) to specify invariant properties"
+                    .to_string(),
                 priority: RecommendationPriority::High,
                 affected_pattern: None,
             });
         }
 
         // Check for missing liveness patterns
-        let liveness_count = statistics.patterns_by_type.get(&PatternType::Liveness).unwrap_or(&0);
+        let liveness_count = statistics
+            .patterns_by_type
+            .get(&PatternType::Liveness)
+            .unwrap_or(&0);
         if *liveness_count == 0 && statistics.total_patterns > 0 {
             recommendations.push(PatternRecommendation {
                 recommendation_type: RecommendationType::AddLiveness,
-                message: "Consider adding liveness patterns (◊P) to specify progress properties".to_string(),
+                message: "Consider adding liveness patterns (◊P) to specify progress properties"
+                    .to_string(),
                 priority: RecommendationPriority::High,
                 affected_pattern: None,
             });
@@ -568,7 +594,8 @@ impl TemporalPatternDetector {
         if quality.overall_quality_score < 0.6 {
             recommendations.push(PatternRecommendation {
                 recommendation_type: RecommendationType::ImproveClarity,
-                message: "Consider improving pattern clarity with more meaningful variable names".to_string(),
+                message: "Consider improving pattern clarity with more meaningful variable names"
+                    .to_string(),
                 priority: RecommendationPriority::Medium,
                 affected_pattern: None,
             });
@@ -578,7 +605,8 @@ impl TemporalPatternDetector {
         if statistics.coverage.overall_coverage < 50.0 {
             recommendations.push(PatternRecommendation {
                 recommendation_type: RecommendationType::EnhanceCoverage,
-                message: "Consider adding more temporal patterns to improve system coverage".to_string(),
+                message: "Consider adding more temporal patterns to improve system coverage"
+                    .to_string(),
                 priority: RecommendationPriority::Medium,
                 affected_pattern: None,
             });
@@ -590,8 +618,14 @@ impl TemporalPatternDetector {
     /// Generate analysis warnings
     fn generate_warnings(&self, statistics: &PatternStatistics, warnings: &mut Vec<AispWarning>) {
         // Warn about pattern imbalance
-        let safety_count = statistics.patterns_by_type.get(&PatternType::Safety).unwrap_or(&0);
-        let liveness_count = statistics.patterns_by_type.get(&PatternType::Liveness).unwrap_or(&0);
+        let safety_count = statistics
+            .patterns_by_type
+            .get(&PatternType::Safety)
+            .unwrap_or(&0);
+        let liveness_count = statistics
+            .patterns_by_type
+            .get(&PatternType::Liveness)
+            .unwrap_or(&0);
 
         if *safety_count > 0 && *liveness_count == 0 {
             warnings.push(AispWarning::warning(
@@ -608,7 +642,8 @@ impl TemporalPatternDetector {
         // Warn about low pattern density
         if statistics.pattern_density < 0.5 {
             warnings.push(AispWarning::warning(
-                "Low temporal pattern density - document may lack temporal specifications".to_string(),
+                "Low temporal pattern density - document may lack temporal specifications"
+                    .to_string(),
             ));
         }
     }
@@ -633,51 +668,68 @@ mod tests {
     fn test_pattern_detector_creation() {
         let detector = TemporalPatternDetector::new();
         assert!(!detector.pattern_rules.is_empty());
-        assert!(detector.pattern_rules.iter().any(|r| r.pattern_type == PatternType::Safety));
-        assert!(detector.pattern_rules.iter().any(|r| r.pattern_type == PatternType::Liveness));
+        assert!(detector
+            .pattern_rules
+            .iter()
+            .any(|r| r.pattern_type == PatternType::Safety));
+        assert!(detector
+            .pattern_rules
+            .iter()
+            .any(|r| r.pattern_type == PatternType::Liveness));
     }
 
     #[test]
     fn test_safety_pattern_detection() {
         let mut detector = TemporalPatternDetector::new();
-        
-        let operators = vec![
-            create_test_operator(TemporalOperator::Always, vec!["P".to_string()]),
-        ];
+
+        let operators = vec![create_test_operator(
+            TemporalOperator::Always,
+            vec!["P".to_string()],
+        )];
 
         let result = detector.detect_patterns(&operators, 100);
-        assert!(result.patterns.iter().any(|p| p.pattern_type == PatternType::Safety));
+        assert!(result
+            .patterns
+            .iter()
+            .any(|p| p.pattern_type == PatternType::Safety));
     }
 
     #[test]
     fn test_liveness_pattern_detection() {
         let mut detector = TemporalPatternDetector::new();
-        
-        let operators = vec![
-            create_test_operator(TemporalOperator::Eventually, vec!["Q".to_string()]),
-        ];
+
+        let operators = vec![create_test_operator(
+            TemporalOperator::Eventually,
+            vec!["Q".to_string()],
+        )];
 
         let result = detector.detect_patterns(&operators, 100);
-        assert!(result.patterns.iter().any(|p| p.pattern_type == PatternType::Liveness));
+        assert!(result
+            .patterns
+            .iter()
+            .any(|p| p.pattern_type == PatternType::Liveness));
     }
 
     #[test]
     fn test_response_pattern_detection() {
         let mut detector = TemporalPatternDetector::new();
-        
+
         let operators = vec![
             create_test_operator(TemporalOperator::Always, vec!["P".to_string()]),
             create_test_operator(TemporalOperator::Eventually, vec!["Q".to_string()]),
         ];
 
         let result = detector.detect_patterns(&operators, 100);
-        assert!(result.patterns.iter().any(|p| matches!(p.pattern_type, PatternType::Response | PatternType::Recurrence)));
+        assert!(result.patterns.iter().any(|p| matches!(
+            p.pattern_type,
+            PatternType::Response | PatternType::Recurrence
+        )));
     }
 
     #[test]
     fn test_pattern_statistics() {
         let mut detector = TemporalPatternDetector::new();
-        
+
         let operators = vec![
             create_test_operator(TemporalOperator::Always, vec!["P".to_string()]),
             create_test_operator(TemporalOperator::Eventually, vec!["Q".to_string()]),
@@ -691,25 +743,25 @@ mod tests {
     #[test]
     fn test_pattern_quality_assessment() {
         let detector = TemporalPatternDetector::new();
-        
+
         let high_strength = PatternStrength {
             syntactic: 0.9,
             semantic: 0.9,
             coverage: 0.9,
             overall: 0.9,
         };
-        
+
         let meaningful_vars = vec!["process_ready".to_string(), "task_complete".to_string()];
         let quality = detector.assess_instance_quality(&high_strength, &meaningful_vars);
         assert_eq!(quality, PatternQuality::High);
-        
+
         let low_strength = PatternStrength {
             syntactic: 0.3,
             semantic: 0.3,
             coverage: 0.3,
             overall: 0.3,
         };
-        
+
         let poor_vars = vec!["p".to_string()];
         let quality = detector.assess_instance_quality(&low_strength, &poor_vars);
         assert_eq!(quality, PatternQuality::VeryLow);
@@ -718,20 +770,24 @@ mod tests {
     #[test]
     fn test_recommendation_generation() {
         let mut detector = TemporalPatternDetector::new();
-        
+
         // Only safety patterns
-        let operators = vec![
-            create_test_operator(TemporalOperator::Always, vec!["P".to_string()]),
-        ];
+        let operators = vec![create_test_operator(
+            TemporalOperator::Always,
+            vec!["P".to_string()],
+        )];
 
         let result = detector.detect_patterns(&operators, 100);
-        assert!(result.recommendations.iter().any(|r| r.recommendation_type == RecommendationType::AddLiveness));
+        assert!(result
+            .recommendations
+            .iter()
+            .any(|r| r.recommendation_type == RecommendationType::AddLiveness));
     }
 
     #[test]
     fn test_coverage_metrics() {
         let mut detector = TemporalPatternDetector::new();
-        
+
         let operators = vec![
             create_test_operator(TemporalOperator::Always, vec!["P".to_string()]),
             create_test_operator(TemporalOperator::Eventually, vec!["Q".to_string()]),

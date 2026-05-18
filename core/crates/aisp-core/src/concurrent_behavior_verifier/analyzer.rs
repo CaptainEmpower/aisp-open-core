@@ -6,9 +6,9 @@ use super::types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term},
-    protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger},
     formal_verification::FormalVerifier,
+    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger},
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
@@ -379,7 +379,7 @@ impl ConcurrentBehaviorAnalyzer {
     /// Analyze concurrent behavior in document
     pub fn analyze(&mut self, document: &AispDocument) -> AispResult<ConcurrentBehaviorAnalysis> {
         let start_time = Instant::now();
-        
+
         // Check cache first
         if let Some(cached) = self.check_cache(document) {
             return Ok(cached);
@@ -387,32 +387,39 @@ impl ConcurrentBehaviorAnalyzer {
 
         // Discover concurrent processes
         let processes = self.process_discovery.discover_processes(document)?;
-        
+
         // Track resource usage
         self.resource_tracker.track_resources(&processes)?;
-        
+
         // Analyze concurrent behavior patterns
         let mut analysis = ConcurrentBehaviorAnalysis::default();
         analysis.concurrent_processes = processes;
-        
+
         // Perform specific analyses
-        analysis.race_condition_analysis = self.analyze_race_conditions(&analysis.concurrent_processes)?;
+        analysis.race_condition_analysis =
+            self.analyze_race_conditions(&analysis.concurrent_processes)?;
         analysis.deadlock_analysis = self.analyze_deadlocks(&analysis.concurrent_processes)?;
-        analysis.synchronization_analysis = self.analyze_synchronization(&analysis.concurrent_processes)?;
-        analysis.resource_contention = self.analyze_resource_contention(&analysis.concurrent_processes)?;
-        analysis.message_passing_analysis = self.analyze_message_passing(&analysis.concurrent_processes)?;
+        analysis.synchronization_analysis =
+            self.analyze_synchronization(&analysis.concurrent_processes)?;
+        analysis.resource_contention =
+            self.analyze_resource_contention(&analysis.concurrent_processes)?;
+        analysis.message_passing_analysis =
+            self.analyze_message_passing(&analysis.concurrent_processes)?;
         analysis.performance_impact = self.analyze_performance_impact(&analysis)?;
 
         // Validate analysis completeness
         self.validate_analysis(&analysis)?;
-        
+
         // Cache results if enabled
         if self.config.enable_profiling {
             self.cache_result(document, &analysis);
-            
+
             let analysis_duration = start_time.elapsed();
             if analysis_duration > self.config.analysis_timeout {
-                analysis.warnings.push(format!("Analysis took longer than expected: {:?}", analysis_duration));
+                analysis.warnings.push(format!(
+                    "Analysis took longer than expected: {:?}",
+                    analysis_duration
+                ));
             }
         }
 
@@ -433,7 +440,9 @@ impl ConcurrentBehaviorAnalyzer {
     /// Validate analysis completeness and consistency
     fn validate_analysis(&self, analysis: &ConcurrentBehaviorAnalysis) -> AispResult<()> {
         if analysis.concurrent_processes.is_empty() {
-            return Err(AispError::validation_error("No concurrent processes detected"));
+            return Err(AispError::validation_error(
+                "No concurrent processes detected",
+            ));
         }
 
         // Additional validation logic
@@ -441,18 +450,23 @@ impl ConcurrentBehaviorAnalyzer {
     }
 
     /// Analyze race conditions
-    fn analyze_race_conditions(&self, processes: &[ConcurrentProcess]) -> AispResult<RaceConditionAnalysis> {
+    fn analyze_race_conditions(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<RaceConditionAnalysis> {
         let mut analysis = RaceConditionAnalysis::default();
-        
+
         // Identify shared resources
         let shared_resources = self.identify_shared_resources(processes);
-        
+
         // Analyze each shared resource for potential races
         for resource in shared_resources {
             let resource_analysis = self.analyze_shared_resource(&resource, processes)?;
-            analysis.shared_resource_analysis.insert(resource.clone(), resource_analysis);
+            analysis
+                .shared_resource_analysis
+                .insert(resource.clone(), resource_analysis);
         }
-        
+
         analysis.confidence_level = 0.85; // Example confidence
         Ok(analysis)
     }
@@ -461,28 +475,33 @@ impl ConcurrentBehaviorAnalyzer {
     fn identify_shared_resources(&self, processes: &[ConcurrentProcess]) -> HashSet<String> {
         let mut shared_resources = HashSet::new();
         let mut resource_users: HashMap<String, Vec<&str>> = HashMap::new();
-        
+
         // Count resource usage
         for process in processes {
             for resource in &process.shared_resources {
-                resource_users.entry(resource.clone())
+                resource_users
+                    .entry(resource.clone())
                     .or_insert_with(Vec::new)
                     .push(&process.id);
             }
         }
-        
+
         // Identify truly shared resources (used by multiple processes)
         for (resource, users) in resource_users {
             if users.len() > 1 {
                 shared_resources.insert(resource);
             }
         }
-        
+
         shared_resources
     }
 
     /// Analyze specific shared resource
-    fn analyze_shared_resource(&self, resource: &str, processes: &[ConcurrentProcess]) -> AispResult<SharedResourceAnalysis> {
+    fn analyze_shared_resource(
+        &self,
+        resource: &str,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<SharedResourceAnalysis> {
         let mut analysis = SharedResourceAnalysis {
             resource_id: resource.to_string(),
             accessing_processes: HashSet::new(),
@@ -490,14 +509,14 @@ impl ConcurrentBehaviorAnalyzer {
             contention_level: ContentionLevel::None,
             protection_mechanisms: Vec::new(),
         };
-        
+
         // Find processes that access this resource
         for process in processes {
             if process.shared_resources.contains(resource) {
                 analysis.accessing_processes.insert(process.id.clone());
             }
         }
-        
+
         // Determine contention level based on number of accessors
         analysis.contention_level = match analysis.accessing_processes.len() {
             0..=1 => ContentionLevel::None,
@@ -506,7 +525,7 @@ impl ConcurrentBehaviorAnalyzer {
             7..=10 => ContentionLevel::High,
             _ => ContentionLevel::Critical,
         };
-        
+
         Ok(analysis)
     }
 
@@ -517,25 +536,37 @@ impl ConcurrentBehaviorAnalyzer {
     }
 
     /// Analyze synchronization mechanisms
-    fn analyze_synchronization(&self, processes: &[ConcurrentProcess]) -> AispResult<SynchronizationAnalysis> {
+    fn analyze_synchronization(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<SynchronizationAnalysis> {
         // Synchronization analysis implementation
         Ok(SynchronizationAnalysis::default())
     }
 
     /// Analyze resource contention
-    fn analyze_resource_contention(&self, processes: &[ConcurrentProcess]) -> AispResult<ResourceContentionAnalysis> {
+    fn analyze_resource_contention(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<ResourceContentionAnalysis> {
         // Resource contention analysis implementation
         Ok(ResourceContentionAnalysis::default())
     }
 
     /// Analyze message passing patterns
-    fn analyze_message_passing(&self, processes: &[ConcurrentProcess]) -> AispResult<MessagePassingAnalysis> {
+    fn analyze_message_passing(
+        &self,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<MessagePassingAnalysis> {
         // Message passing analysis implementation
         Ok(MessagePassingAnalysis::default())
     }
 
     /// Analyze performance impact
-    fn analyze_performance_impact(&self, analysis: &ConcurrentBehaviorAnalysis) -> AispResult<ConcurrencyPerformanceImpact> {
+    fn analyze_performance_impact(
+        &self,
+        analysis: &ConcurrentBehaviorAnalysis,
+    ) -> AispResult<ConcurrencyPerformanceImpact> {
         // Performance impact analysis implementation
         Ok(ConcurrencyPerformanceImpact::default())
     }
@@ -552,7 +583,10 @@ impl ProcessDiscoveryEngine {
     }
 
     /// Discover concurrent processes in document
-    pub fn discover_processes(&mut self, document: &AispDocument) -> AispResult<Vec<ConcurrentProcess>> {
+    pub fn discover_processes(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<ConcurrentProcess>> {
         // Process discovery implementation
         Ok(Vec::new())
     }
@@ -575,7 +609,11 @@ impl ProcessDiscoveryEngine {
                 pattern: DiscoveryPattern {
                     pattern_type: PatternType::MessagePassing,
                     rules: Vec::new(),
-                    signatures: vec!["send".to_string(), "receive".to_string(), "publish".to_string()],
+                    signatures: vec![
+                        "send".to_string(),
+                        "receive".to_string(),
+                        "publish".to_string(),
+                    ],
                 },
                 confidence: 0.85,
                 priority: 2,
@@ -642,15 +680,15 @@ mod tests {
     #[test]
     fn test_shared_resource_identification() {
         let analyzer = ConcurrentBehaviorAnalyzer::new();
-        
+
         let mut shared_resources_1 = HashSet::new();
         shared_resources_1.insert("resource_a".to_string());
         shared_resources_1.insert("resource_b".to_string());
-        
+
         let mut shared_resources_2 = HashSet::new();
         shared_resources_2.insert("resource_b".to_string());
         shared_resources_2.insert("resource_c".to_string());
-        
+
         let processes = vec![
             ConcurrentProcess {
                 id: "proc1".to_string(),
@@ -673,7 +711,7 @@ mod tests {
                 process_type: ProcessType::Worker,
             },
         ];
-        
+
         let shared = analyzer.identify_shared_resources(&processes);
         assert!(shared.contains("resource_b")); // Only resource_b is truly shared
         assert!(!shared.contains("resource_a"));
@@ -683,13 +721,13 @@ mod tests {
     #[test]
     fn test_contention_level_calculation() {
         let analyzer = ConcurrentBehaviorAnalyzer::new();
-        
+
         // Test different contention levels based on accessor count
         let mut accessing_processes = HashSet::new();
         accessing_processes.insert("proc1".to_string());
         accessing_processes.insert("proc2".to_string());
         accessing_processes.insert("proc3".to_string());
-        
+
         let analysis = SharedResourceAnalysis {
             resource_id: "test_resource".to_string(),
             accessing_processes,
@@ -697,7 +735,7 @@ mod tests {
             contention_level: ContentionLevel::Low, // Will be overridden
             protection_mechanisms: Vec::new(),
         };
-        
+
         // 3 processes should result in Low contention
         assert_eq!(ContentionLevel::Low, ContentionLevel::Low);
     }
@@ -706,9 +744,9 @@ mod tests {
     fn test_discovery_strategy_priority() {
         let engine = ProcessDiscoveryEngine::new();
         let strategies = engine.strategies;
-        
+
         assert!(!strategies.is_empty());
-        
+
         // First strategy should be state machine detection with high priority
         let first_strategy = &strategies[0];
         assert_eq!(first_strategy.name, "State Machine Detection");

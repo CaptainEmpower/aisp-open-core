@@ -26,7 +26,7 @@ use crate::{
     formal_semantics::*,
     soundness_proofs::*,
 };
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
 /// Semantic preservation verification result
@@ -175,11 +175,11 @@ impl SemanticPreservationVerifier {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     /// Verify semantic preservation across all transformations
     pub fn verify_preservation(&self) -> AispResult<PreservationVerification> {
         let start_time = std::time::Instant::now();
-        
+
         let transformations = vec![
             self.verify_parsing_preservation()?,
             self.verify_ast_construction_preservation()?,
@@ -187,23 +187,24 @@ impl SemanticPreservationVerifier {
             self.verify_smt_translation_preservation()?,
             self.verify_optimization_preservation()?,
         ];
-        
+
         let bisimulations = self.establish_bisimulations();
         let counterexamples = self.find_counterexamples(&transformations)?;
-        
-        let preservation_verified = transformations.iter().all(|t| t.verified)
-            && counterexamples.is_empty();
-        
+
+        let preservation_verified =
+            transformations.iter().all(|t| t.verified) && counterexamples.is_empty();
+
         let verification_time = start_time.elapsed().as_millis() as f64;
         let statistics = PreservationStatistics {
             total_transformations: transformations.len(),
             verified_transformations: transformations.iter().filter(|t| t.verified).count(),
             failed_verifications: transformations.iter().filter(|t| !t.verified).count(),
-            coverage_percentage: (transformations.iter().filter(|t| t.verified).count() as f64 
-                / transformations.len() as f64) * 100.0,
+            coverage_percentage: (transformations.iter().filter(|t| t.verified).count() as f64
+                / transformations.len() as f64)
+                * 100.0,
             average_verification_time: verification_time / transformations.len() as f64,
         };
-        
+
         Ok(PreservationVerification {
             verified_transformations: transformations,
             preservation_verified,
@@ -212,7 +213,7 @@ impl SemanticPreservationVerifier {
             statistics,
         })
     }
-    
+
     /// Verify that parsing preserves semantic meaning
     fn verify_parsing_preservation(&self) -> AispResult<TransformationProof> {
         Ok(TransformationProof {
@@ -226,7 +227,7 @@ impl SemanticPreservationVerifier {
             formal_proof: Some(self.generate_parsing_proof()),
         })
     }
-    
+
     /// Generate formal proof for parsing preservation
     fn generate_parsing_proof(&self) -> String {
         r#"
@@ -258,9 +259,10 @@ Inductive cases:
    - Combining characters and variants map to same logical symbols
 
 Conclusion: Parser preserves semantic meaning by construction. □
-        "#.to_string()
+        "#
+        .to_string()
     }
-    
+
     /// Verify AST construction preserves semantics
     fn verify_ast_construction_preservation(&self) -> AispResult<TransformationProof> {
         Ok(TransformationProof {
@@ -268,13 +270,14 @@ Conclusion: Parser preserves semantic meaning by construction. □
             description: "Tokens → AST with type annotations".to_string(),
             source_type: RepresentationType::Tokens,
             target_type: RepresentationType::AST,
-            theorem_statement: "∀tokens:TokenStream. semantics(tokens) ≡ semantics(build_ast(tokens))".to_string(),
+            theorem_statement:
+                "∀tokens:TokenStream. semantics(tokens) ≡ semantics(build_ast(tokens))".to_string(),
             proof_method: PreservationProofMethod::SyntacticTranslation,
             verified: true,
             formal_proof: Some(self.generate_ast_construction_proof()),
         })
     }
-    
+
     /// Generate formal proof for AST construction preservation
     fn generate_ast_construction_proof(&self) -> String {
         r#"
@@ -304,9 +307,10 @@ Key preservation properties:
 Formal argument:
 By induction on token stream structure, each AST node preserves the
 semantic interpretation of its corresponding token sequence. □
-        "#.to_string()
+        "#
+        .to_string()
     }
-    
+
     /// Verify semantic analysis preserves meaning
     fn verify_semantic_analysis_preservation(&self) -> AispResult<TransformationProof> {
         Ok(TransformationProof {
@@ -314,13 +318,14 @@ semantic interpretation of its corresponding token sequence. □
             description: "AST → Semantically annotated AST".to_string(),
             source_type: RepresentationType::AST,
             target_type: RepresentationType::SemanticDomain,
-            theorem_statement: "∀ast:AST. semantics(ast) ≡ semantics(semantic_analysis(ast))".to_string(),
+            theorem_statement: "∀ast:AST. semantics(ast) ≡ semantics(semantic_analysis(ast))"
+                .to_string(),
             proof_method: PreservationProofMethod::DenotationalEquivalence,
             verified: true,
             formal_proof: Some(self.generate_semantic_analysis_proof()),
         })
     }
-    
+
     /// Generate proof for semantic analysis preservation
     fn generate_semantic_analysis_proof(&self) -> String {
         r#"
@@ -355,9 +360,10 @@ Preservation argument:
 
 Since semantic analysis only validates and annotates without transformation,
 semantic equivalence is maintained by construction. □
-        "#.to_string()
+        "#
+        .to_string()
     }
-    
+
     /// Verify SMT translation preserves logical meaning
     fn verify_smt_translation_preservation(&self) -> AispResult<TransformationProof> {
         Ok(TransformationProof {
@@ -365,13 +371,14 @@ semantic equivalence is maintained by construction. □
             description: "Logical formulas → SMT-LIB formulas".to_string(),
             source_type: RepresentationType::LogicalFormulas,
             target_type: RepresentationType::SMTFormulas,
-            theorem_statement: "∀formula:Logic. satisfiable(formula) ⟺ satisfiable(to_smt(formula))".to_string(),
+            theorem_statement:
+                "∀formula:Logic. satisfiable(formula) ⟺ satisfiable(to_smt(formula))".to_string(),
             proof_method: PreservationProofMethod::ModelTheoreticEquivalence,
             verified: true,
             formal_proof: Some(self.generate_smt_translation_proof()),
         })
     }
-    
+
     /// Generate proof for SMT translation preservation
     fn generate_smt_translation_proof(&self) -> String {
         r#"
@@ -403,9 +410,10 @@ Model preservation:
 
 Conclusion: SMT translation preserves logical meaning through
 systematic model-theoretic correspondence. □
-        "#.to_string()
+        "#
+        .to_string()
     }
-    
+
     /// Verify optimization preserves behavioral equivalence
     fn verify_optimization_preservation(&self) -> AispResult<TransformationProof> {
         Ok(TransformationProof {
@@ -413,13 +421,14 @@ systematic model-theoretic correspondence. □
             description: "AST optimizations and transformations".to_string(),
             source_type: RepresentationType::AST,
             target_type: RepresentationType::AST,
-            theorem_statement: "∀ast:AST. ∀opt:Optimization. semantics(ast) ≡ semantics(opt(ast))".to_string(),
+            theorem_statement: "∀ast:AST. ∀opt:Optimization. semantics(ast) ≡ semantics(opt(ast))"
+                .to_string(),
             proof_method: PreservationProofMethod::OperationalBisimulation,
             verified: true,
             formal_proof: Some(self.generate_optimization_proof()),
         })
     }
-    
+
     /// Generate proof for optimization preservation
     fn generate_optimization_proof(&self) -> String {
         r#"
@@ -453,9 +462,10 @@ Proof technique: Operational bisimulation
 
 Conclusion: All optimizations preserve semantic equivalence
 through carefully verified transformation rules. □
-        "#.to_string()
+        "#
+        .to_string()
     }
-    
+
     /// Establish bisimulation relations between representations
     fn establish_bisimulations(&self) -> Vec<BisimulationRelation> {
         vec![
@@ -463,8 +473,10 @@ through carefully verified transformation rules. □
                 id: "text_ast_bisim".to_string(),
                 source_type: RepresentationType::RawText,
                 target_type: RepresentationType::AST,
-                relation_definition: "text ~ ast iff parse(text) = ast ∧ pretty_print(ast) ≈ text".to_string(),
-                bisimulation_proof: "Parsing and pretty-printing form bijection up to formatting".to_string(),
+                relation_definition: "text ~ ast iff parse(text) = ast ∧ pretty_print(ast) ≈ text"
+                    .to_string(),
+                bisimulation_proof: "Parsing and pretty-printing form bijection up to formatting"
+                    .to_string(),
                 verified: true,
             },
             BisimulationRelation {
@@ -472,76 +484,91 @@ through carefully verified transformation rules. □
                 source_type: RepresentationType::AST,
                 target_type: RepresentationType::SemanticDomain,
                 relation_definition: "ast ~ sem iff semantic_interpretation(ast) = sem".to_string(),
-                bisimulation_proof: "Semantic interpretation is functional and surjective".to_string(),
+                bisimulation_proof: "Semantic interpretation is functional and surjective"
+                    .to_string(),
                 verified: true,
             },
             BisimulationRelation {
                 id: "logic_smt_bisim".to_string(),
                 source_type: RepresentationType::LogicalFormulas,
                 target_type: RepresentationType::SMTFormulas,
-                relation_definition: "logic ~ smt iff to_smt(logic) = smt ∧ satisfiable(logic) ⟺ satisfiable(smt)".to_string(),
-                bisimulation_proof: "SMT translation preserves satisfiability (proven above)".to_string(),
+                relation_definition:
+                    "logic ~ smt iff to_smt(logic) = smt ∧ satisfiable(logic) ⟺ satisfiable(smt)"
+                        .to_string(),
+                bisimulation_proof: "SMT translation preserves satisfiability (proven above)"
+                    .to_string(),
                 verified: true,
             },
         ]
     }
-    
+
     /// Search for counterexamples to preservation
-    fn find_counterexamples(&self, transformations: &[TransformationProof]) -> AispResult<Vec<PreservationCounterexample>> {
+    fn find_counterexamples(
+        &self,
+        transformations: &[TransformationProof],
+    ) -> AispResult<Vec<PreservationCounterexample>> {
         // In a complete implementation, this would:
         // 1. Generate test cases systematically
         // 2. Apply transformations and check semantic equivalence
         // 3. Report any cases where semantics are not preserved
-        
+
         // For now, return empty (indicating no counterexamples found)
         Ok(vec![])
     }
-    
+
     /// Verify preservation for a specific transformation
     pub fn verify_transformation_preservation(
-        &self, 
-        source: &str, 
-        transformation: impl Fn(&str) -> AispResult<String>
+        &self,
+        source: &str,
+        transformation: impl Fn(&str) -> AispResult<String>,
     ) -> AispResult<bool> {
         let target = transformation(source)?;
-        
-        // Get semantic interpretation of source  
+
+        // Get semantic interpretation of source
         let source_parsed = crate::parser::parse(source)?;
-        let source_doc = source_parsed.get_primary_document().ok_or_else(|| {
-            AispError::ParseError { 
-                message: "No primary document found in source".to_string(), 
-                line: 0, 
-                column: 0 
-            }
-        })?;
+        let source_doc =
+            source_parsed
+                .get_primary_document()
+                .ok_or_else(|| AispError::ParseError {
+                    message: "No primary document found in source".to_string(),
+                    line: 0,
+                    column: 0,
+                })?;
         let source_semantics = self.semantics.interpret(source_doc)?;
-        
+
         // Get semantic interpretation of target
         let target_parsed = crate::parser::parse(&target)?;
-        let target_doc = target_parsed.get_primary_document().ok_or_else(|| {
-            AispError::ParseError { 
-                message: "No primary document found in target".to_string(), 
-                line: 0, 
-                column: 0 
-            }
-        })?;
+        let target_doc =
+            target_parsed
+                .get_primary_document()
+                .ok_or_else(|| AispError::ParseError {
+                    message: "No primary document found in target".to_string(),
+                    line: 0,
+                    column: 0,
+                })?;
         let target_semantics = self.semantics.interpret(target_doc)?;
-        
+
         // Check semantic equivalence
-        Ok(self.semantics.semantically_equivalent(&source_semantics, &target_semantics))
+        Ok(self
+            .semantics
+            .semantically_equivalent(&source_semantics, &target_semantics))
     }
-    
+
     /// Generate preservation report
     pub fn generate_preservation_report(&self, verification: &PreservationVerification) -> String {
         let mut report = String::new();
-        
+
         report.push_str("# AISP Semantic Preservation Verification Report\n\n");
-        
+
         report.push_str(&format!(
             "## Overall Status: {}\n\n",
-            if verification.preservation_verified { "✅ PRESERVED" } else { "❌ NOT PRESERVED" }
+            if verification.preservation_verified {
+                "✅ PRESERVED"
+            } else {
+                "❌ NOT PRESERVED"
+            }
         ));
-        
+
         report.push_str(&format!(
             "## Statistics\n\
              - Total transformations: {}\n\
@@ -555,7 +582,7 @@ through carefully verified transformation rules. □
             verification.statistics.coverage_percentage,
             verification.statistics.average_verification_time
         ));
-        
+
         report.push_str("## Transformation Analysis\n");
         for transformation in &verification.verified_transformations {
             report.push_str(&format!(
@@ -569,11 +596,15 @@ through carefully verified transformation rules. □
                 transformation.source_type,
                 transformation.target_type,
                 transformation.proof_method,
-                if transformation.verified { "✅ Verified" } else { "❌ Failed" },
+                if transformation.verified {
+                    "✅ Verified"
+                } else {
+                    "❌ Failed"
+                },
                 transformation.theorem_statement
             ));
         }
-        
+
         if !verification.counterexamples.is_empty() {
             report.push_str("## ⚠️  Counterexamples Found\n");
             for counter in &verification.counterexamples {
@@ -589,7 +620,7 @@ through carefully verified transformation rules. □
                 ));
             }
         }
-        
+
         report.push_str("## Bisimulation Relations\n");
         for bisim in &verification.bisimulations {
             report.push_str(&format!(
@@ -601,10 +632,14 @@ through carefully verified transformation rules. □
                 format!("{:?} ↔ {:?}", bisim.source_type, bisim.target_type),
                 bisim.relation_definition,
                 bisim.bisimulation_proof,
-                if bisim.verified { "✅ Verified" } else { "❌ Failed" }
+                if bisim.verified {
+                    "✅ Verified"
+                } else {
+                    "❌ Failed"
+                }
             ));
         }
-        
+
         report
     }
 }
@@ -618,74 +653,76 @@ mod tests {
     fn test_preservation_verification() {
         let verifier = SemanticPreservationVerifier::new();
         let verification = verifier.verify_preservation();
-        
+
         assert!(verification.is_ok());
         let verification = verification.unwrap();
         assert!(verification.preservation_verified);
         assert!(verification.counterexamples.is_empty());
         assert_eq!(verification.verified_transformations.len(), 5);
     }
-    
+
     #[test]
     fn test_parsing_preservation() {
         let verifier = SemanticPreservationVerifier::new();
         let proof = verifier.verify_parsing_preservation().unwrap();
-        
+
         assert_eq!(proof.transformation_id, "parsing");
         assert_eq!(proof.source_type, RepresentationType::RawText);
         assert_eq!(proof.target_type, RepresentationType::AST);
         assert!(proof.verified);
         assert!(proof.formal_proof.is_some());
     }
-    
+
     #[test]
     fn test_smt_translation_preservation() {
         let verifier = SemanticPreservationVerifier::new();
         let proof = verifier.verify_smt_translation_preservation().unwrap();
-        
+
         assert_eq!(proof.transformation_id, "smt_translation");
         assert!(proof.theorem_statement.contains("satisfiable"));
-        assert_eq!(proof.proof_method, PreservationProofMethod::ModelTheoreticEquivalence);
+        assert_eq!(
+            proof.proof_method,
+            PreservationProofMethod::ModelTheoreticEquivalence
+        );
         assert!(proof.verified);
     }
-    
+
     #[test]
     fn test_bisimulation_establishment() {
         let verifier = SemanticPreservationVerifier::new();
         let bisimulations = verifier.establish_bisimulations();
-        
+
         assert!(!bisimulations.is_empty());
-        
+
         // Check for text-AST bisimulation
-        let text_ast_bisim = bisimulations.iter()
-            .find(|b| b.id == "text_ast_bisim");
+        let text_ast_bisim = bisimulations.iter().find(|b| b.id == "text_ast_bisim");
         assert!(text_ast_bisim.is_some());
-        
+
         let bisim = text_ast_bisim.unwrap();
         assert_eq!(bisim.source_type, RepresentationType::RawText);
         assert_eq!(bisim.target_type, RepresentationType::AST);
         assert!(bisim.verified);
     }
-    
+
     #[test]
     fn test_transformation_preservation_check() {
         let verifier = SemanticPreservationVerifier::new();
-        
+
         // Identity transformation should preserve semantics
         let identity = |s: &str| Ok(s.to_string());
         let source = "𝔸5.1.Test@2024-01-01\n⟦Ω:Meta⟧{domain≜test}";
-        
+
         let preserved = verifier.verify_transformation_preservation(source, identity);
         // Note: This will fail because we don't have a complete parser implementation
         // but the test demonstrates the interface
         assert!(preserved.is_err() || preserved.unwrap());
     }
-    
+
     #[test]
     fn test_preservation_statistics() {
         let verifier = SemanticPreservationVerifier::new();
         let verification = verifier.verify_preservation().unwrap();
-        
+
         let stats = &verification.statistics;
         assert_eq!(stats.total_transformations, 5);
         assert_eq!(stats.verified_transformations, 5);
@@ -693,13 +730,13 @@ mod tests {
         assert_eq!(stats.coverage_percentage, 100.0);
         assert!(stats.average_verification_time >= 0.0);
     }
-    
+
     #[test]
     fn test_report_generation() {
         let verifier = SemanticPreservationVerifier::new();
         let verification = verifier.verify_preservation().unwrap();
         let report = verifier.generate_preservation_report(&verification);
-        
+
         assert!(report.contains("Semantic Preservation Verification Report"));
         assert!(report.contains("✅ PRESERVED"));
         assert!(report.contains("parsing"));
@@ -707,29 +744,30 @@ mod tests {
         assert!(report.contains("Bisimulation Relations"));
         assert!(report.contains("Coverage: 100.0%"));
     }
-    
+
     #[test]
     fn test_formal_proof_generation() {
         let verifier = SemanticPreservationVerifier::new();
         let parsing_proof = verifier.generate_parsing_proof();
-        
+
         assert!(parsing_proof.contains("Proof of Parsing Preservation"));
         assert!(parsing_proof.contains("structural induction"));
         assert!(parsing_proof.contains("Unicode symbols"));
         assert!(parsing_proof.contains("operator precedence"));
         assert!(parsing_proof.contains("□")); // QED symbol
     }
-    
+
     #[test]
     fn test_proof_methods() {
         let verifier = SemanticPreservationVerifier::new();
         let verification = verifier.verify_preservation().unwrap();
-        
-        let methods: HashSet<_> = verification.verified_transformations
+
+        let methods: HashSet<_> = verification
+            .verified_transformations
             .iter()
             .map(|t| &t.proof_method)
             .collect();
-        
+
         // Should include different proof methods
         assert!(methods.contains(&PreservationProofMethod::SyntacticTranslation));
         assert!(methods.contains(&PreservationProofMethod::DenotationalEquivalence));

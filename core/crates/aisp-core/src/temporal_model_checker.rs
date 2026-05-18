@@ -5,7 +5,7 @@
 
 use crate::ast::canonical::{CanonicalAispDocument as AispDocument, *};
 use crate::error::*;
-use crate::temporal_logic_solver::{StateSpace, StateNode, StateTransition, ExecutionTrace};
+use crate::temporal_logic_solver::{ExecutionTrace, StateNode, StateSpace, StateTransition};
 use std::collections::{HashMap, HashSet, VecDeque};
 
 /// Model checking verification result
@@ -421,7 +421,7 @@ impl TemporalModelChecker {
                 is_final: true,
             };
             states.insert("final".to_string(), final_state);
-            
+
             transitions.push(StateTransition {
                 from: "init".to_string(),
                 to: "final".to_string(),
@@ -491,7 +491,9 @@ impl TemporalModelChecker {
         let mut total_outgoing = 0;
         let mut states_with_outgoing = 0;
         for state in state_space.states.keys() {
-            let outgoing_count = state_space.transitions.iter()
+            let outgoing_count = state_space
+                .transitions
+                .iter()
                 .filter(|t| t.from == *state)
                 .count();
             if outgoing_count > 0 {
@@ -534,7 +536,7 @@ impl TemporalModelChecker {
     fn calculate_max_path_length(&self, state_space: &StateSpace) -> usize {
         // Simplified BFS to find longest path
         let mut max_length = 0;
-        
+
         for initial_state in &state_space.initial_states {
             let mut queue = VecDeque::new();
             let mut visited = HashSet::new();
@@ -572,7 +574,7 @@ impl TemporalModelChecker {
 
         while let Some(state) = queue.pop_front() {
             let mut reachable_from_state = HashSet::new();
-            
+
             for transition in &state_space.transitions {
                 if transition.from == state {
                     reachable_from_state.insert(transition.to.clone());
@@ -582,20 +584,22 @@ impl TemporalModelChecker {
                     }
                 }
             }
-            
+
             reachability_graph.insert(state, reachable_from_state);
         }
 
-        let unreachable_states = state_space.states.keys()
+        let unreachable_states = state_space
+            .states
+            .keys()
             .filter(|s| !reachable_states.contains(*s))
             .cloned()
             .collect();
 
         // Find dead states
-        let dead_states = state_space.states.keys()
-            .filter(|state| {
-                !state_space.transitions.iter().any(|t| t.from == **state)
-            })
+        let dead_states = state_space
+            .states
+            .keys()
+            .filter(|state| !state_space.transitions.iter().any(|t| t.from == **state))
             .cloned()
             .collect();
 
@@ -609,7 +613,11 @@ impl TemporalModelChecker {
     }
 
     /// Verify properties in the document
-    fn verify_properties(&mut self, _document: &AispDocument, state_space: &StateSpace) -> Vec<PropertyVerification> {
+    fn verify_properties(
+        &mut self,
+        _document: &AispDocument,
+        state_space: &StateSpace,
+    ) -> Vec<PropertyVerification> {
         let mut verifications = Vec::new();
 
         // Verify basic properties
@@ -622,11 +630,10 @@ impl TemporalModelChecker {
     /// Verify deadlock freedom property
     fn verify_deadlock_freedom(&self, state_space: &StateSpace) -> PropertyVerification {
         let start_time = std::time::Instant::now();
-        
+
         // Check if any non-final state has no outgoing transitions
         let has_deadlock = state_space.states.iter().any(|(state_id, state)| {
-            !state.is_final && 
-            !state_space.transitions.iter().any(|t| t.from == *state_id)
+            !state.is_final && !state_space.transitions.iter().any(|t| t.from == *state_id)
         });
 
         let status = if has_deadlock {
@@ -651,10 +658,10 @@ impl TemporalModelChecker {
     /// Verify reachability property
     fn verify_reachability(&self, state_space: &StateSpace) -> PropertyVerification {
         let start_time = std::time::Instant::now();
-        
+
         // Check if final states are reachable from initial states
-        let final_states_reachable = !state_space.final_states.is_empty() && 
-            self.are_final_states_reachable(state_space);
+        let final_states_reachable =
+            !state_space.final_states.is_empty() && self.are_final_states_reachable(state_space);
 
         let status = if final_states_reachable {
             VerificationStatus::Verified
@@ -740,7 +747,13 @@ impl TemporalModelChecker {
             warnings.push(AispWarning::warning(format!(
                 "{} unreachable states detected: {}",
                 reachability_analysis.unreachable_states.len(),
-                reachability_analysis.unreachable_states.iter().take(3).cloned().collect::<Vec<_>>().join(", ")
+                reachability_analysis
+                    .unreachable_states
+                    .iter()
+                    .take(3)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", ")
             )));
         }
 
@@ -764,8 +777,7 @@ impl TemporalModelChecker {
         if state_space_analysis.total_states > self.config.max_states / 2 {
             warnings.push(AispWarning::warning(format!(
                 "Large state space: {} states (approaching limit of {})",
-                state_space_analysis.total_states,
-                self.config.max_states
+                state_space_analysis.total_states, self.config.max_states
             )));
         }
 
@@ -816,23 +828,29 @@ mod tests {
     #[test]
     fn test_deadlock_freedom_verification() {
         let checker = TemporalModelChecker::new();
-        
+
         // Create simple state space without deadlocks
         let mut states = HashMap::new();
-        states.insert("s1".to_string(), StateNode {
-            id: "s1".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: true,
-            is_final: false,
-        });
-        states.insert("s2".to_string(), StateNode {
-            id: "s2".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: false,
-            is_final: true,
-        });
+        states.insert(
+            "s1".to_string(),
+            StateNode {
+                id: "s1".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: true,
+                is_final: false,
+            },
+        );
+        states.insert(
+            "s2".to_string(),
+            StateNode {
+                id: "s2".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: false,
+                is_final: true,
+            },
+        );
 
         let state_space = StateSpace {
             states,
@@ -853,29 +871,38 @@ mod tests {
     #[test]
     fn test_max_path_length_calculation() {
         let checker = TemporalModelChecker::new();
-        
+
         let mut states = HashMap::new();
-        states.insert("s1".to_string(), StateNode {
-            id: "s1".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: true,
-            is_final: false,
-        });
-        states.insert("s2".to_string(), StateNode {
-            id: "s2".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: false,
-            is_final: false,
-        });
-        states.insert("s3".to_string(), StateNode {
-            id: "s3".to_string(),
-            valuations: HashMap::new(),
-            atomic_props: HashSet::new(),
-            is_initial: false,
-            is_final: true,
-        });
+        states.insert(
+            "s1".to_string(),
+            StateNode {
+                id: "s1".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: true,
+                is_final: false,
+            },
+        );
+        states.insert(
+            "s2".to_string(),
+            StateNode {
+                id: "s2".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: false,
+                is_final: false,
+            },
+        );
+        states.insert(
+            "s3".to_string(),
+            StateNode {
+                id: "s3".to_string(),
+                valuations: HashMap::new(),
+                atomic_props: HashSet::new(),
+                is_initial: false,
+                is_final: true,
+            },
+        );
 
         let state_space = StateSpace {
             states,

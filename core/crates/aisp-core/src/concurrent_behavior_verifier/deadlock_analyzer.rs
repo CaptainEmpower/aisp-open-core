@@ -550,16 +550,16 @@ impl DeadlockAnalyzer {
     pub fn analyze(&mut self, processes: &[ConcurrentProcess]) -> AispResult<DeadlockAnalysis> {
         // Build resource allocation graph
         let graph = self.graph_builder.build_graph(processes)?;
-        
+
         // Detect deadlocks using multiple strategies
         let deadlocks = self.detect_deadlocks(&graph)?;
-        
+
         // Analyze potential deadlocks
         let potential_deadlocks = self.analyze_potential_deadlocks(&graph)?;
-        
+
         // Calculate confidence
         let confidence = self.calculate_confidence(&deadlocks, &potential_deadlocks);
-        
+
         Ok(DeadlockAnalysis {
             deadlocks,
             potential_deadlocks,
@@ -571,19 +571,23 @@ impl DeadlockAnalyzer {
     /// Detect actual deadlocks in resource graph
     fn detect_deadlocks(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         let mut detected_deadlocks = Vec::new();
-        
+
         // Apply each detection strategy
         for strategy in &self.strategies {
             let deadlocks = self.apply_detection_strategy(strategy, graph)?;
             detected_deadlocks.extend(deadlocks);
         }
-        
+
         // Remove duplicates and merge similar deadlocks
         Ok(self.merge_deadlocks(detected_deadlocks))
     }
 
     /// Apply specific detection strategy
-    fn apply_detection_strategy(&self, strategy: &DeadlockDetectionStrategy, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn apply_detection_strategy(
+        &self,
+        strategy: &DeadlockDetectionStrategy,
+        graph: &ResourceGraph,
+    ) -> AispResult<Vec<Deadlock>> {
         match strategy.approach {
             DetectionApproach::ResourceAllocationGraph => self.rag_detection(graph),
             DetectionApproach::WaitForGraph => self.wait_for_detection(graph),
@@ -631,13 +635,20 @@ impl DeadlockAnalyzer {
     }
 
     /// Analyze potential deadlock scenarios
-    fn analyze_potential_deadlocks(&self, graph: &ResourceGraph) -> AispResult<Vec<PotentialDeadlock>> {
+    fn analyze_potential_deadlocks(
+        &self,
+        graph: &ResourceGraph,
+    ) -> AispResult<Vec<PotentialDeadlock>> {
         // Potential deadlock analysis implementation
         Ok(Vec::new())
     }
 
     /// Calculate analysis confidence
-    fn calculate_confidence(&self, deadlocks: &[Deadlock], potential_deadlocks: &[PotentialDeadlock]) -> f64 {
+    fn calculate_confidence(
+        &self,
+        deadlocks: &[Deadlock],
+        potential_deadlocks: &[PotentialDeadlock],
+    ) -> f64 {
         if deadlocks.is_empty() && potential_deadlocks.is_empty() {
             1.0 // High confidence in no deadlocks
         } else if !deadlocks.is_empty() {
@@ -724,39 +735,53 @@ impl ResourceGraphBuilder {
     /// Build resource graph from processes
     pub fn build_graph(&mut self, processes: &[ConcurrentProcess]) -> AispResult<ResourceGraph> {
         let mut graph = ResourceGraph::new();
-        
+
         // Add process nodes
         for process in processes {
-            graph.processes.insert(process.id.clone(), ProcessNode::from_process(process));
+            graph
+                .processes
+                .insert(process.id.clone(), ProcessNode::from_process(process));
         }
-        
+
         // Add resource nodes and edges
         self.add_resource_nodes(&mut graph, processes)?;
         self.add_allocation_edges(&mut graph, processes)?;
         self.add_request_edges(&mut graph, processes)?;
-        
+
         // Update metadata
         graph.metadata.last_updated = Instant::now();
         graph.metadata.version += 1;
-        
+
         self.current_graph = graph.clone();
         Ok(graph)
     }
 
     /// Add resource nodes to graph
-    fn add_resource_nodes(&self, graph: &mut ResourceGraph, processes: &[ConcurrentProcess]) -> AispResult<()> {
+    fn add_resource_nodes(
+        &self,
+        graph: &mut ResourceGraph,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<()> {
         // Resource node creation implementation
         Ok(())
     }
 
     /// Add allocation edges to graph
-    fn add_allocation_edges(&self, graph: &mut ResourceGraph, processes: &[ConcurrentProcess]) -> AispResult<()> {
+    fn add_allocation_edges(
+        &self,
+        graph: &mut ResourceGraph,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<()> {
         // Allocation edge creation implementation
         Ok(())
     }
 
     /// Add request edges to graph
-    fn add_request_edges(&self, graph: &mut ResourceGraph, processes: &[ConcurrentProcess]) -> AispResult<()> {
+    fn add_request_edges(
+        &self,
+        graph: &mut ResourceGraph,
+        processes: &[ConcurrentProcess],
+    ) -> AispResult<()> {
         // Request edge creation implementation
         Ok(())
     }
@@ -811,25 +836,23 @@ impl PreventionAnalyzer {
 
     /// Create default prevention strategies
     fn default_prevention_strategies() -> Vec<PreventionStrategy> {
-        vec![
-            PreventionStrategy {
-                name: "Resource Ordering".to_string(),
-                method: PreventionMethod::ResourceOrdering,
-                complexity: ImplementationComplexity {
-                    development_effort: EffortLevel::Medium,
-                    code_changes: CodeChangeScope::Module,
-                    testing_requirements: TestingComplexity::Moderate,
-                    deployment_complexity: DeploymentComplexity::Simple,
-                },
-                overhead: PerformanceOverhead {
-                    cpu_overhead: 0.05,
-                    memory_overhead: 0.02,
-                    latency_impact: Duration::from_micros(100),
-                    throughput_impact: 0.03,
-                },
-                effectiveness: 0.85,
+        vec![PreventionStrategy {
+            name: "Resource Ordering".to_string(),
+            method: PreventionMethod::ResourceOrdering,
+            complexity: ImplementationComplexity {
+                development_effort: EffortLevel::Medium,
+                code_changes: CodeChangeScope::Module,
+                testing_requirements: TestingComplexity::Moderate,
+                deployment_complexity: DeploymentComplexity::Simple,
             },
-        ]
+            overhead: PerformanceOverhead {
+                cpu_overhead: 0.05,
+                memory_overhead: 0.02,
+                latency_impact: Duration::from_micros(100),
+                throughput_impact: 0.03,
+            },
+            effectiveness: 0.85,
+        }]
     }
 }
 
@@ -845,40 +868,34 @@ impl RecoveryAnalyzer {
 
     /// Create default recovery strategies
     fn default_recovery_strategies() -> Vec<RecoveryStrategy> {
-        vec![
-            RecoveryStrategy {
-                name: "Process Termination".to_string(),
-                method: RecoveryMethod::ProcessTermination,
-                cost: RecoveryCost {
-                    computational_cost: 0.1,
-                    data_loss_risk: 0.8,
-                    disruption_time: Duration::from_millis(100),
-                    resource_waste: 0.9,
-                    user_impact: 0.7,
-                },
-                recovery_time: Duration::from_millis(50),
-                success_probability: 0.95,
+        vec![RecoveryStrategy {
+            name: "Process Termination".to_string(),
+            method: RecoveryMethod::ProcessTermination,
+            cost: RecoveryCost {
+                computational_cost: 0.1,
+                data_loss_risk: 0.8,
+                disruption_time: Duration::from_millis(100),
+                resource_waste: 0.9,
+                user_impact: 0.7,
             },
-        ]
+            recovery_time: Duration::from_millis(50),
+            success_probability: 0.95,
+        }]
     }
 
     /// Create default victim selection policies
     fn default_victim_policies() -> Vec<VictimSelectionPolicy> {
-        vec![
-            VictimSelectionPolicy {
-                name: "Lowest Priority".to_string(),
-                criteria: vec![
-                    SelectionCriterion {
-                        name: "Priority".to_string(),
-                        weight: 0.8,
-                        criterion_type: CriterionType::Priority,
-                        evaluation: "min(priority)".to_string(),
-                    },
-                ],
-                priority: PolicyPriority::High,
-                fairness: 0.6,
-            },
-        ]
+        vec![VictimSelectionPolicy {
+            name: "Lowest Priority".to_string(),
+            criteria: vec![SelectionCriterion {
+                name: "Priority".to_string(),
+                weight: 0.8,
+                criterion_type: CriterionType::Priority,
+                evaluation: "min(priority)".to_string(),
+            }],
+            priority: PolicyPriority::High,
+            fairness: 0.6,
+        }]
     }
 }
 
@@ -918,9 +935,12 @@ mod tests {
     fn test_default_strategies() {
         let strategies = DeadlockAnalyzer::default_strategies();
         assert_eq!(strategies.len(), 3);
-        
+
         let rag_strategy = &strategies[0];
-        assert_eq!(rag_strategy.approach, DetectionApproach::ResourceAllocationGraph);
+        assert_eq!(
+            rag_strategy.approach,
+            DetectionApproach::ResourceAllocationGraph
+        );
         assert!(rag_strategy.accuracy > 0.9);
     }
 
@@ -949,7 +969,7 @@ mod tests {
     fn test_process_node_creation() {
         let mut shared_resources = HashSet::new();
         shared_resources.insert("resource1".to_string());
-        
+
         let process = ConcurrentProcess {
             id: "test_process".to_string(),
             name: "Test Process".to_string(),
@@ -960,7 +980,7 @@ mod tests {
             priority: ProcessPriority::High,
             process_type: ProcessType::Worker,
         };
-        
+
         let node = ProcessNode::from_process(&process);
         assert_eq!(node.process_id, "test_process");
         assert_eq!(node.priority, ProcessPriority::High);

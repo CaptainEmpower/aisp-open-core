@@ -8,9 +8,9 @@ use crate::ast::canonical::*;
 type AispDocument = CanonicalAispDocument;
 type AispBlock = CanonicalAispBlock;
 use crate::error::*;
-use crate::property_types::*;
 use crate::formula_converter::FormulaConverter;
 use crate::property_factory::PropertyFactory;
+use crate::property_types::*;
 use std::collections::HashMap;
 
 /// Advanced property extractor for AISP documents
@@ -74,7 +74,8 @@ impl PropertyExtractor {
         for block in &doc.blocks {
             if let AispBlock::Types(types_block) = block {
                 for (name, type_def) in &types_block.definitions {
-                    self.type_env.insert(name.clone(), type_def.type_expr.clone());
+                    self.type_env
+                        .insert(name.clone(), type_def.type_expr.clone());
                 }
             }
         }
@@ -83,7 +84,8 @@ impl PropertyExtractor {
         for block in &doc.blocks {
             if let AispBlock::Functions(funcs_block) = block {
                 for func_def in &funcs_block.functions {
-                    self.function_env.insert(func_def.name.clone(), func_def.lambda.clone());
+                    self.function_env
+                        .insert(func_def.name.clone(), func_def.lambda.clone());
                 }
             }
         }
@@ -99,7 +101,9 @@ impl PropertyExtractor {
                 id: self.factory.next_property_id(),
                 name: format!("{}_type_safety", type_name),
                 property_type: PropertyType::TypeSafety,
-                formula: self.factory.create_type_safety_formula(type_name, &type_def.type_expr)?,
+                formula: self
+                    .factory
+                    .create_type_safety_formula(type_name, &type_def.type_expr)?,
                 context: self.create_context(),
                 source_location: SourceLocation {
                     block_type: "Types".to_string(),
@@ -119,13 +123,17 @@ impl PropertyExtractor {
 
             // Generate structural invariant if applicable
             if let TypeExpression::Tuple(fields) = &type_def.type_expr {
-                let structural_invariant = self.factory.create_tuple_structural_invariant(type_name, fields)?;
+                let structural_invariant = self
+                    .factory
+                    .create_tuple_structural_invariant(type_name, fields)?;
                 self.properties.push(structural_invariant);
             }
 
             // Generate set membership properties for enumerations
             if let TypeExpression::Enumeration(values) = &type_def.type_expr {
-                let membership_property = self.factory.create_enumeration_property(type_name, values)?;
+                let membership_property = self
+                    .factory
+                    .create_enumeration_property(type_name, values)?;
                 self.properties.push(membership_property);
             }
         }
@@ -165,7 +173,9 @@ impl PropertyExtractor {
                 id: self.factory.next_property_id(),
                 name: format!("{}_well_defined", func_name),
                 property_type: PropertyType::FunctionalCorrectness,
-                formula: self.factory.create_function_well_defined_formula(func_name, &func_def.lambda)?,
+                formula: self
+                    .factory
+                    .create_function_well_defined_formula(func_name, &func_def.lambda)?,
                 context: self.create_context(),
                 source_location: SourceLocation {
                     block_type: "Functions".to_string(),
@@ -184,8 +194,13 @@ impl PropertyExtractor {
             self.properties.push(well_defined);
 
             // Generate totality property (function is defined for all inputs)
-            if self.factory.should_generate_totality_property(&func_def.lambda) {
-                let totality = self.factory.create_totality_property(func_name, &func_def.lambda)?;
+            if self
+                .factory
+                .should_generate_totality_property(&func_def.lambda)
+            {
+                let totality = self
+                    .factory
+                    .create_totality_property(func_name, &func_def.lambda)?;
                 self.properties.push(totality);
             }
         }
@@ -237,8 +252,16 @@ impl PropertyExtractor {
     /// Create property context from current environments
     fn create_context(&self) -> PropertyContext {
         PropertyContext {
-            type_definitions: self.type_env.iter().map(|(k, v)| (k.clone(), format!("{:?}", v))).collect(),
-            function_definitions: self.function_env.iter().map(|(k, v)| (k.clone(), format!("{:?}", v))).collect(),
+            type_definitions: self
+                .type_env
+                .iter()
+                .map(|(k, v)| (k.clone(), format!("{:?}", v)))
+                .collect(),
+            function_definitions: self
+                .function_env
+                .iter()
+                .map(|(k, v)| (k.clone(), format!("{:?}", v)))
+                .collect(),
             constants: HashMap::new(),
             dependencies: vec![],
         }
@@ -251,12 +274,29 @@ impl PropertyExtractor {
 
     /// Get property statistics
     pub fn get_statistics(&self) -> PropertyExtractionStats {
-        let type_count = self.properties.iter().filter(|p| p.property_type == PropertyType::TypeSafety).count();
-        let function_count = self.properties.iter().filter(|p| p.property_type == PropertyType::FunctionalCorrectness).count();
-        let temporal_count = self.properties.iter().filter(|p| 
-            p.property_type == PropertyType::TemporalSafety || p.property_type == PropertyType::TemporalLiveness
-        ).count();
-        let relational_count = self.properties.iter().filter(|p| p.property_type == PropertyType::RelationalConstraint).count();
+        let type_count = self
+            .properties
+            .iter()
+            .filter(|p| p.property_type == PropertyType::TypeSafety)
+            .count();
+        let function_count = self
+            .properties
+            .iter()
+            .filter(|p| p.property_type == PropertyType::FunctionalCorrectness)
+            .count();
+        let temporal_count = self
+            .properties
+            .iter()
+            .filter(|p| {
+                p.property_type == PropertyType::TemporalSafety
+                    || p.property_type == PropertyType::TemporalLiveness
+            })
+            .count();
+        let relational_count = self
+            .properties
+            .iter()
+            .filter(|p| p.property_type == PropertyType::RelationalConstraint)
+            .count();
 
         PropertyExtractionStats {
             total_properties: self.properties.len(),
@@ -265,7 +305,11 @@ impl PropertyExtractor {
             temporal_properties: temporal_count,
             relational_properties: relational_count,
             average_complexity: if !self.properties.is_empty() {
-                self.properties.iter().map(|p| p.complexity.difficulty_score as f64).sum::<f64>() / self.properties.len() as f64
+                self.properties
+                    .iter()
+                    .map(|p| p.complexity.difficulty_score as f64)
+                    .sum::<f64>()
+                    / self.properties.len() as f64
             } else {
                 0.0
             },
@@ -311,11 +355,14 @@ mod tests {
     fn test_type_block_extraction() -> AispResult<()> {
         let mut extractor = PropertyExtractor::new();
         let mut type_definitions = HashMap::new();
-        type_definitions.insert("Integer".to_string(), TypeDefinition {
-            name: "Integer".to_string(),
-            type_expr: TypeExpression::Basic(BasicType::Integer),
-            span: create_test_span(),
-        });
+        type_definitions.insert(
+            "Integer".to_string(),
+            TypeDefinition {
+                name: "Integer".to_string(),
+                type_expr: TypeExpression::Basic(BasicType::Integer),
+                span: create_test_span(),
+            },
+        );
 
         let types_block = TypesBlock {
             definitions: type_definitions,
@@ -327,7 +374,10 @@ mod tests {
         assert!(!extractor.properties.is_empty());
 
         // Should have type safety property
-        assert!(extractor.properties.iter().any(|p| p.name.contains("type_safety")));
+        assert!(extractor
+            .properties
+            .iter()
+            .any(|p| p.name.contains("type_safety")));
 
         Ok(())
     }
@@ -336,11 +386,18 @@ mod tests {
     fn test_enumeration_type_extraction() -> AispResult<()> {
         let mut extractor = PropertyExtractor::new();
         let mut type_definitions = HashMap::new();
-        type_definitions.insert("Color".to_string(), TypeDefinition {
-            name: "Color".to_string(),
-            type_expr: TypeExpression::Enumeration(vec!["Red".to_string(), "Green".to_string(), "Blue".to_string()]),
-            span: create_test_span(),
-        });
+        type_definitions.insert(
+            "Color".to_string(),
+            TypeDefinition {
+                name: "Color".to_string(),
+                type_expr: TypeExpression::Enumeration(vec![
+                    "Red".to_string(),
+                    "Green".to_string(),
+                    "Blue".to_string(),
+                ]),
+                span: create_test_span(),
+            },
+        );
 
         let types_block = TypesBlock {
             definitions: type_definitions,
@@ -351,8 +408,14 @@ mod tests {
         extractor.extract_type_properties(&types_block)?;
 
         // Should have type safety and membership properties
-        assert!(extractor.properties.iter().any(|p| p.name.contains("type_safety")));
-        assert!(extractor.properties.iter().any(|p| p.name.contains("membership")));
+        assert!(extractor
+            .properties
+            .iter()
+            .any(|p| p.name.contains("type_safety")));
+        assert!(extractor
+            .properties
+            .iter()
+            .any(|p| p.name.contains("membership")));
 
         Ok(())
     }
@@ -380,8 +443,14 @@ mod tests {
         extractor.extract_function_properties(&funcs_block)?;
 
         // Should have well-defined and totality properties
-        assert!(extractor.properties.iter().any(|p| p.name.contains("well_defined")));
-        assert!(extractor.properties.iter().any(|p| p.name.contains("totality")));
+        assert!(extractor
+            .properties
+            .iter()
+            .any(|p| p.name.contains("well_defined")));
+        assert!(extractor
+            .properties
+            .iter()
+            .any(|p| p.name.contains("totality")));
 
         Ok(())
     }
@@ -389,7 +458,7 @@ mod tests {
     #[test]
     fn test_statistics_calculation() -> AispResult<()> {
         let mut extractor = PropertyExtractor::new();
-        
+
         // Add some test properties
         extractor.properties.push(ExtractedProperty {
             id: "prop_1".to_string(),
@@ -422,12 +491,12 @@ mod tests {
                 difficulty_score: 5,
             },
         });
-        
+
         let stats = extractor.get_statistics();
         assert_eq!(stats.total_properties, 1);
         assert_eq!(stats.type_properties, 1);
         assert_eq!(stats.average_complexity, 5.0);
-        
+
         Ok(())
     }
 }

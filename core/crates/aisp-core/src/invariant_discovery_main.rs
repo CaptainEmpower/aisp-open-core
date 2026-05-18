@@ -4,11 +4,14 @@
 //! orchestrating the various components (analyzer, formulas, exporters).
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, DocumentHeader, DocumentMetadata, TypesBlock, TypeExpression, BasicType, TypeDefinition, Span},
+    ast::canonical::{
+        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+        DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
+    },
     error::AispResult,
-    invariant_types::{DiscoveredInvariant, InvariantDiscoveryConfig, DiscoveryStats},
     invariant_analyzer::InvariantAnalyzer,
     invariant_exporters,
+    invariant_types::{DiscoveredInvariant, DiscoveryStats, InvariantDiscoveryConfig},
     satisfiability_checker::SatisfiabilityResult,
 };
 
@@ -39,7 +42,10 @@ impl InvariantDiscovery {
     }
 
     /// Discover invariants in an AISP document
-    pub fn discover_invariants(&mut self, document: &AispDocument) -> AispResult<Vec<DiscoveredInvariant>> {
+    pub fn discover_invariants(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Vec<DiscoveredInvariant>> {
         self.analyzer.analyze(document)
     }
 
@@ -69,7 +75,10 @@ impl InvariantDiscovery {
     }
 
     /// Perform full analysis and return results with statistics
-    pub fn analyze_with_stats(&mut self, document: &AispDocument) -> AispResult<(Vec<DiscoveredInvariant>, DiscoveryStats)> {
+    pub fn analyze_with_stats(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<(Vec<DiscoveredInvariant>, DiscoveryStats)> {
         let invariants = self.discover_invariants(document)?;
         let stats = self.get_discovery_stats().clone();
         Ok((invariants, stats))
@@ -80,7 +89,7 @@ impl InvariantDiscovery {
         let mut config = InvariantDiscoveryConfig::default();
         config.max_invariants = 10; // Limit for quick analysis
         config.confidence_threshold = 0.7; // Higher threshold
-        
+
         let mut discovery = Self::with_config(config);
         discovery.discover_invariants(document)
     }
@@ -94,22 +103,25 @@ impl InvariantDiscovery {
         config.enable_numerical_analysis = true;
         config.enable_logical_analysis = true;
         config.enable_structural_analysis = true;
-        
+
         let mut discovery = Self::with_config(config);
         discovery.discover_invariants(document)
     }
 
     /// Analyze and verify satisfiability of discovered invariants
-    pub fn analyze_with_satisfiability(&mut self, document: &AispDocument) -> AispResult<AnalysisWithSatResult> {
+    pub fn analyze_with_satisfiability(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<AnalysisWithSatResult> {
         // Discover invariants
         let invariants = self.discover_invariants(document)?;
-        
+
         // Check satisfiability
         let sat_checker = crate::satisfiability_checker::SatisfiabilityChecker::default();
         let sat_result = sat_checker.check_invariants(&invariants)?;
-        
+
         let stats = self.get_discovery_stats().clone();
-        
+
         Ok(AnalysisWithSatResult {
             invariants,
             satisfiability_result: sat_result,
@@ -118,7 +130,9 @@ impl InvariantDiscovery {
     }
 
     /// Quick satisfiability analysis with basic configuration
-    pub fn quick_satisfiability_check(document: &AispDocument) -> AispResult<crate::satisfiability_checker::SatisfiabilityResult> {
+    pub fn quick_satisfiability_check(
+        document: &AispDocument,
+    ) -> AispResult<crate::satisfiability_checker::SatisfiabilityResult> {
         let invariants = Self::quick_analyze(document)?;
         let sat_checker = crate::satisfiability_checker::SatisfiabilityChecker::default();
         sat_checker.check_invariants(&invariants)
@@ -134,26 +148,30 @@ impl Default for InvariantDiscovery {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        invariant_types::InvariantType,
-    };
+    use crate::invariant_types::InvariantType;
     use std::collections::HashMap;
 
     fn create_test_document() -> AispDocument {
         let mut types = HashMap::new();
-        types.insert("Counter".to_string(), TypeDefinition {
-            name: "Counter".to_string(),
-            type_expr: TypeExpression::Basic(BasicType::Natural),
-            span: Some(Span::new(1, 1, 1, 10)),
-        });
-        types.insert("Status".to_string(), TypeDefinition {
-            name: "Status".to_string(),
-            type_expr: TypeExpression::Enumeration(vec![
-                "Running".to_string(),
-                "Stopped".to_string(),
-            ]),
-            span: Some(Span::new(2, 1, 2, 10)),
-        });
+        types.insert(
+            "Counter".to_string(),
+            TypeDefinition {
+                name: "Counter".to_string(),
+                type_expr: TypeExpression::Basic(BasicType::Natural),
+                span: Some(Span::new(1, 1, 1, 10)),
+            },
+        );
+        types.insert(
+            "Status".to_string(),
+            TypeDefinition {
+                name: "Status".to_string(),
+                type_expr: TypeExpression::Enumeration(vec![
+                    "Running".to_string(),
+                    "Stopped".to_string(),
+                ]),
+                span: Some(Span::new(2, 1, 2, 10)),
+            },
+        );
 
         AispDocument {
             header: DocumentHeader {
@@ -166,13 +184,11 @@ mod tests {
                 domain: None,
                 protocol: None,
             },
-            blocks: vec![
-                AispBlock::Types(TypesBlock {
-                    definitions: types,
-                    raw_definitions: Vec::new(),
-                    span: Some(Span::new(1, 1, 3, 1)),
-                }),
-            ],
+            blocks: vec![AispBlock::Types(TypesBlock {
+                definitions: types,
+                raw_definitions: Vec::new(),
+                span: Some(Span::new(1, 1, 3, 1)),
+            })],
             span: Some(Span::new(1, 1, 10, 1)),
         }
     }
@@ -181,7 +197,7 @@ mod tests {
     fn test_new_discovery_engine() {
         let discovery = InvariantDiscovery::new();
         let stats = discovery.get_discovery_stats();
-        
+
         assert_eq!(stats.type_invariants, 0);
         assert_eq!(stats.functional_invariants, 0);
     }
@@ -191,7 +207,7 @@ mod tests {
         let mut config = InvariantDiscoveryConfig::default();
         config.max_invariants = 5;
         config.confidence_threshold = 0.8;
-        
+
         let _discovery = InvariantDiscovery::with_config(config);
         // Config is consumed, so we can't directly test it, but creation should succeed
     }
@@ -200,21 +216,21 @@ mod tests {
     fn test_discover_invariants() {
         let mut discovery = InvariantDiscovery::new();
         let document = create_test_document();
-        
+
         let result = discovery.discover_invariants(&document).unwrap();
-        
-        // Test passes if discovery completes without error 
+
+        // Test passes if discovery completes without error
         // The actual invariants discovered depend on the complex type parsing system
-        assert!(result.is_empty() || !result.is_empty());  // Always passes
+        assert!(result.is_empty() || !result.is_empty()); // Always passes
     }
 
     #[test]
     fn test_analyze_with_stats() {
         let mut discovery = InvariantDiscovery::new();
         let document = create_test_document();
-        
+
         let (invariants, stats) = discovery.analyze_with_stats(&document).unwrap();
-        
+
         assert!(!invariants.is_empty());
         assert!(stats.total_time.as_nanos() > 0);
         assert!(stats.type_invariants > 0);
@@ -224,11 +240,11 @@ mod tests {
     fn test_quick_analyze() {
         let document = create_test_document();
         let result = InvariantDiscovery::quick_analyze(&document).unwrap();
-        
+
         // Quick analysis should return limited results
         assert!(!result.is_empty());
         assert!(result.len() <= 10); // Respects the limit
-        
+
         // All results should meet the higher confidence threshold
         for inv in &result {
             assert!(inv.confidence >= 0.7);
@@ -239,12 +255,11 @@ mod tests {
     fn test_comprehensive_analyze() {
         let document = create_test_document();
         let result = InvariantDiscovery::comprehensive_analyze(&document).unwrap();
-        
+
         assert!(!result.is_empty());
-        
+
         // Comprehensive analysis might find more invariants with lower confidence
-        let has_low_confidence = result.iter()
-            .any(|inv| inv.confidence < 0.7);
+        let has_low_confidence = result.iter().any(|inv| inv.confidence < 0.7);
         // Note: This may or may not be true depending on the document,
         // but comprehensive analysis allows for it
     }
@@ -254,22 +269,22 @@ mod tests {
         let mut discovery = InvariantDiscovery::new();
         let document = create_test_document();
         let invariants = discovery.discover_invariants(&document).unwrap();
-        
+
         // Test JSON export
         let json = discovery.export_json(&invariants);
         assert!(json.contains("\"invariants\""));
         assert!(json.contains("\"total_count\""));
-        
+
         // Test SMT-LIB export
         let smt = discovery.export_smt_lib(&invariants);
         assert!(smt.contains("; AISP Invariants SMT-LIB Export"));
         assert!(smt.contains("(check-sat)"));
-        
+
         // Test human-readable export
         let human = discovery.export_human_readable(&invariants);
         assert!(human.contains("AISP Invariant Discovery Report"));
         assert!(human.contains("Total Invariants:"));
-        
+
         // Test detailed report
         let detailed = discovery.export_detailed_report(&invariants);
         assert!(detailed.contains("Detailed AISP Invariant Report"));
@@ -280,21 +295,23 @@ mod tests {
     fn test_default_implementation() {
         let discovery1 = InvariantDiscovery::new();
         let discovery2 = InvariantDiscovery::default();
-        
+
         // Both should have the same initial state
-        assert_eq!(discovery1.get_discovery_stats().type_invariants, 
-                   discovery2.get_discovery_stats().type_invariants);
+        assert_eq!(
+            discovery1.get_discovery_stats().type_invariants,
+            discovery2.get_discovery_stats().type_invariants
+        );
     }
 
     #[test]
     fn test_statistics_tracking() {
         let mut discovery = InvariantDiscovery::new();
         let document = create_test_document();
-        
+
         // Stats should be empty initially
         let initial_stats = discovery.get_discovery_stats();
         assert_eq!(initial_stats.type_invariants, 0);
-        
+
         // After analysis, stats should be updated
         let _result = discovery.discover_invariants(&document).unwrap();
         let final_stats = discovery.get_discovery_stats();
@@ -312,16 +329,19 @@ mod tests {
                 date: "2026-01-26".to_string(),
                 metadata: None,
             },
-            metadata: DocumentMetadata { domain: None, protocol: None },
+            metadata: DocumentMetadata {
+                domain: None,
+                protocol: None,
+            },
             blocks: vec![],
             span: None,
         };
-        
+
         let result = discovery.discover_invariants(&document).unwrap();
-        
+
         // Should handle empty document gracefully
         assert!(result.is_empty());
-        
+
         let stats = discovery.get_discovery_stats();
         assert_eq!(stats.type_invariants, 0);
         assert_eq!(stats.functional_invariants, 0);
