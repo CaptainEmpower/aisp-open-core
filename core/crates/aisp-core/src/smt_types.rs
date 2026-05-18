@@ -130,9 +130,16 @@ impl SMTProgram {
     }
 
     /// Add property mapping
-    pub fn add_property(&mut self, property_id: String, assertion_name: String, expected: SMTExpectedResult) {
-        self.property_map.insert(property_id, assertion_name.clone());
-        self.check_commands.push(format!("(check-sat-assuming ({}))", assertion_name));
+    pub fn add_property(
+        &mut self,
+        property_id: String,
+        assertion_name: String,
+        expected: SMTExpectedResult,
+    ) {
+        self.property_map
+            .insert(property_id, assertion_name.clone());
+        self.check_commands
+            .push(format!("(check-sat-assuming ({}))", assertion_name));
         self.expected_results.push(expected);
     }
 
@@ -220,26 +227,31 @@ mod tests {
         assert_eq!(program.property_map.len(), 1);
         assert_eq!(program.check_commands.len(), 1);
         assert_eq!(program.expected_results.len(), 1);
-        
-        assert_eq!(program.property_map.get("prop_1"), Some(&"assertion_1".to_string()));
+
+        assert_eq!(
+            program.property_map.get("prop_1"),
+            Some(&"assertion_1".to_string())
+        );
         assert_eq!(program.expected_results[0], SMTExpectedResult::Unsat);
     }
 
     #[test]
     fn test_smt_program_validation() {
         let mut program = SMTProgram::new();
-        
+
         // Empty script should fail validation
         assert!(program.validate().is_err());
-        
+
         // Add script content
         program.script = "(assert true)".to_string();
         assert!(program.validate().is_ok());
-        
+
         // Add property without corresponding expected result should fail
-        program.property_map.insert("prop_1".to_string(), "assertion_1".to_string());
+        program
+            .property_map
+            .insert("prop_1".to_string(), "assertion_1".to_string());
         assert!(program.validate().is_err());
-        
+
         // Fix by adding expected result
         program.expected_results.push(SMTExpectedResult::Sat);
         assert!(program.validate().is_ok());
@@ -257,7 +269,7 @@ mod tests {
         assert_eq!(SMTExpectedResult::Sat, SMTExpectedResult::Sat);
         assert_eq!(SMTExpectedResult::Unsat, SMTExpectedResult::Unsat);
         assert_eq!(SMTExpectedResult::Unknown, SMTExpectedResult::Unknown);
-        
+
         assert_ne!(SMTExpectedResult::Sat, SMTExpectedResult::Unsat);
         assert_ne!(SMTExpectedResult::Sat, SMTExpectedResult::Unknown);
         assert_ne!(SMTExpectedResult::Unsat, SMTExpectedResult::Unknown);
@@ -277,14 +289,14 @@ mod tests {
     #[test]
     fn test_smt_stats_encoding_efficiency() {
         let mut stats = SMTGenerationStats::new();
-        
+
         // Zero script size should return 0 efficiency
         assert_eq!(stats.encoding_efficiency(), 0.0);
-        
+
         // Set some values
         stats.properties_encoded = 10;
         stats.script_size = 2048; // 2KB
-        
+
         // Should be 5 properties per KB
         assert_eq!(stats.encoding_efficiency(), 5.0);
     }
@@ -294,7 +306,7 @@ mod tests {
         let mut stats = SMTGenerationStats::new();
         stats.sort_declarations = 3;
         stats.function_declarations = 7;
-        
+
         assert_eq!(stats.total_declarations(), 10);
     }
 
@@ -305,7 +317,7 @@ mod tests {
             stats: SMTGenerationStats::new(),
             warnings: vec!["test warning".to_string()],
         };
-        
+
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0], "test warning");
     }
@@ -314,11 +326,11 @@ mod tests {
     fn test_default_implementations() {
         let _program: SMTProgram = Default::default();
         let _stats: SMTGenerationStats = Default::default();
-        
+
         // Should not panic
         let default_program = SMTProgram::default();
         assert!(default_program.script.is_empty());
-        
+
         let default_stats = SMTGenerationStats::default();
         assert_eq!(default_stats.properties_encoded, 0);
     }

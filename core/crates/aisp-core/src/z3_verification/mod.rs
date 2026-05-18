@@ -14,38 +14,33 @@
 //! Compatible with Z3 version 4.15.4 and z3 crate 0.11
 
 pub mod canonical_types;
-pub mod production_verifier;
-pub mod types;
-pub mod environment; 
-pub mod properties;
 pub mod enhanced_verifier;
-pub mod smt_interface;
+pub mod environment;
 pub mod facade;
+pub mod production_verifier;
+pub mod properties;
+pub mod smt_interface;
+pub mod types;
 pub mod verifier;
 
 // Re-export main interfaces from canonical types
 pub use canonical_types::{
-    Z3VerificationConfig as AdvancedVerificationConfig, 
-    Z3VerificationResult as EnhancedVerificationResult, 
+    Z3CounterexampleModel as CounterexampleModel, Z3Diagnostic as SolverDiagnostic,
+    Z3DiagnosticLevel as DiagnosticLevel, Z3FormalProof as FormalProof,
+    Z3PropertyCategory as PropertyCategory, Z3PropertyResult as PropertyResult,
+    Z3UnsatCore as UnsatCore, Z3VerificationConfig as AdvancedVerificationConfig,
+    Z3VerificationResult as EnhancedVerificationResult,
     Z3VerificationStatistics as EnhancedVerificationStats,
-    Z3VerificationStatus as VerificationStatus, 
-    Z3PropertyCategory as PropertyCategory, 
-    Z3PropertyResult as PropertyResult, 
-    Z3VerifiedProperty as VerifiedProperty,
-    Z3FormalProof as FormalProof, 
-    Z3CounterexampleModel as CounterexampleModel, 
-    Z3UnsatCore as UnsatCore, 
-    Z3Diagnostic as SolverDiagnostic, 
-    Z3DiagnosticLevel as DiagnosticLevel,
+    Z3VerificationStatus as VerificationStatus, Z3VerifiedProperty as VerifiedProperty,
 };
 
-pub use environment::{AispZ3Environment, AispSort, AispFunction, AispConstant};
+pub use environment::{AispConstant, AispFunction, AispSort, AispZ3Environment};
 
 pub use properties::PropertyVerifier;
 
 pub use enhanced_verifier::EnhancedZ3Verifier;
-pub use smt_interface::SmtInterface;
 pub use facade::Z3VerificationFacade;
+pub use smt_interface::SmtInterface;
 
 /// Convenience function to check Z3 availability
 pub fn is_z3_available() -> bool {
@@ -81,7 +76,9 @@ pub fn quick_verify(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span};
+    use crate::ast::canonical::{
+        CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
+    };
     use crate::ast::Position;
 
     fn create_minimal_document() -> AispDocument {
@@ -116,12 +113,12 @@ mod tests {
     #[test]
     fn test_facade_creation() {
         let facade_result = create_z3_facade();
-        
+
         #[cfg(feature = "z3-verification")]
         {
             assert!(facade_result.is_ok());
         }
-        
+
         #[cfg(not(feature = "z3-verification"))]
         {
             assert!(facade_result.is_ok());
@@ -131,12 +128,12 @@ mod tests {
     #[test]
     fn test_verifier_creation() {
         let verifier_result = create_default_verifier();
-        
+
         #[cfg(feature = "z3-verification")]
         {
             assert!(verifier_result.is_ok());
         }
-        
+
         #[cfg(not(feature = "z3-verification"))]
         {
             assert!(verifier_result.is_err());
@@ -157,7 +154,7 @@ mod tests {
         };
 
         let verifier_result = create_configured_verifier(config);
-        
+
         #[cfg(feature = "z3-verification")]
         {
             assert!(verifier_result.is_ok());
@@ -165,7 +162,7 @@ mod tests {
             assert_eq!(verifier.get_config().query_timeout_ms, 15000);
             assert!(!verifier.get_config().incremental);
         }
-        
+
         #[cfg(not(feature = "z3-verification"))]
         {
             assert!(verifier_result.is_err());
@@ -237,9 +234,15 @@ mod tests {
 
     #[test]
     fn test_verification_status_equality() {
-        assert_eq!(VerificationStatus::AllVerified, VerificationStatus::AllVerified);
-        assert_ne!(VerificationStatus::AllVerified, VerificationStatus::Disabled);
-        
+        assert_eq!(
+            VerificationStatus::AllVerified,
+            VerificationStatus::AllVerified
+        );
+        assert_ne!(
+            VerificationStatus::AllVerified,
+            VerificationStatus::Disabled
+        );
+
         match VerificationStatus::Failed("test".to_string()) {
             VerificationStatus::Failed(msg) => assert_eq!(msg, "test"),
             _ => panic!("Expected failed status"),

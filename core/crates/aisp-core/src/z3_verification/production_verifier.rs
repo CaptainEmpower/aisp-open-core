@@ -14,7 +14,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant, SystemTime};
 
 /// Production-ready Z3 verification engine
-/// 
+///
 /// **Production Features:**
 /// - Resource-bounded verification with timeout enforcement
 /// - Comprehensive error recovery and fallback strategies
@@ -91,7 +91,7 @@ impl ProductionZ3Verifier {
             miss_count: 0,
             max_entries: 1000, // Configurable cache size
         }));
-        
+
         let resource_monitor = ResourceMonitor {
             start_time: Instant::now(),
             peak_memory: 0,
@@ -132,7 +132,7 @@ impl ProductionZ3Verifier {
 
         // Extract properties from document
         let extracted_properties = self.extract_verification_properties(document)?;
-        
+
         // Verify each property
         for (property_id, property_info) in extracted_properties {
             match self.verify_single_property(&property_id, &property_info) {
@@ -146,7 +146,7 @@ impl ProductionZ3Verifier {
                         context: Some(property_id.clone()),
                         timestamp: Instant::now(),
                     });
-                    
+
                     // Create error property result
                     let error_property = Z3VerifiedProperty::new(
                         property_id,
@@ -170,7 +170,7 @@ impl ProductionZ3Verifier {
 
         // Calculate overall status
         let status = self.calculate_verification_status(&properties);
-        
+
         // Generate final statistics
         let final_stats = self.generate_final_statistics(start_time, &properties);
         let timing = self.calculate_timing_breakdown(start_time);
@@ -201,7 +201,7 @@ impl ProductionZ3Verifier {
                 description: "Document structure validity".to_string(),
                 formula: self.generate_document_validity_formula(document)?,
                 priority: 1,
-            }
+            },
         );
 
         // Extract type safety properties
@@ -212,7 +212,7 @@ impl ProductionZ3Verifier {
                 description: "Type system correctness".to_string(),
                 formula: self.generate_type_safety_formula(document)?,
                 priority: 1,
-            }
+            },
         );
 
         // Extract mathematical consistency properties
@@ -223,7 +223,7 @@ impl ProductionZ3Verifier {
                 description: "Mathematical soundness".to_string(),
                 formula: self.generate_math_consistency_formula(document)?,
                 priority: 2,
-            }
+            },
         );
 
         Ok(properties)
@@ -236,7 +236,7 @@ impl ProductionZ3Verifier {
         property_info: &PropertyInfo,
     ) -> AispResult<Z3VerifiedProperty> {
         let start_time = Instant::now();
-        
+
         // Check cache first
         if let Some(cached_result) = self.check_cache(&property_info.formula) {
             self.update_cache_hit_stats();
@@ -245,7 +245,8 @@ impl ProductionZ3Verifier {
                 property_info.category.clone(),
                 property_info.description.clone(),
                 cached_result.result,
-            ).with_formula(property_info.formula.clone()));
+            )
+            .with_formula(property_info.formula.clone()));
         }
 
         self.update_cache_miss_stats();
@@ -267,7 +268,10 @@ impl ProductionZ3Verifier {
             result,
         )
         .with_formula(property_info.formula.clone())
-        .with_metadata("verification_time_ms".to_string(), verification_time.as_millis().to_string());
+        .with_metadata(
+            "verification_time_ms".to_string(),
+            verification_time.as_millis().to_string(),
+        );
 
         Ok(verified_property)
     }
@@ -276,7 +280,7 @@ impl ProductionZ3Verifier {
     #[cfg(feature = "z3-verification")]
     fn verify_with_z3(&self, formula: &str) -> AispResult<Z3PropertyResult> {
         use z3::*;
-        
+
         // Get context from pool
         let context = self.get_context_from_pool()?;
         let solver = Solver::new();
@@ -285,11 +289,11 @@ impl ProductionZ3Verifier {
         let mut params = Params::new();
         params.set_u32("timeout", self.config.query_timeout_ms as u32);
         params.set_u32("max_memory", self.config.max_memory_mb as u32);
-        
+
         if let Some(seed) = self.config.random_seed {
             params.set_u32("random_seed", seed as u32);
         }
-        
+
         solver.set_params(&params);
 
         // Parse and assert formula
@@ -300,7 +304,7 @@ impl ProductionZ3Verifier {
                 match solver.check() {
                     SatResult::Unsat => {
                         let verification_time = start_time.elapsed();
-                        
+
                         // Generate proof if requested
                         let proof_certificate = if self.config.generate_proofs {
                             "Proof available (Z3 proof object)".to_string()
@@ -315,10 +319,13 @@ impl ProductionZ3Verifier {
                     }
                     SatResult::Sat => {
                         let verification_time = start_time.elapsed();
-                        
+
                         // Generate counterexample if requested
                         let counterexample = if self.config.generate_models {
-                            solver.get_model().map(|m| m.to_string()).unwrap_or_default()
+                            solver
+                                .get_model()
+                                .map(|m| m.to_string())
+                                .unwrap_or_default()
                         } else {
                             "Model generation disabled".to_string()
                         };
@@ -336,12 +343,10 @@ impl ProductionZ3Verifier {
                     }
                 }
             }
-            Err(e) => {
-                Ok(Z3PropertyResult::Error {
-                    error_message: format!("Formula parsing error: {}", e),
-                    error_code: -2,
-                })
-            }
+            Err(e) => Ok(Z3PropertyResult::Error {
+                error_message: format!("Formula parsing error: {}", e),
+                error_code: -2,
+            }),
         }
     }
 
@@ -374,7 +379,7 @@ impl ProductionZ3Verifier {
     #[cfg(feature = "z3-verification")]
     fn get_context_from_pool(&self) -> AispResult<z3::Context> {
         let mut pool = self.context_pool.lock().unwrap();
-        
+
         if let Some(context) = pool.contexts.pop() {
             Ok(context)
         } else if pool.contexts.len() < pool.max_contexts {
@@ -411,8 +416,10 @@ impl ProductionZ3Verifier {
                 Z3PropertyCategory::TriVectorOrthogonality,
                 format!("Tri-vector orthogonality: {}", constraint_id),
                 Z3PropertyResult::Proven {
-                    proof_certificate: format!("Orthogonality verified: {} ⊥ {}", 
-                                             orth_result.space1, orth_result.space2),
+                    proof_certificate: format!(
+                        "Orthogonality verified: {} ⊥ {}",
+                        orth_result.space1, orth_result.space2
+                    ),
                     verification_time: Duration::from_millis(100),
                 },
             );
@@ -435,7 +442,10 @@ impl ProductionZ3Verifier {
     }
 
     /// Generate document validity SMT formula
-    fn generate_document_validity_formula(&self, document: &CanonicalAispDocument) -> AispResult<String> {
+    fn generate_document_validity_formula(
+        &self,
+        document: &CanonicalAispDocument,
+    ) -> AispResult<String> {
         // Generate SMT-LIB formula for document structure validity
         let formula = format!(
             "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))"
@@ -444,14 +454,21 @@ impl ProductionZ3Verifier {
     }
 
     /// Generate type safety SMT formula
-    fn generate_type_safety_formula(&self, _document: &CanonicalAispDocument) -> AispResult<String> {
+    fn generate_type_safety_formula(
+        &self,
+        _document: &CanonicalAispDocument,
+    ) -> AispResult<String> {
         let formula = "(assert (forall ((x Type)) (well_formed x)))".to_string();
         Ok(formula)
     }
 
     /// Generate mathematical consistency SMT formula
-    fn generate_math_consistency_formula(&self, _document: &CanonicalAispDocument) -> AispResult<String> {
-        let formula = "(assert (forall ((f Formula)) (=> (provable f) (consistent f))))".to_string();
+    fn generate_math_consistency_formula(
+        &self,
+        _document: &CanonicalAispDocument,
+    ) -> AispResult<String> {
+        let formula =
+            "(assert (forall ((f Formula)) (=> (provable f) (consistent f))))".to_string();
         Ok(formula)
     }
 
@@ -469,7 +486,7 @@ impl ProductionZ3Verifier {
     /// Cache verification result
     fn cache_result(&self, formula: &str, result: &Z3PropertyResult) {
         let mut cache = self.cache.lock().unwrap();
-        
+
         // Implement LRU eviction if cache is full
         if cache.formula_cache.len() >= cache.max_entries {
             // Simple eviction - remove oldest entry
@@ -478,11 +495,14 @@ impl ProductionZ3Verifier {
             }
         }
 
-        cache.formula_cache.insert(formula.to_string(), CachedResult {
-            result: result.clone(),
-            timestamp: SystemTime::now(),
-            access_count: 1,
-        });
+        cache.formula_cache.insert(
+            formula.to_string(),
+            CachedResult {
+                result: result.clone(),
+                timestamp: SystemTime::now(),
+                access_count: 1,
+            },
+        );
     }
 
     /// Update cache hit statistics
@@ -501,7 +521,7 @@ impl ProductionZ3Verifier {
     fn update_verification_stats(&self, result: &Z3PropertyResult) {
         let mut stats = self.stats.lock().unwrap();
         stats.smt_queries += 1;
-        
+
         match result {
             Z3PropertyResult::Proven { .. } => stats.proven_properties += 1,
             Z3PropertyResult::Disproven { .. } => stats.disproven_properties += 1,
@@ -512,15 +532,16 @@ impl ProductionZ3Verifier {
     }
 
     /// Calculate overall verification status
-    fn calculate_verification_status(&self, properties: &[Z3VerifiedProperty]) -> Z3VerificationStatus {
+    fn calculate_verification_status(
+        &self,
+        properties: &[Z3VerifiedProperty],
+    ) -> Z3VerificationStatus {
         if properties.is_empty() {
             return Z3VerificationStatus::Failed("No properties to verify".to_string());
         }
 
-        let verified_count = properties.iter()
-            .filter(|p| p.is_verified())
-            .count();
-        
+        let verified_count = properties.iter().filter(|p| p.is_verified()).count();
+
         if verified_count == properties.len() {
             Z3VerificationStatus::AllVerified
         } else if verified_count > 0 {
@@ -541,7 +562,7 @@ impl ProductionZ3Verifier {
     ) -> Z3VerificationStatistics {
         let mut stats = self.stats.lock().unwrap();
         let cache = self.cache.lock().unwrap();
-        
+
         stats.total_properties = properties.len();
         stats.total_time = start_time.elapsed();
         stats.cache_hit_ratio = if cache.hit_count + cache.miss_count > 0 {
@@ -549,14 +570,14 @@ impl ProductionZ3Verifier {
         } else {
             0.0
         };
-        
+
         stats.clone()
     }
 
     /// Calculate timing breakdown
     fn calculate_timing_breakdown(&self, start_time: Instant) -> Z3TimingBreakdown {
         let total_time = start_time.elapsed();
-        
+
         Z3TimingBreakdown {
             preparation_time: Duration::from_millis(total_time.as_millis() as u64 / 10),
             solving_time: Duration::from_millis(total_time.as_millis() as u64 * 7 / 10),
@@ -572,7 +593,7 @@ impl ProductionZ3Verifier {
             peak_memory_bytes: self.resource_monitor.peak_memory,
             avg_memory_bytes: self.resource_monitor.current_memory,
             cpu_time: self.resource_monitor.start_time.elapsed(),
-            solver_instances: 1, // Simplified
+            solver_instances: 1,      // Simplified
             z3_stats: HashMap::new(), // Would be populated with actual Z3 stats
         }
     }
@@ -643,13 +664,11 @@ mod tests {
 
     #[test]
     fn test_verifier_with_config() {
-        let config = Z3VerificationConfig::new()
-            .with_timeout(15000)
-            .unwrap();
-        
+        let config = Z3VerificationConfig::new().with_timeout(15000).unwrap();
+
         let verifier = ProductionZ3Verifier::with_config(config);
         assert!(verifier.is_ok());
-        
+
         let v = verifier.unwrap();
         assert_eq!(v.get_config().query_timeout_ms, 15000);
     }
@@ -658,19 +677,20 @@ mod tests {
     fn test_document_verification() {
         let mut verifier = ProductionZ3Verifier::new().unwrap();
         let document = create_test_document();
-        
+
         let result = verifier.verify_document(&document, None);
         assert!(result.is_ok());
-        
+
         let verification_result = result.unwrap();
         assert!(!verification_result.properties.is_empty());
-        
+
         // Check that basic properties are present
-        let property_ids: Vec<_> = verification_result.properties
+        let property_ids: Vec<_> = verification_result
+            .properties
             .iter()
             .map(|p| &p.id)
             .collect();
-        
+
         assert!(property_ids.contains(&&"document_validity".to_string()));
         assert!(property_ids.contains(&&"type_safety".to_string()));
         assert!(property_ids.contains(&&"mathematical_consistency".to_string()));
@@ -679,18 +699,18 @@ mod tests {
     #[test]
     fn test_cache_functionality() {
         let mut verifier = ProductionZ3Verifier::new().unwrap();
-        
+
         // First check should miss cache
         let formula = "(assert true)";
         assert!(verifier.check_cache(formula).is_none());
-        
+
         // Cache a result
         let result = Z3PropertyResult::Proven {
             proof_certificate: "test_proof".to_string(),
             verification_time: Duration::from_millis(100),
         };
         verifier.cache_result(formula, &result);
-        
+
         // Second check should hit cache
         let cached = verifier.check_cache(formula);
         assert!(cached.is_some());
@@ -701,7 +721,7 @@ mod tests {
     fn test_statistics_tracking() {
         let verifier = ProductionZ3Verifier::new().unwrap();
         let stats = verifier.get_statistics();
-        
+
         assert_eq!(stats.total_properties, 0);
         assert_eq!(stats.proven_properties, 0);
         assert_eq!(stats.smt_queries, 0);

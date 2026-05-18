@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant, SystemTime};
 
 /// Production-ready Z3 verification configuration
-/// 
+///
 /// **Production Requirements:**
 /// - Timeout bounds enforced for resource management
 /// - Memory limits to prevent resource exhaustion
@@ -53,7 +53,7 @@ impl Default for Z3VerificationConfig {
                 "elim-uncnstr".to_string(),
                 "smt".to_string(),
             ],
-            max_memory_mb: 4096, // 4GB default
+            max_memory_mb: 4096,   // 4GB default
             random_seed: Some(42), // Reproducible by default
             max_recursion_depth: 1000,
             parallel_solving: false, // Conservative default
@@ -71,7 +71,7 @@ impl Z3VerificationConfig {
     pub fn with_timeout(mut self, timeout_ms: u64) -> AispResult<Self> {
         if timeout_ms < 1000 || timeout_ms > 600_000 {
             return Err(AispError::validation_error(
-                "Timeout must be between 1 second and 10 minutes"
+                "Timeout must be between 1 second and 10 minutes",
             ));
         }
         self.query_timeout_ms = timeout_ms;
@@ -82,7 +82,7 @@ impl Z3VerificationConfig {
     pub fn with_memory_limit(mut self, memory_mb: usize) -> AispResult<Self> {
         if memory_mb < 256 || memory_mb > 32768 {
             return Err(AispError::validation_error(
-                "Memory limit must be between 256MB and 32GB"
+                "Memory limit must be between 256MB and 32GB",
             ));
         }
         self.max_memory_mb = memory_mb;
@@ -104,13 +104,22 @@ impl Z3VerificationConfig {
         }
 
         // Validate tactics
-        let valid_tactics = ["simplify", "solve-eqs", "elim-uncnstr", "smt", 
-                           "bit-blast", "qe", "nlsat", "sat"];
+        let valid_tactics = [
+            "simplify",
+            "solve-eqs",
+            "elim-uncnstr",
+            "smt",
+            "bit-blast",
+            "qe",
+            "nlsat",
+            "sat",
+        ];
         for tactic in &self.solver_tactics {
             if !valid_tactics.contains(&tactic.as_str()) {
-                return Err(AispError::validation_error(
-                    &format!("Invalid Z3 tactic: {}", tactic)
-                ));
+                return Err(AispError::validation_error(&format!(
+                    "Invalid Z3 tactic: {}",
+                    tactic
+                )));
             }
         }
 
@@ -151,14 +160,21 @@ pub enum Z3PropertyResult {
 impl Z3PropertyResult {
     /// Check if the result is definitive (proven or disproven)
     pub fn is_definitive(&self) -> bool {
-        matches!(self, Z3PropertyResult::Proven { .. } | Z3PropertyResult::Disproven { .. })
+        matches!(
+            self,
+            Z3PropertyResult::Proven { .. } | Z3PropertyResult::Disproven { .. }
+        )
     }
 
     /// Get the verification time if available
     pub fn verification_time(&self) -> Option<Duration> {
         match self {
-            Z3PropertyResult::Proven { verification_time, .. } |
-            Z3PropertyResult::Disproven { verification_time, .. } => Some(*verification_time),
+            Z3PropertyResult::Proven {
+                verification_time, ..
+            }
+            | Z3PropertyResult::Disproven {
+                verification_time, ..
+            } => Some(*verification_time),
             _ => None,
         }
     }
@@ -170,8 +186,9 @@ impl Z3PropertyResult {
             Z3PropertyResult::Disproven { .. } => "Property formally disproven".to_string(),
             Z3PropertyResult::Unknown { reason, .. } => format!("Unknown: {}", reason),
             Z3PropertyResult::Error { error_message, .. } => format!("Error: {}", error_message),
-            Z3PropertyResult::Unsupported { property_type, .. } => 
-                format!("Unsupported property type: {}", property_type),
+            Z3PropertyResult::Unsupported { property_type, .. } => {
+                format!("Unsupported property type: {}", property_type)
+            }
         }
     }
 }
@@ -451,7 +468,6 @@ impl Z3VerificationResult {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -467,14 +483,14 @@ mod tests {
     #[test]
     fn test_config_validation() {
         let mut config = Z3VerificationConfig::new();
-        
+
         // Test timeout validation
         config.query_timeout_ms = 500; // Too low
         assert!(config.validate().is_err());
-        
-        config.query_timeout_ms = 700_000; // Too high  
+
+        config.query_timeout_ms = 700_000; // Too high
         assert!(config.validate().is_err());
-        
+
         config.query_timeout_ms = 30000; // Valid
         assert!(config.validate().is_ok());
     }
@@ -485,9 +501,12 @@ mod tests {
             proof_certificate: "test_proof".to_string(),
             verification_time: Duration::from_millis(1000),
         };
-        
+
         assert!(result.is_definitive());
-        assert_eq!(result.verification_time(), Some(Duration::from_millis(1000)));
+        assert_eq!(
+            result.verification_time(),
+            Some(Duration::from_millis(1000))
+        );
         assert_eq!(result.description(), "Property formally proven");
     }
 
@@ -502,7 +521,7 @@ mod tests {
                 verification_time: Duration::from_millis(500),
             },
         );
-        
+
         assert_eq!(property.id, "test_prop");
         assert!(property.is_verified());
         assert_eq!(property.category, Z3PropertyCategory::TypeSafety);
@@ -514,9 +533,12 @@ mod tests {
             verified_count: 3,
             total_count: 5,
         };
-        
+
         match status {
-            Z3VerificationStatus::PartiallyVerified { verified_count, total_count } => {
+            Z3VerificationStatus::PartiallyVerified {
+                verified_count,
+                total_count,
+            } => {
                 assert_eq!(verified_count, 3);
                 assert_eq!(total_count, 5);
             }
@@ -531,7 +553,7 @@ mod tests {
             .unwrap()
             .with_memory_limit(2048)
             .unwrap();
-            
+
         assert_eq!(config.query_timeout_ms, 15000);
         assert_eq!(config.max_memory_mb, 2048);
         assert!(config.validate().is_ok());

@@ -3,11 +3,11 @@
 //! This module provides real Z3 SMT solver integration without fallback
 //! to stub implementations. All verification must use actual Z3 solving.
 
-use super::{environment::AispZ3Environment, properties::PropertyVerifier, canonical_types::*};
-use crate::{ast::*, error::*, tri_vector_validation::*};
+use super::{canonical_types::*, environment::AispZ3Environment, properties::PropertyVerifier};
 use crate::ast::canonical::CanonicalAispDocument;
-use std::time::Instant;
+use crate::{ast::*, error::*, tri_vector_validation::*};
 use std::collections::HashMap;
+use std::time::Instant;
 
 #[cfg(feature = "z3-verification")]
 use z3::*;
@@ -68,36 +68,42 @@ impl EnhancedZ3Verifier {
             let mut counterexamples: HashMap<String, Z3CounterexampleModel> = HashMap::new();
 
             // Verify type safety properties
-            let type_safety_props = self.property_verifier.verify_type_safety_properties(document)?;
+            let type_safety_props = self
+                .property_verifier
+                .verify_type_safety_properties(document)?;
             for prop in type_safety_props {
                 match &prop.result {
                     Z3PropertyResult::Proven { .. } => self.stats.proven_properties += 1,
                     Z3PropertyResult::Disproven { .. } => self.stats.disproven_properties += 1,
-                    _ => {},
+                    _ => {}
                 }
                 verified_properties.push(prop);
             }
 
             // Verify tri-vector orthogonality if provided
             if let Some(tri_result) = tri_vector_result {
-                let tri_vector_props = self.property_verifier.verify_tri_vector_properties(tri_result)?;
+                let tri_vector_props = self
+                    .property_verifier
+                    .verify_tri_vector_properties(tri_result)?;
                 for prop in tri_vector_props {
                     match &prop.result {
                         Z3PropertyResult::Proven { .. } => self.stats.proven_properties += 1,
                         Z3PropertyResult::Disproven { .. } => self.stats.disproven_properties += 1,
-                        _ => {},
+                        _ => {}
                     }
                     verified_properties.push(prop);
                 }
             }
 
             // Verify temporal properties
-            let temporal_props = self.property_verifier.verify_temporal_properties(document)?;
+            let temporal_props = self
+                .property_verifier
+                .verify_temporal_properties(document)?;
             for prop in temporal_props {
                 match &prop.result {
                     Z3PropertyResult::Proven { .. } => self.stats.proven_properties += 1,
                     Z3PropertyResult::Disproven { .. } => self.stats.disproven_properties += 1,
-                    _ => {},
+                    _ => {}
                 }
                 verified_properties.push(prop);
             }
@@ -140,13 +146,16 @@ impl EnhancedZ3Verifier {
     }
 
     /// Determine overall verification status from individual property results
-    pub fn determine_verification_status(&self, properties: &[Z3VerifiedProperty]) -> Z3VerificationStatus {
+    pub fn determine_verification_status(
+        &self,
+        properties: &[Z3VerifiedProperty],
+    ) -> Z3VerificationStatus {
         if properties.is_empty() {
             return Z3VerificationStatus::Failed("No properties to verify".to_string());
         }
 
         let verified_count = properties.iter().filter(|p| p.is_verified()).count();
-        
+
         if verified_count == properties.len() {
             Z3VerificationStatus::AllVerified
         } else if verified_count > 0 {
@@ -218,7 +227,7 @@ impl EnhancedZ3Verifier {
                 Err(e) => Z3PropertyResult::Error {
                     error_message: format!("Z3 error: {}", e),
                     error_code: -2,
-                }
+                },
             };
 
             self.stats.total_time = start.elapsed();
@@ -229,7 +238,8 @@ impl EnhancedZ3Verifier {
         #[cfg(not(feature = "z3-verification"))]
         {
             Err(AispError::validation_error(
-                "Z3 verification not available. Compile with --features z3-verification".to_string(),
+                "Z3 verification not available. Compile with --features z3-verification"
+                    .to_string(),
             ))
         }
     }
@@ -251,7 +261,10 @@ impl EnhancedZ3Verifier {
             paren_count -= line.chars().filter(|&c| c == ')').count() as i32;
 
             if paren_count < 0 {
-                return Err(format!("Line {}: Unmatched closing parenthesis", line_no + 1));
+                return Err(format!(
+                    "Line {}: Unmatched closing parenthesis",
+                    line_no + 1
+                ));
             }
 
             if line.contains("check-sat") {
@@ -272,7 +285,12 @@ impl EnhancedZ3Verifier {
 
     /// Parse and execute SMT commands using Z3
     #[cfg(feature = "z3-verification")]
-    fn parse_and_execute_smt(&self, formula: &str, ctx: &Context, solver: &Solver) -> Result<SatResult, String> {
+    fn parse_and_execute_smt(
+        &self,
+        formula: &str,
+        ctx: &Context,
+        solver: &Solver,
+    ) -> Result<SatResult, String> {
         let lines: Vec<&str> = formula.lines().collect();
 
         for line in lines {

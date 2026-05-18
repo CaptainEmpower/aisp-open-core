@@ -27,7 +27,9 @@ impl SMTFormulaConverter {
     pub fn convert_structure_to_smt(&mut self, structure: &FormulaStructure) -> AispResult<String> {
         match structure {
             FormulaStructure::Atomic(atomic) => {
-                let terms: Result<Vec<String>, AispError> = atomic.terms.iter()
+                let terms: Result<Vec<String>, AispError> = atomic
+                    .terms
+                    .iter()
                     .map(|term| self.convert_term_to_smt(term))
                     .collect();
                 let terms = terms?;
@@ -42,14 +44,16 @@ impl SMTFormulaConverter {
                 Ok(format!("(not {})", inner_smt))
             }
             FormulaStructure::Conjunction(formulas) => {
-                let smt_formulas: Result<Vec<String>, AispError> = formulas.iter()
+                let smt_formulas: Result<Vec<String>, AispError> = formulas
+                    .iter()
                     .map(|f| self.convert_structure_to_smt(f))
                     .collect();
                 let smt_formulas = smt_formulas?;
                 Ok(format!("(and {})", smt_formulas.join(" ")))
             }
             FormulaStructure::Disjunction(formulas) => {
-                let smt_formulas: Result<Vec<String>, AispError> = formulas.iter()
+                let smt_formulas: Result<Vec<String>, AispError> = formulas
+                    .iter()
                     .map(|f| self.convert_structure_to_smt(f))
                     .collect();
                 let smt_formulas = smt_formulas?;
@@ -70,26 +74,38 @@ impl SMTFormulaConverter {
                 let default_sort = "Int".to_string();
                 let var_sort = quantifier.variable_type.as_ref().unwrap_or(&default_sort);
                 let inner_smt = self.convert_structure_to_smt(inner)?;
-                Ok(format!("(forall (({} {})) {})", var_name, var_sort, inner_smt))
+                Ok(format!(
+                    "(forall (({} {})) {})",
+                    var_name, var_sort, inner_smt
+                ))
             }
             FormulaStructure::Existential(quantifier, inner) => {
                 let var_name = &quantifier.variable;
                 let default_sort = "Int".to_string();
                 let var_sort = quantifier.variable_type.as_ref().unwrap_or(&default_sort);
                 let inner_smt = self.convert_structure_to_smt(inner)?;
-                Ok(format!("(exists (({} {})) {})", var_name, var_sort, inner_smt))
+                Ok(format!(
+                    "(exists (({} {})) {})",
+                    var_name, var_sort, inner_smt
+                ))
             }
             FormulaStructure::TemporalAlways(inner) => {
                 // Encode temporal always as universal quantification over time
                 let inner_smt = self.convert_structure_to_smt(inner)?;
                 let time_var = self.fresh_var("t");
-                Ok(format!("(forall (({} Int)) (=> (>= {} 0) {}))", time_var, time_var, inner_smt))
+                Ok(format!(
+                    "(forall (({} Int)) (=> (>= {} 0) {}))",
+                    time_var, time_var, inner_smt
+                ))
             }
             FormulaStructure::TemporalEventually(inner) => {
                 // Encode temporal eventually as existential quantification over time
                 let inner_smt = self.convert_structure_to_smt(inner)?;
                 let time_var = self.fresh_var("t");
-                Ok(format!("(exists (({} Int)) (and (>= {} 0) {}))", time_var, time_var, inner_smt))
+                Ok(format!(
+                    "(exists (({} Int)) (and (>= {} 0) {}))",
+                    time_var, time_var, inner_smt
+                ))
             }
             FormulaStructure::TemporalUntil(left, right) => {
                 // Encode until as: ∃t≥0. right(t) ∧ ∀s∈[0,t). left(s)
@@ -118,7 +134,8 @@ impl SMTFormulaConverter {
                 Ok(format!("(member {} set)", element_smt))
             }
             FormulaStructure::FunctionApplication(func_name, terms) => {
-                let terms_smt: Result<Vec<String>, AispError> = terms.iter()
+                let terms_smt: Result<Vec<String>, AispError> = terms
+                    .iter()
                     .map(|term| self.convert_term_to_smt(term))
                     .collect();
                 let terms_smt = terms_smt?;
@@ -134,14 +151,19 @@ impl SMTFormulaConverter {
             Term::Constant(value, const_type) => {
                 match const_type.as_str() {
                     "Int" | "ℤ" | "ℕ" => Ok(value.clone()),
-                    "Bool" | "𝔹" => Ok(if value == "true" { "true".to_string() } else { "false".to_string() }),
+                    "Bool" | "𝔹" => Ok(if value == "true" {
+                        "true".to_string()
+                    } else {
+                        "false".to_string()
+                    }),
                     "Real" | "ℝ" => Ok(value.clone()),
                     "String" | "𝕊" => Ok(format!("\"{}\"", value)),
                     _ => Ok(value.clone()), // Default to value as-is
                 }
             }
             Term::Function(name, args) => {
-                let args_smt: Result<Vec<String>, AispError> = args.iter()
+                let args_smt: Result<Vec<String>, AispError> = args
+                    .iter()
                     .map(|arg| self.convert_term_to_smt(arg))
                     .collect();
                 let args_smt = args_smt?;
@@ -161,7 +183,8 @@ impl SMTFormulaConverter {
                 Ok(format!("({} {} {})", op_smt, left_smt, right_smt))
             }
             Term::Set(elements) => {
-                let elements_smt: Result<Vec<String>, AispError> = elements.iter()
+                let elements_smt: Result<Vec<String>, AispError> = elements
+                    .iter()
                     .map(|elem| self.convert_term_to_smt(elem))
                     .collect();
                 let elements_smt = elements_smt?;
@@ -210,7 +233,7 @@ mod tests {
         let var1 = converter.fresh_var("x");
         let var2 = converter.fresh_var("x");
         let var3 = converter.fresh_var("y");
-        
+
         assert_eq!(var1, "x_0");
         assert_eq!(var2, "x_1");
         assert_eq!(var3, "y_2");
@@ -219,35 +242,35 @@ mod tests {
     #[test]
     fn test_basic_term_conversion() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let int_term = Term::Constant("42".to_string(), "Int".to_string());
         let bool_term = Term::Constant("true".to_string(), "Bool".to_string());
         let var_term = Term::Variable("x".to_string(), Some("Int".to_string()));
-        
+
         assert_eq!(converter.convert_term_to_smt(&int_term)?, "42");
         assert_eq!(converter.convert_term_to_smt(&bool_term)?, "true");
         assert_eq!(converter.convert_term_to_smt(&var_term)?, "x");
-        
+
         Ok(())
     }
 
     #[test]
     fn test_arithmetic_term_conversion() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let left = Term::Variable("x".to_string(), Some("Int".to_string()));
         let right = Term::Constant("5".to_string(), "Int".to_string());
         let add_term = Term::Arithmetic(ArithmeticOp::Add, Box::new(left), Box::new(right));
-        
+
         assert_eq!(converter.convert_term_to_smt(&add_term)?, "(+ x 5)");
-        
+
         Ok(())
     }
 
     #[test]
     fn test_atomic_formula_conversion() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let atomic = FormulaStructure::Atomic(AtomicFormula {
             predicate: "P".to_string(),
             terms: vec![
@@ -256,99 +279,111 @@ mod tests {
             ],
             type_signature: None,
         });
-        
+
         assert_eq!(converter.convert_structure_to_smt(&atomic)?, "(P x 0)");
-        
+
         Ok(())
     }
 
     #[test]
     fn test_quantified_formula_conversion() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let quantifier = Quantifier {
             variable: "x".to_string(),
             variable_type: Some("Int".to_string()),
             domain: None,
         };
-        
+
         let inner = FormulaStructure::Atomic(AtomicFormula {
             predicate: "P".to_string(),
             terms: vec![Term::Variable("x".to_string(), Some("Int".to_string()))],
             type_signature: None,
         });
-        
+
         let universal = FormulaStructure::Universal(quantifier, Box::new(inner));
-        
-        assert_eq!(converter.convert_structure_to_smt(&universal)?, "(forall ((x Int)) (P x))");
-        
+
+        assert_eq!(
+            converter.convert_structure_to_smt(&universal)?,
+            "(forall ((x Int)) (P x))"
+        );
+
         Ok(())
     }
 
     #[test]
     fn test_temporal_formula_conversion() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let inner = FormulaStructure::Atomic(AtomicFormula {
             predicate: "P".to_string(),
             terms: vec![],
             type_signature: None,
         });
-        
+
         let always = FormulaStructure::TemporalAlways(Box::new(inner));
         let result = converter.convert_structure_to_smt(&always)?;
-        
+
         assert!(result.contains("forall"));
         assert!(result.contains(">="));
         assert!(result.contains("(P)"));
-        
+
         Ok(())
     }
 
     #[test]
     fn test_boolean_connectives() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         let p = FormulaStructure::Atomic(AtomicFormula {
             predicate: "P".to_string(),
             terms: vec![],
             type_signature: None,
         });
-        
+
         let q = FormulaStructure::Atomic(AtomicFormula {
             predicate: "Q".to_string(),
             terms: vec![],
             type_signature: None,
         });
-        
+
         // Test conjunction
         let conjunction = FormulaStructure::Conjunction(vec![p.clone(), q.clone()]);
-        assert_eq!(converter.convert_structure_to_smt(&conjunction)?, "(and (P) (Q))");
-        
+        assert_eq!(
+            converter.convert_structure_to_smt(&conjunction)?,
+            "(and (P) (Q))"
+        );
+
         // Test disjunction
         let disjunction = FormulaStructure::Disjunction(vec![p.clone(), q.clone()]);
-        assert_eq!(converter.convert_structure_to_smt(&disjunction)?, "(or (P) (Q))");
-        
+        assert_eq!(
+            converter.convert_structure_to_smt(&disjunction)?,
+            "(or (P) (Q))"
+        );
+
         // Test implication
         let implication = FormulaStructure::Implication(Box::new(p), Box::new(q));
-        assert_eq!(converter.convert_structure_to_smt(&implication)?, "(=> (P) (Q))");
-        
+        assert_eq!(
+            converter.convert_structure_to_smt(&implication)?,
+            "(=> (P) (Q))"
+        );
+
         Ok(())
     }
 
     #[test]
     fn test_converter_reset() {
         let mut converter = SMTFormulaConverter::new();
-        
+
         // Generate some variables
         converter.fresh_var("x");
         converter.fresh_var("y");
         assert_eq!(converter.var_counter, 2);
-        
+
         // Reset
         converter.reset();
         assert_eq!(converter.var_counter, 0);
-        
+
         // Should start from 0 again
         let var = converter.fresh_var("z");
         assert_eq!(var, "z_0");
@@ -357,7 +392,7 @@ mod tests {
     #[test]
     fn test_atomic_formula_whitespace_formatting() -> AispResult<()> {
         let mut converter = SMTFormulaConverter::new();
-        
+
         // Test atomic formula with no terms (should have no extra space)
         let atomic_no_terms = FormulaStructure::Atomic(AtomicFormula {
             predicate: "P".to_string(),
@@ -365,13 +400,13 @@ mod tests {
             type_signature: None,
         });
         assert_eq!(converter.convert_structure_to_smt(&atomic_no_terms)?, "(P)");
-        
+
         // Test atomic formula with terms (should have space before terms)
         let atomic_with_terms = FormulaStructure::Atomic(AtomicFormula {
             predicate: "Equal".to_string(),
             terms: vec![
                 Term::Variable("x".to_string(), Some("Int".to_string())),
-                Term::Variable("y".to_string(), Some("Int".to_string()))
+                Term::Variable("y".to_string(), Some("Int".to_string())),
             ],
             type_signature: None,
         });
@@ -380,7 +415,7 @@ mod tests {
         assert!(result.contains(" x "));
         assert!(result.contains(" y"));
         assert!(result.ends_with(")"));
-        
+
         Ok(())
     }
 }

@@ -92,7 +92,10 @@ impl SmtInterface {
         // Validate syntax first
         if let Err(syntax_error) = self.validate_smt_syntax(formula) {
             self.stats.syntax_errors += 1;
-            return Ok(Z3PropertyResult::Error { error_message: format!("Syntax error: {}", syntax_error), error_code: -1 });
+            return Ok(Z3PropertyResult::Error {
+                error_message: format!("Syntax error: {}", syntax_error),
+                error_code: -1,
+            });
         }
 
         if !self.z3_available && self.config.require_z3 {
@@ -110,9 +113,15 @@ impl SmtInterface {
 
         // Fallback for disabled mode
         if !self.config.require_z3 {
-            Ok(Z3PropertyResult::Unknown { reason: "Formula verification not implemented".to_string(), partial_progress: 0.0 })
+            Ok(Z3PropertyResult::Unknown {
+                reason: "Formula verification not implemented".to_string(),
+                partial_progress: 0.0,
+            })
         } else {
-            Ok(Z3PropertyResult::Error { error_message: "Z3 not available".to_string(), error_code: -2 })
+            Ok(Z3PropertyResult::Error {
+                error_message: "Z3 not available".to_string(),
+                error_code: -2,
+            })
         }
     }
 
@@ -134,11 +143,17 @@ impl SmtInterface {
             paren_count -= line.chars().filter(|&c| c == ')').count() as i32;
 
             if paren_count < 0 {
-                return Err(format!("Line {}: Unmatched closing parenthesis", line_no + 1));
+                return Err(format!(
+                    "Line {}: Unmatched closing parenthesis",
+                    line_no + 1
+                ));
             }
 
             // Track declarations and usage
-            if line.contains("declare-const") || line.contains("declare-fun") || line.contains("declare-sort") {
+            if line.contains("declare-const")
+                || line.contains("declare-fun")
+                || line.contains("declare-sort")
+            {
                 if let Some(symbol) = self.extract_declared_symbol(line) {
                     declared_symbols.insert(symbol);
                 }
@@ -180,26 +195,41 @@ impl SmtInterface {
 
         // Parse and execute SMT commands
         match self.parse_and_execute_smt(formula, &ctx, &solver) {
-            Ok(sat_result) => {
-                match sat_result {
-                    SatResult::Sat => {
-                        self.stats.disproven_properties += 1;
-                        Ok(Z3PropertyResult::Disproven { counterexample: "SAT result".to_string(), verification_time: start.elapsed() })
-                    }
-                    SatResult::Unsat => {
-                        self.stats.proven_properties += 1;
-                        Ok(Z3PropertyResult::Proven { proof_certificate: "UNSAT result".to_string(), verification_time: start.elapsed() })
-                    }
-                    SatResult::Unknown => Ok(Z3PropertyResult::Unknown { reason: "Z3 returned unknown".to_string(), partial_progress: 0.5 }),
+            Ok(sat_result) => match sat_result {
+                SatResult::Sat => {
+                    self.stats.disproven_properties += 1;
+                    Ok(Z3PropertyResult::Disproven {
+                        counterexample: "SAT result".to_string(),
+                        verification_time: start.elapsed(),
+                    })
                 }
-            }
-            Err(e) => Ok(Z3PropertyResult::Error { error_message: format!("Z3 error: {}", e), error_code: -3 }),
+                SatResult::Unsat => {
+                    self.stats.proven_properties += 1;
+                    Ok(Z3PropertyResult::Proven {
+                        proof_certificate: "UNSAT result".to_string(),
+                        verification_time: start.elapsed(),
+                    })
+                }
+                SatResult::Unknown => Ok(Z3PropertyResult::Unknown {
+                    reason: "Z3 returned unknown".to_string(),
+                    partial_progress: 0.5,
+                }),
+            },
+            Err(e) => Ok(Z3PropertyResult::Error {
+                error_message: format!("Z3 error: {}", e),
+                error_code: -3,
+            }),
         }
     }
 
     /// Parse and execute SMT commands
     #[cfg(feature = "z3-verification")]
-    fn parse_and_execute_smt(&self, formula: &str, ctx: &Context, solver: &Solver) -> Result<SatResult, String> {
+    fn parse_and_execute_smt(
+        &self,
+        formula: &str,
+        ctx: &Context,
+        solver: &Solver,
+    ) -> Result<SatResult, String> {
         let lines: Vec<&str> = formula.lines().collect();
         let mut constants: HashMap<String, ast::Real> = HashMap::new();
 
@@ -255,7 +285,7 @@ impl SmtInterface {
                 let content = content.trim();
                 // Only remove the outermost closing parenthesis
                 if content.ends_with(')') {
-                    Ok(content[..content.len()-1].to_string())
+                    Ok(content[..content.len() - 1].to_string())
                 } else {
                     Ok(content.to_string())
                 }
@@ -269,21 +299,30 @@ impl SmtInterface {
 
     /// Parse assertion into Z3 AST
     #[cfg(feature = "z3-verification")]
-    fn parse_assertion(&self, content: &str, ctx: &Context, constants: &HashMap<String, ast::Real>) -> Result<ast::Bool, String> {
+    fn parse_assertion(
+        &self,
+        content: &str,
+        ctx: &Context,
+        constants: &HashMap<String, ast::Real>,
+    ) -> Result<ast::Bool, String> {
         if content.starts_with("(") && content.ends_with(")") {
-            let inner = &content[1..content.len()-1];
+            let inner = &content[1..content.len() - 1];
             let parts: Vec<&str> = inner.split_whitespace().collect();
 
             if parts.len() == 3 {
                 match parts[0] {
                     "<" => {
-                        if let (Some(lhs), Ok(rhs_val)) = (constants.get(parts[1]), parts[2].parse::<f64>()) {
+                        if let (Some(lhs), Ok(rhs_val)) =
+                            (constants.get(parts[1]), parts[2].parse::<f64>())
+                        {
                             let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
                             return Ok(lhs.lt(&rhs));
                         }
                     }
                     ">" => {
-                        if let (Some(lhs), Ok(rhs_val)) = (constants.get(parts[1]), parts[2].parse::<f64>()) {
+                        if let (Some(lhs), Ok(rhs_val)) =
+                            (constants.get(parts[1]), parts[2].parse::<f64>())
+                        {
                             let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
                             return Ok(lhs.gt(&rhs));
                         }
@@ -312,9 +351,10 @@ impl SmtInterface {
         let words: Vec<&str> = line.split_whitespace().collect();
         for word in words {
             let clean = word.trim_matches(|c: char| "()=<>+-*/".contains(c));
-            if !clean.is_empty() &&
-               !clean.chars().all(|c| c.is_numeric() || c == '.') &&
-               !self.is_builtin(clean) {
+            if !clean.is_empty()
+                && !clean.chars().all(|c| c.is_numeric() || c == '.')
+                && !self.is_builtin(clean)
+            {
                 used.insert(clean.to_string());
             }
         }
@@ -322,12 +362,40 @@ impl SmtInterface {
 
     /// Check if symbol is SMT-LIB builtin
     fn is_builtin(&self, symbol: &str) -> bool {
-        matches!(symbol,
-            "assert" | "check-sat" | "get-model" | "declare-const" | "declare-fun" | "declare-sort" |
-            "Real" | "Int" | "Bool" | "String" |
-            "+" | "-" | "*" | "/" | "=" | "<" | ">" | "<=" | ">=" |
-            "and" | "or" | "not" | "=>" | "iff" | "forall" | "exists" |
-            "true" | "false" | "sat" | "unsat" | "unknown" | "^"
+        matches!(
+            symbol,
+            "assert"
+                | "check-sat"
+                | "get-model"
+                | "declare-const"
+                | "declare-fun"
+                | "declare-sort"
+                | "Real"
+                | "Int"
+                | "Bool"
+                | "String"
+                | "+"
+                | "-"
+                | "*"
+                | "/"
+                | "="
+                | "<"
+                | ">"
+                | "<="
+                | ">="
+                | "and"
+                | "or"
+                | "not"
+                | "=>"
+                | "iff"
+                | "forall"
+                | "exists"
+                | "true"
+                | "false"
+                | "sat"
+                | "unsat"
+                | "unknown"
+                | "^"
         )
     }
 
@@ -395,8 +463,14 @@ mod tests {
     fn test_symbol_extraction() {
         let interface = SmtInterface::new_disabled();
 
-        assert_eq!(interface.extract_declared_symbol("(declare-const x Real)"), Some("x".to_string()));
-        assert_eq!(interface.extract_declared_symbol("(declare-fun f (Int) Bool)"), Some("f".to_string()));
+        assert_eq!(
+            interface.extract_declared_symbol("(declare-const x Real)"),
+            Some("x".to_string())
+        );
+        assert_eq!(
+            interface.extract_declared_symbol("(declare-fun f (Int) Bool)"),
+            Some("f".to_string())
+        );
         assert_eq!(interface.extract_declared_symbol("(assert (> x 0))"), None);
     }
 
@@ -442,8 +516,7 @@ mod tests {
     fn test_smt_formula_verification() {
         let mut interface = SmtInterface::new_disabled();
 
-        let valid_formula =
-            "(declare-const x Real)\n\
+        let valid_formula = "(declare-const x Real)\n\
              (assert (> x 0.0))\n\
              (check-sat)";
 

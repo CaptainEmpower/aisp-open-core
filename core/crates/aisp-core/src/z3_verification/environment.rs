@@ -4,9 +4,11 @@
 //! specifically tailored for AISP document verification.
 
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, CanonicalAispBlock as AispBlock, 
-                     TypeExpression, BasicType, FunctionDefinition, TypeDefinition},
-    error::*
+    ast::canonical::{
+        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+        FunctionDefinition, TypeDefinition, TypeExpression,
+    },
+    error::*,
 };
 use std::collections::HashMap;
 
@@ -262,10 +264,18 @@ impl AispZ3Environment {
     /// Declare type sort from AISP type expression
     fn declare_type_sort(&mut self, name: &str, type_expr: &TypeExpression) -> AispResult<()> {
         let (sort_name, description) = match type_expr {
-            TypeExpression::Basic(BasicType::Natural) => ("Int".to_string(), "Natural numbers".to_string()),
-            TypeExpression::Basic(BasicType::Real) => ("Real".to_string(), "Real numbers".to_string()),
-            TypeExpression::Basic(BasicType::Boolean) => ("Bool".to_string(), "Boolean values".to_string()),
-            TypeExpression::Basic(BasicType::String) => ("String".to_string(), "String values".to_string()),
+            TypeExpression::Basic(BasicType::Natural) => {
+                ("Int".to_string(), "Natural numbers".to_string())
+            }
+            TypeExpression::Basic(BasicType::Real) => {
+                ("Real".to_string(), "Real numbers".to_string())
+            }
+            TypeExpression::Basic(BasicType::Boolean) => {
+                ("Bool".to_string(), "Boolean values".to_string())
+            }
+            TypeExpression::Basic(BasicType::String) => {
+                ("String".to_string(), "String values".to_string())
+            }
             _ => (name.to_string(), format!("User-defined type: {}", name)),
         };
 

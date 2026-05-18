@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant, SystemTime};
 
 /// Enhanced verification configuration for production Z3 integration
-/// 
+///
 /// **Contract Invariants:**
 /// - `query_timeout_ms` ∈ [1000, 600_000] (1 second to 10 minutes)
 /// - `max_memory_mb` ∈ [256, 32_768] (256MB to 32GB reasonable bounds)
@@ -91,7 +91,7 @@ impl Default for EnhancedVerificationStats {
 }
 
 /// Result of enhanced Z3 verification with formal guarantees
-/// 
+///
 /// **Contract Invariants:**
 /// - `status == AllVerified` ⟺ `∀p ∈ verified_properties: p.result == PropertyResult::Proven`
 /// - `proofs.len() == verified_properties.count(|p| p.result == Proven)`
@@ -117,7 +117,6 @@ pub struct EnhancedVerificationResult {
     /// Tri-vector validation result (optional)
     pub tri_vector_result: Option<TriVectorValidationResult>,
 }
-
 
 /// Status of verification process
 #[derive(Debug, Clone, PartialEq)]
@@ -283,7 +282,7 @@ pub enum DiagnosticLevel {
 
 impl EnhancedVerificationResult {
     /// Create a disabled result when Z3 is not available
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** Z3 verification capabilities unavailable
     /// - **Postcondition:** Returns result with `status == VerificationStatus::Disabled`
@@ -303,7 +302,7 @@ impl EnhancedVerificationResult {
     }
 
     /// Create a failed result with error message
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** `error` is non-empty descriptive message
     /// - **Postcondition:** Returns result with `status == VerificationStatus::Failed(error)`
@@ -325,7 +324,7 @@ impl EnhancedVerificationResult {
 
 impl VerifiedProperty {
     /// Create a new verified property
-    /// 
+    ///
     /// **Contract:**
     /// - **Precondition:** `id` unique within verification context, `description` non-empty
     /// - **Postcondition:** Returns property with specified fields and defaults for optional fields
@@ -372,8 +371,14 @@ mod tests {
 
     #[test]
     fn test_verification_status() {
-        assert_eq!(VerificationStatus::AllVerified, VerificationStatus::AllVerified);
-        assert_ne!(VerificationStatus::AllVerified, VerificationStatus::Disabled);
+        assert_eq!(
+            VerificationStatus::AllVerified,
+            VerificationStatus::AllVerified
+        );
+        assert_ne!(
+            VerificationStatus::AllVerified,
+            VerificationStatus::Disabled
+        );
     }
 
     #[test]
@@ -400,7 +405,7 @@ mod tests {
     fn test_failed_result() {
         let error_msg = "Test error";
         let result = EnhancedVerificationResult::failed(error_msg.to_string());
-        
+
         match result.status {
             VerificationStatus::Failed(msg) => assert_eq!(msg, error_msg),
             _ => panic!("Expected failed status"),

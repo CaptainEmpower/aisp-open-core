@@ -922,28 +922,33 @@ impl TemporalPropertyVerifier {
         model: &TransitionSystem,
     ) -> AispResult<TemporalVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Check cache first
         let cache_key = self.generate_cache_key(property, model);
         if let Some(cached_result) = self.cache.get(&cache_key) {
             return Ok(cached_result.result.clone());
         }
-        
+
         // Perform verification
         let result = self.model_checker.check_property(property, model)?;
-        
+
         // Cache the result
         self.cache.insert(cache_key, property, &result);
-        
+
         Ok(result)
     }
 
     /// Generate cache key for property and model
     fn generate_cache_key(&self, property: &PropertyFormula, model: &TransitionSystem) -> String {
         // Simple cache key generation - in practice would use cryptographic hashing
-        format!("{}_{}", 
-                format!("{:?}", property).chars().take(50).collect::<String>(),
-                model.transitions.len())
+        format!(
+            "{}_{}",
+            format!("{:?}", property)
+                .chars()
+                .take(50)
+                .collect::<String>(),
+            model.transitions.len()
+        )
     }
 
     /// Create standard temporal operators
@@ -1007,11 +1012,11 @@ impl TemporalModelChecker {
         model: &TransitionSystem,
     ) -> AispResult<TemporalVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Initialize statistics
         self.statistics.states_explored = 0;
         self.statistics.transitions_examined = 0;
-        
+
         // Perform model checking based on algorithm
         let outcome = match self.algorithm {
             ModelCheckingAlgorithm::ExplicitState => self.explicit_state_check(property, model)?,
@@ -1021,10 +1026,10 @@ impl TemporalModelChecker {
             ModelCheckingAlgorithm::Compositional => self.compositional_check(property, model)?,
             ModelCheckingAlgorithm::AbstractionBased => self.abstraction_check(property, model)?,
         };
-        
+
         // Update statistics
         self.statistics.verification_time = start_time.elapsed();
-        
+
         Ok(TemporalVerificationResult {
             outcome,
             counterexample: None, // Would be populated if violation found
@@ -1138,28 +1143,24 @@ impl PropertySynthesizer {
             PropertyTemplate {
                 name: "Safety Template".to_string(),
                 pattern: "G({condition})".to_string(),
-                parameters: vec![
-                    TemplateParameter {
-                        name: "condition".to_string(),
-                        param_type: ParameterType::LogicalFormula,
-                        default_value: None,
-                        constraints: vec!["must_be_state_formula".to_string()],
-                    },
-                ],
+                parameters: vec![TemplateParameter {
+                    name: "condition".to_string(),
+                    param_type: ParameterType::LogicalFormula,
+                    default_value: None,
+                    constraints: vec!["must_be_state_formula".to_string()],
+                }],
                 frequency: 0.8,
                 success_rate: 0.9,
             },
             PropertyTemplate {
                 name: "Liveness Template".to_string(),
                 pattern: "F({goal})".to_string(),
-                parameters: vec![
-                    TemplateParameter {
-                        name: "goal".to_string(),
-                        param_type: ParameterType::LogicalFormula,
-                        default_value: None,
-                        constraints: vec!["must_be_reachable".to_string()],
-                    },
-                ],
+                parameters: vec![TemplateParameter {
+                    name: "goal".to_string(),
+                    param_type: ParameterType::LogicalFormula,
+                    default_value: None,
+                    constraints: vec!["must_be_reachable".to_string()],
+                }],
                 frequency: 0.6,
                 success_rate: 0.7,
             },
@@ -1205,7 +1206,12 @@ impl TemporalVerificationCache {
     }
 
     /// Insert result into cache
-    pub fn insert(&mut self, key: String, property: &PropertyFormula, result: &TemporalVerificationResult) {
+    pub fn insert(
+        &mut self,
+        key: String,
+        property: &PropertyFormula,
+        result: &TemporalVerificationResult,
+    ) {
         let cached_result = CachedTemporalResult {
             formula: format!("{:?}", property),
             result: result.clone(),
@@ -1289,7 +1295,7 @@ mod tests {
     fn test_temporal_verifier_creation() {
         let config = TemporalVerificationConfig::default();
         let verifier = TemporalPropertyVerifier::new(config);
-        
+
         assert!(!verifier.operators.is_empty());
         assert_eq!(verifier.operators.len(), 3);
     }
@@ -1303,24 +1309,39 @@ mod tests {
 
     #[test]
     fn test_model_checking_algorithms() {
-        assert_eq!(ModelCheckingAlgorithm::ExplicitState, ModelCheckingAlgorithm::ExplicitState);
-        assert_ne!(ModelCheckingAlgorithm::ExplicitState, ModelCheckingAlgorithm::Symbolic);
+        assert_eq!(
+            ModelCheckingAlgorithm::ExplicitState,
+            ModelCheckingAlgorithm::ExplicitState
+        );
+        assert_ne!(
+            ModelCheckingAlgorithm::ExplicitState,
+            ModelCheckingAlgorithm::Symbolic
+        );
     }
 
     #[test]
     fn test_temporal_verification_outcomes() {
-        assert_eq!(TemporalVerificationOutcome::Satisfied, TemporalVerificationOutcome::Satisfied);
-        assert_ne!(TemporalVerificationOutcome::Satisfied, TemporalVerificationOutcome::Violated);
-        
+        assert_eq!(
+            TemporalVerificationOutcome::Satisfied,
+            TemporalVerificationOutcome::Satisfied
+        );
+        assert_ne!(
+            TemporalVerificationOutcome::Satisfied,
+            TemporalVerificationOutcome::Violated
+        );
+
         let error_outcome = TemporalVerificationOutcome::Error("test".to_string());
-        assert!(matches!(error_outcome, TemporalVerificationOutcome::Error(_)));
+        assert!(matches!(
+            error_outcome,
+            TemporalVerificationOutcome::Error(_)
+        ));
     }
 
     #[test]
     fn test_state_variable_types() {
         assert_eq!(StateVariableType::Boolean, StateVariableType::Boolean);
         assert_ne!(StateVariableType::Boolean, StateVariableType::Integer);
-        
+
         let custom_type = StateVariableType::Custom("test".to_string());
         assert!(matches!(custom_type, StateVariableType::Custom(_)));
     }
@@ -1341,7 +1362,7 @@ mod tests {
     fn test_pattern_categories() {
         assert_eq!(PatternCategory::Safety, PatternCategory::Safety);
         assert_ne!(PatternCategory::Safety, PatternCategory::Liveness);
-        
+
         let custom_category = PatternCategory::Custom("test".to_string());
         assert!(matches!(custom_category, PatternCategory::Custom(_)));
     }
@@ -1350,7 +1371,7 @@ mod tests {
     fn test_standard_operators() {
         let operators = TemporalPropertyVerifier::create_standard_operators();
         assert_eq!(operators.len(), 3);
-        
+
         let globally_op = &operators[0];
         assert_eq!(globally_op.name, "Globally");
         assert_eq!(globally_op.symbol, "G");
@@ -1362,11 +1383,11 @@ mod tests {
     fn test_cache_operations() {
         let config = TemporalCacheConfig::default();
         let mut cache = TemporalVerificationCache::new(config);
-        
+
         // Test cache miss
         assert!(cache.get("nonexistent").is_none());
         assert_eq!(cache.statistics.misses, 1);
-        
+
         // Insert and test cache hit would require more setup
         assert_eq!(cache.statistics.hits, 0);
     }

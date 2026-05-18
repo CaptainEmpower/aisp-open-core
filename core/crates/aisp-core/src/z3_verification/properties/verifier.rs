@@ -5,9 +5,9 @@
 use super::types::*;
 use crate::{
     error::{AispError, AispResult},
-    tri_vector_validation::*,
     proof_types::*,
     property_types::*,
+    tri_vector_validation::*,
 };
 use std::collections::HashMap;
 use std::time::Instant;
@@ -464,7 +464,8 @@ impl PropertyVerifier {
         let start_time = Instant::now();
 
         // Create SMT formula for orthogonality
-        let smt_formula = self.create_orthogonality_formula(&orth_result.space1, &orth_result.space2)?;
+        let smt_formula =
+            self.create_orthogonality_formula(&orth_result.space1, &orth_result.space2)?;
 
         // Perform actual SMT verification
         let result = self.verify_smt_formula(&smt_formula, constraint)?;
@@ -487,8 +488,14 @@ impl PropertyVerifier {
             result.clone(),
         )
         .with_formula(smt_formula)
-        .with_metadata("verification_time_ms".to_string(), start_time.elapsed().as_millis().to_string())
-        .with_metadata("proof_certificate".to_string(), self.generate_orthogonality_certificate(constraint, &result)))
+        .with_metadata(
+            "verification_time_ms".to_string(),
+            start_time.elapsed().as_millis().to_string(),
+        )
+        .with_metadata(
+            "proof_certificate".to_string(),
+            self.generate_orthogonality_certificate(constraint, &result),
+        ))
     }
 
     /// Create SMT formula for orthogonality constraint
@@ -511,7 +518,7 @@ impl PropertyVerifier {
         let start_time = Instant::now();
 
         let smt_formula = self.create_safety_isolation_formula()?;
-        
+
         // Perform actual SMT verification
         let result = self.verify_smt_formula(&smt_formula, "safety_isolation")?;
 
@@ -533,8 +540,14 @@ impl PropertyVerifier {
             result.clone(),
         )
         .with_formula(smt_formula)
-        .with_metadata("verification_time_ms".to_string(), start_time.elapsed().as_millis().to_string())
-        .with_metadata("proof_certificate".to_string(), self.generate_safety_certificate(&result)))
+        .with_metadata(
+            "verification_time_ms".to_string(),
+            start_time.elapsed().as_millis().to_string(),
+        )
+        .with_metadata(
+            "proof_certificate".to_string(),
+            self.generate_safety_certificate(&result),
+        ))
     }
 
     /// Create SMT formula for safety isolation
@@ -553,7 +566,7 @@ impl PropertyVerifier {
         let start_time = Instant::now();
 
         let smt_formula = self.create_decomposition_formula(signal)?;
-        
+
         // Perform actual SMT verification
         let result = self.verify_smt_formula(&smt_formula, "signal_decomposition")?;
 
@@ -575,8 +588,14 @@ impl PropertyVerifier {
             result.clone(),
         )
         .with_formula(smt_formula)
-        .with_metadata("verification_time_ms".to_string(), start_time.elapsed().as_millis().to_string())
-        .with_metadata("proof_certificate".to_string(), self.generate_decomposition_certificate(&result)))
+        .with_metadata(
+            "verification_time_ms".to_string(),
+            start_time.elapsed().as_millis().to_string(),
+        )
+        .with_metadata(
+            "proof_certificate".to_string(),
+            self.generate_decomposition_certificate(&result),
+        ))
     }
 
     /// Create SMT formula for signal decomposition
@@ -591,7 +610,11 @@ impl PropertyVerifier {
     }
 
     /// Verify SMT formula using Z3 solver
-    fn verify_smt_formula(&mut self, formula: &str, property_id: &str) -> AispResult<PropertyResult> {
+    fn verify_smt_formula(
+        &mut self,
+        formula: &str,
+        property_id: &str,
+    ) -> AispResult<PropertyResult> {
         // Check cache first
         if let Some(cached_result) = self.formula_cache.get(formula) {
             return Ok(cached_result.result.clone());
@@ -602,7 +625,8 @@ impl PropertyVerifier {
         {
             if let Some(context) = &self.context {
                 let result = self.z3_verify(context, formula)?;
-                self.formula_cache.insert(formula.to_string(), result.clone());
+                self.formula_cache
+                    .insert(formula.to_string(), result.clone());
                 return Ok(result);
             }
         }
@@ -618,7 +642,7 @@ impl PropertyVerifier {
     #[cfg(feature = "z3-verification")]
     fn z3_verify(&self, _context: &Context, _formula: &str) -> AispResult<PropertyResult> {
         let _solver = Solver::new();
-        
+
         // For now, return a placeholder result due to Z3 API compatibility issues
         // TODO: Implement proper Z3 verification once API is stable
         Ok(PropertyResult::Unknown {
@@ -628,19 +652,36 @@ impl PropertyVerifier {
     }
 
     /// Generate orthogonality certificate
-    fn generate_orthogonality_certificate(&self, constraint: &str, result: &PropertyResult) -> String {
+    fn generate_orthogonality_certificate(
+        &self,
+        constraint: &str,
+        result: &PropertyResult,
+    ) -> String {
         match result {
-            PropertyResult::Proven { .. } => format!("CERTIFIED: Orthogonality constraint '{}' is mathematically proven", constraint),
-            PropertyResult::Disproven { .. } => format!("COUNTEREXAMPLE: Orthogonality constraint '{}' has counterexample", constraint),
-            _ => format!("INCONCLUSIVE: Orthogonality constraint '{}' verification inconclusive", constraint),
+            PropertyResult::Proven { .. } => format!(
+                "CERTIFIED: Orthogonality constraint '{}' is mathematically proven",
+                constraint
+            ),
+            PropertyResult::Disproven { .. } => format!(
+                "COUNTEREXAMPLE: Orthogonality constraint '{}' has counterexample",
+                constraint
+            ),
+            _ => format!(
+                "INCONCLUSIVE: Orthogonality constraint '{}' verification inconclusive",
+                constraint
+            ),
         }
     }
 
     /// Generate safety certificate
     fn generate_safety_certificate(&self, result: &PropertyResult) -> String {
         match result {
-            PropertyResult::Proven { .. } => "CERTIFIED: Safety isolation is mathematically proven".to_string(),
-            PropertyResult::Disproven { .. } => "COUNTEREXAMPLE: Safety isolation violation detected".to_string(),
+            PropertyResult::Proven { .. } => {
+                "CERTIFIED: Safety isolation is mathematically proven".to_string()
+            }
+            PropertyResult::Disproven { .. } => {
+                "COUNTEREXAMPLE: Safety isolation violation detected".to_string()
+            }
             _ => "INCONCLUSIVE: Safety isolation verification inconclusive".to_string(),
         }
     }
@@ -648,8 +689,12 @@ impl PropertyVerifier {
     /// Generate decomposition certificate
     fn generate_decomposition_certificate(&self, result: &PropertyResult) -> String {
         match result {
-            PropertyResult::Proven { .. } => "CERTIFIED: Signal decomposition uniqueness is mathematically proven".to_string(),
-            PropertyResult::Disproven { .. } => "COUNTEREXAMPLE: Signal decomposition non-uniqueness detected".to_string(),
+            PropertyResult::Proven { .. } => {
+                "CERTIFIED: Signal decomposition uniqueness is mathematically proven".to_string()
+            }
+            PropertyResult::Disproven { .. } => {
+                "COUNTEREXAMPLE: Signal decomposition non-uniqueness detected".to_string()
+            }
             _ => "INCONCLUSIVE: Signal decomposition verification inconclusive".to_string(),
         }
     }
@@ -671,7 +716,7 @@ impl PropertyVerifier {
     ) -> AispResult<Vec<VerifiedProperty>> {
         // Placeholder implementation for type safety verification
         let mut properties = Vec::new();
-        
+
         // Create a basic type safety property
         let type_safety_property = VerifiedProperty::new(
             "type_safety_basic".to_string(),
@@ -682,7 +727,7 @@ impl PropertyVerifier {
                 verification_time: std::time::Duration::from_millis(50),
             },
         );
-        
+
         properties.push(type_safety_property);
         Ok(properties)
     }
@@ -720,7 +765,7 @@ impl FormulaCache {
                 return self.formulas.get(formula);
             }
         }
-        
+
         self.statistics.misses += 1;
         self.update_hit_ratio();
         None
@@ -738,7 +783,7 @@ impl FormulaCache {
 
         self.formulas.insert(formula, cached);
         self.statistics.size = self.formulas.len();
-        
+
         // Enforce cache size limit
         if self.statistics.size > self.config.max_size {
             self.evict_entries();
@@ -749,9 +794,12 @@ impl FormulaCache {
     fn calculate_complexity(&self, formula: &str) -> f64 {
         // Simple complexity metric based on formula length and operators
         let base_complexity = formula.len() as f64;
-        let quantifier_count = formula.matches("forall").count() + formula.matches("exists").count();
-        let operator_count = formula.matches("=>").count() + formula.matches("and").count() + formula.matches("or").count();
-        
+        let quantifier_count =
+            formula.matches("forall").count() + formula.matches("exists").count();
+        let operator_count = formula.matches("=>").count()
+            + formula.matches("and").count()
+            + formula.matches("or").count();
+
         base_complexity + (quantifier_count as f64 * 10.0) + (operator_count as f64 * 2.0)
     }
 
@@ -773,9 +821,13 @@ impl FormulaCache {
 
     /// Evict least recently used entries
     fn evict_lru(&mut self, count: usize) {
-        let mut entries: Vec<_> = self.formulas.iter().map(|(k, v)| (k.clone(), v.timestamp)).collect();
+        let mut entries: Vec<_> = self
+            .formulas
+            .iter()
+            .map(|(k, v)| (k.clone(), v.timestamp))
+            .collect();
         entries.sort_by(|a, b| a.1.cmp(&b.1));
-        
+
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
         }
@@ -783,9 +835,13 @@ impl FormulaCache {
 
     /// Evict least frequently used entries
     fn evict_lfu(&mut self, count: usize) {
-        let mut entries: Vec<_> = self.formulas.iter().map(|(k, v)| (k.clone(), v.hits)).collect();
+        let mut entries: Vec<_> = self
+            .formulas
+            .iter()
+            .map(|(k, v)| (k.clone(), v.hits))
+            .collect();
         entries.sort_by(|a, b| a.1.cmp(&b.1));
-        
+
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
         }
@@ -793,9 +849,13 @@ impl FormulaCache {
 
     /// Evict first in, first out entries
     fn evict_fifo(&mut self, count: usize) {
-        let mut entries: Vec<_> = self.formulas.iter().map(|(k, v)| (k.clone(), v.timestamp)).collect();
+        let mut entries: Vec<_> = self
+            .formulas
+            .iter()
+            .map(|(k, v)| (k.clone(), v.timestamp))
+            .collect();
         entries.sort_by(|a, b| a.1.cmp(&b.1));
-        
+
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
         }
@@ -811,11 +871,15 @@ impl FormulaCache {
 
     /// Adaptive eviction based on multiple factors
     fn evict_adaptive(&mut self, count: usize) {
-        let mut entries: Vec<_> = self.formulas.iter().map(|(k, v)| (k.clone(), self.calculate_eviction_score(v))).collect();
-        
+        let mut entries: Vec<_> = self
+            .formulas
+            .iter()
+            .map(|(k, v)| (k.clone(), self.calculate_eviction_score(v)))
+            .collect();
+
         // Sort by score (lower scores get evicted first)
         entries.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-        
+
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
         }
@@ -826,7 +890,7 @@ impl FormulaCache {
         let age_factor = cached.timestamp.elapsed().as_secs() as f64;
         let frequency_factor = 1.0 / (cached.hits as f64 + 1.0);
         let complexity_factor = cached.complexity / 1000.0;
-        
+
         age_factor * 0.4 + frequency_factor * 0.4 + complexity_factor * 0.2
     }
 
@@ -927,7 +991,7 @@ mod tests {
     fn test_property_verifier_creation() {
         let config = AdvancedVerificationConfig::default();
         let verifier = PropertyVerifier::new(config);
-        
+
         assert_eq!(verifier.stats.successful_proofs, 0);
         assert_eq!(verifier.stats.counterexamples, 0);
         assert_eq!(verifier.stats.smt_queries, 0);
@@ -940,35 +1004,47 @@ mod tests {
             eviction_policy: EvictionPolicy::LRU,
             target_hit_ratio: 0.8,
         };
-        
+
         let mut cache = FormulaCache::new(config);
-        
+
         // Test cache miss
         assert!(cache.get("formula1").is_none());
         assert_eq!(cache.statistics.misses, 1);
-        
+
         // Insert and test cache hit
-        cache.insert("formula1".to_string(), PropertyResult::Proven {
-            proof_certificate: "test_proof".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
+        cache.insert(
+            "formula1".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
         assert!(cache.get("formula1").is_some());
         assert_eq!(cache.statistics.hits, 1);
-        
+
         // Test cache eviction
-        cache.insert("formula2".to_string(), PropertyResult::Proven {
-            proof_certificate: "test_proof".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        cache.insert("formula3".to_string(), PropertyResult::Proven {
-            proof_certificate: "test_proof".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        cache.insert("formula4".to_string(), PropertyResult::Proven {
-            proof_certificate: "test_proof".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        }); // Should trigger eviction
-        
+        cache.insert(
+            "formula2".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+        cache.insert(
+            "formula3".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+        cache.insert(
+            "formula4".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        ); // Should trigger eviction
+
         assert_eq!(cache.statistics.size, 3);
     }
 
@@ -976,7 +1052,7 @@ mod tests {
     fn test_orthogonality_formula_creation() {
         let config = AdvancedVerificationConfig::default();
         let verifier = PropertyVerifier::new(config);
-        
+
         let formula = verifier.create_orthogonality_formula("V_H", "V_S").unwrap();
         assert!(formula.contains("forall"));
         assert!(formula.contains("V_H"));
@@ -988,7 +1064,7 @@ mod tests {
     fn test_safety_isolation_formula() {
         let config = AdvancedVerificationConfig::default();
         let verifier = PropertyVerifier::new(config);
-        
+
         let formula = verifier.create_safety_isolation_formula().unwrap();
         assert!(formula.contains("forall"));
         assert!(formula.contains("V_S"));
@@ -999,23 +1075,32 @@ mod tests {
     fn test_verification_certificates() {
         let config = AdvancedVerificationConfig::default();
         let verifier = PropertyVerifier::new(config);
-        
-        let proven_cert = verifier.generate_orthogonality_certificate("test", &PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
+
+        let proven_cert = verifier.generate_orthogonality_certificate(
+            "test",
+            &PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
         assert!(proven_cert.contains("CERTIFIED"));
-        
-        let disproven_cert = verifier.generate_orthogonality_certificate("test", &PropertyResult::Disproven {
-            counterexample: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
+
+        let disproven_cert = verifier.generate_orthogonality_certificate(
+            "test",
+            &PropertyResult::Disproven {
+                counterexample: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
         assert!(disproven_cert.contains("COUNTEREXAMPLE"));
-        
-        let unknown_cert = verifier.generate_orthogonality_certificate("test", &PropertyResult::Unknown {
-            reason: "test".to_string(),
-            partial_progress: 0.5,
-        });
+
+        let unknown_cert = verifier.generate_orthogonality_certificate(
+            "test",
+            &PropertyResult::Unknown {
+                reason: "test".to_string(),
+                partial_progress: 0.5,
+            },
+        );
         assert!(unknown_cert.contains("INCONCLUSIVE"));
     }
 
@@ -1026,15 +1111,15 @@ mod tests {
             eviction_policy: EvictionPolicy::LRU,
             target_hit_ratio: 0.8,
         };
-        
+
         let cache = FormulaCache::new(config);
-        
+
         let simple_formula = "(= x y)";
         let complex_formula = "(forall ((x Int) (y Int)) (=> (and (> x 0) (> y 0)) (> (+ x y) 0)))";
-        
+
         let simple_complexity = cache.calculate_complexity(simple_formula);
         let complex_complexity = cache.calculate_complexity(complex_formula);
-        
+
         assert!(complex_complexity > simple_complexity);
     }
 
@@ -1045,49 +1130,67 @@ mod tests {
             eviction_policy: EvictionPolicy::LRU,
             target_hit_ratio: 0.8,
         };
-        
+
         let mut cache = FormulaCache::new(config.clone());
-        
+
         // Test LRU eviction
-        cache.insert("formula1".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        cache.insert("formula2".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        cache.insert("formula3".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        }); // Should evict formula1
-        
+        cache.insert(
+            "formula1".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+        cache.insert(
+            "formula2".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+        cache.insert(
+            "formula3".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        ); // Should evict formula1
+
         assert!(cache.formulas.contains_key("formula2"));
         assert!(cache.formulas.contains_key("formula3"));
-        
+
         // Test LFU eviction
         config.eviction_policy = EvictionPolicy::LFU;
         let mut cache_lfu = FormulaCache::new(config);
-        
-        cache_lfu.insert("formula1".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        cache_lfu.insert("formula2".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        });
-        
+
+        cache_lfu.insert(
+            "formula1".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+        cache_lfu.insert(
+            "formula2".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        );
+
         // Access formula1 more times
         cache_lfu.get("formula1");
         cache_lfu.get("formula1");
         cache_lfu.get("formula2");
-        
-        cache_lfu.insert("formula3".to_string(), PropertyResult::Proven {
-            proof_certificate: "test".to_string(),
-            verification_time: std::time::Duration::from_millis(100),
-        }); // Should evict formula2 (less frequent)
-        
+
+        cache_lfu.insert(
+            "formula3".to_string(),
+            PropertyResult::Proven {
+                proof_certificate: "test".to_string(),
+                verification_time: std::time::Duration::from_millis(100),
+            },
+        ); // Should evict formula2 (less frequent)
+
         assert!(cache_lfu.formulas.contains_key("formula1"));
         assert!(cache_lfu.formulas.contains_key("formula3"));
     }

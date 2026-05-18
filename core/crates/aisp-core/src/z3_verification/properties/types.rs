@@ -5,20 +5,14 @@
 
 // Re-export all canonical types with legacy names for compatibility
 pub use crate::z3_verification::canonical_types::{
-    Z3PropertyResult as PropertyResult,
-    Z3PropertyCategory as PropertyCategory,
-    Z3VerifiedProperty as VerifiedProperty,
-    Z3VerificationConfig as AdvancedVerificationConfig,
-    Z3VerificationStatistics as EnhancedVerificationStats,
+    Z3CounterexampleModel as CounterexampleModel, Z3Diagnostic as SolverDiagnostic,
+    Z3DiagnosticLevel as DiagnosticLevel, Z3FormalProof as FormalProof,
+    Z3PropertyCategory as PropertyCategory, Z3PropertyResult as PropertyResult,
+    Z3ResourceUsage as ResourceUsage, Z3TimingBreakdown as TimingBreakdown,
+    Z3UnsatCore as UnsatCore, Z3VerificationConfig as AdvancedVerificationConfig,
     Z3VerificationResult as EnhancedVerificationResult,
-    Z3VerificationStatus as VerificationStatus,
-    Z3FormalProof as FormalProof,
-    Z3CounterexampleModel as CounterexampleModel,
-    Z3UnsatCore as UnsatCore,
-    Z3Diagnostic as SolverDiagnostic,
-    Z3DiagnosticLevel as DiagnosticLevel,
-    Z3TimingBreakdown as TimingBreakdown,
-    Z3ResourceUsage as ResourceUsage,
+    Z3VerificationStatistics as EnhancedVerificationStats,
+    Z3VerificationStatus as VerificationStatus, Z3VerifiedProperty as VerifiedProperty,
 };
 
 use crate::error::AispResult;
@@ -307,7 +301,7 @@ mod tests {
     fn test_complexity_level_scoring() {
         assert_eq!(ComplexityLevel::Simple.score(), 1.0);
         assert_eq!(ComplexityLevel::Extreme.score(), 12.0);
-        
+
         assert_eq!(ComplexityLevel::from_score(0.5), ComplexityLevel::Simple);
         assert_eq!(ComplexityLevel::from_score(15.0), ComplexityLevel::Extreme);
     }
@@ -316,14 +310,14 @@ mod tests {
     fn test_complexity_ordering() {
         assert!(ComplexityLevel::Simple < ComplexityLevel::Complex);
         assert!(ComplexityLevel::Complex < ComplexityLevel::Extreme);
-        
+
         let mut levels = vec![
             ComplexityLevel::Extreme,
             ComplexityLevel::Simple,
             ComplexityLevel::Complex,
         ];
         levels.sort();
-        
+
         assert_eq!(levels[0], ComplexityLevel::Simple);
         assert_eq!(levels[2], ComplexityLevel::Extreme);
     }
@@ -361,7 +355,7 @@ mod tests {
             start_time: std::time::SystemTime::now(),
             priority: TaskPriority::Normal,
         };
-        
+
         assert_eq!(task.task_id, "test_task");
         assert_eq!(task.status, TaskStatus::Pending);
         assert_eq!(task.priority, TaskPriority::Normal);
