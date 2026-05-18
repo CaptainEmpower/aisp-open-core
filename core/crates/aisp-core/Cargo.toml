@@ -10,11 +10,12 @@ description = "Core AISP parsing and validation engine"
 
 [features]
 # Default build - full AISP with formal verification (as intended)
-default = ["std", "serde", "regex", "unicode-normalization", "z3-verification"]
+default = ["std", "serde", "serde_json", "regex", "unicode-normalization", "z3-verification"]
 
 # Core functionality
 std = []
 serde = ["dep:serde"]
+serde_json = ["dep:serde_json", "serde"]
 
 # Text processing capabilities  
 regex = ["dep:regex"]
@@ -39,6 +40,7 @@ minimal = ["std", "serde"]
 
 [dependencies]
 serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 thiserror.workspace = true
 z3 = { version = "0.19.7", optional = true }
 uuid.workspace = true
