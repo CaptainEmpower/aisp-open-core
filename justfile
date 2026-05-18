@@ -12,9 +12,21 @@ all: check test
 # Check code quality  
 check:
     @echo "🔍 Running code quality checks..."
-    cargo check-all
-    cargo clippy-all
-    cargo fmt-all --check
+    just check-all
+    just clippy-all
+    just fmt-all --check
+
+# Check all workspace packages
+check-all:
+    cargo check --workspace --all-targets
+
+# Lint all workspace packages
+clippy-all:
+    cargo clippy --workspace --all-targets -- -W clippy::all -A warnings
+
+# Format all workspace packages
+fmt-all *args:
+    cargo fmt --all {{args}}
 
 # Run all tests
 test:
