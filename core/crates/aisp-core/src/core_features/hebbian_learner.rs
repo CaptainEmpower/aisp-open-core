@@ -4,8 +4,8 @@
 
 use super::types::*;
 use crate::{
-    pocket_architecture::content_hash,
     error::{AispError, AispResult},
+    pocket_architecture::content_hash,
     pocket_architecture::{ContentHash, InteractionResult},
 };
 use std::collections::HashMap;
@@ -169,6 +169,7 @@ impl EnhancedHebbianLearner {
         let mut affinity_pairs: Vec<_> = self
             .affinity_matrix
             .iter()
+            .filter(|(_, &affinity)| affinity < 0.0) // Only negative affinities
             .map(|(&pair, &affinity)| (pair, affinity))
             .collect();
 
@@ -318,7 +319,7 @@ impl ConfidenceTracker {
 
         // Calculate confidence based on frequency and consistency
         let frequency = self.update_frequencies[&key] as f64;
-        let frequency_confidence = (frequency / (frequency + 10.0)).min(1.0);
+        let frequency_confidence = (frequency / (frequency + 5.0)).min(1.0);
 
         // Update running confidence score
         let current_confidence = self.confidence_scores.get(&key).copied().unwrap_or(0.5);
@@ -330,7 +331,9 @@ impl ConfidenceTracker {
         // Exponential moving average
         let alpha = 0.2;
         let new_confidence = alpha * result_confidence + (1.0 - alpha) * current_confidence;
-        let final_confidence = (new_confidence * frequency_confidence).max(0.1).min(1.0);
+        // Use additive frequency bonus instead of multiplicative to prevent over-dampening
+        let frequency_bonus = (frequency / 10.0).min(0.3);
+        let final_confidence = (new_confidence + frequency_bonus).max(0.1).min(1.0);
 
         self.confidence_scores.insert(key, final_confidence);
     }
@@ -496,9 +499,21 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
 
         let interactions = vec![
-            (content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success),
-            (content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure),
-            (content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success),
+            (
+                content_hash::from_u64(1),
+                content_hash::from_u64(2),
+                InteractionResult::Success,
+            ),
+            (
+                content_hash::from_u64(3),
+                content_hash::from_u64(4),
+                InteractionResult::Failure,
+            ),
+            (
+                content_hash::from_u64(5),
+                content_hash::from_u64(6),
+                InteractionResult::Success,
+            ),
         ];
 
         let affinities = learner.batch_update(&interactions).unwrap();
@@ -516,21 +531,41 @@ mod tests {
 
         // Create some relationships
         learner
-            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
+            .update_affinity(
+                content_hash::from_u64(1),
+                content_hash::from_u64(2),
+                InteractionResult::Success,
+            )
             .unwrap();
         learner
-            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
+            .update_affinity(
+                content_hash::from_u64(1),
+                content_hash::from_u64(2),
+                InteractionResult::Success,
+            )
             .unwrap();
 
         learner
-            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
+            .update_affinity(
+                content_hash::from_u64(3),
+                content_hash::from_u64(4),
+                InteractionResult::Failure,
+            )
             .unwrap();
         learner
-            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
+            .update_affinity(
+                content_hash::from_u64(3),
+                content_hash::from_u64(4),
+                InteractionResult::Failure,
+            )
             .unwrap();
 
         learner
-            .update_affinity(content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success)
+            .update_affinity(
+                content_hash::from_u64(5),
+                content_hash::from_u64(6),
+                InteractionResult::Success,
+            )
             .unwrap();
 
         let top_affinities = learner.get_top_affinities(2);
@@ -640,16 +675,32 @@ mod tests {
 
         // Add various relationships
         learner
-            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
+            .update_affinity(
+                content_hash::from_u64(1),
+                content_hash::from_u64(2),
+                InteractionResult::Success,
+            )
             .unwrap();
         learner
-            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
+            .update_affinity(
+                content_hash::from_u64(3),
+                content_hash::from_u64(4),
+                InteractionResult::Failure,
+            )
             .unwrap();
         learner
-            .update_affinity(content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success)
+            .update_affinity(
+                content_hash::from_u64(5),
+                content_hash::from_u64(6),
+                InteractionResult::Success,
+            )
             .unwrap();
         learner
-            .update_affinity(content_hash::from_u64(7), content_hash::from_u64(8), InteractionResult::Failure)
+            .update_affinity(
+                content_hash::from_u64(7),
+                content_hash::from_u64(8),
+                InteractionResult::Failure,
+            )
             .unwrap();
 
         let summary = learner.get_affinity_summary();

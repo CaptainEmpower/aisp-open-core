@@ -1783,7 +1783,9 @@ mod security_assessor {
         }
 
         fn create_mock_behavioral_with_violations() -> BehavioralVerificationResult {
-            use crate::semantic::behavioral_verifier::types::{BehavioralViolation, ViolationSeverity};
+            use crate::semantic::behavioral_verifier::types::{
+                BehavioralViolation, ViolationSeverity,
+            };
             BehavioralVerificationResult {
                 violations: vec![BehavioralViolation {
                     violation_type: "test_violation".to_string(),
