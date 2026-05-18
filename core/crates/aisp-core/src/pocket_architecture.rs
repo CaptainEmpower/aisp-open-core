@@ -15,14 +15,14 @@ use crate::{
     z3_verification::PropertyResult,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 // use sha2::{Sha256, Digest}; // Would need sha2 crate dependency
 use uuid::Uuid;
 
 /// Complete Pocket Architecture implementation
 /// 𝒫≜⟨ℋ:Header,ℳ:Membrane,𝒩:Nucleus⟩
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Pocket {
     /// ℋ: Immutable header with CAS addressing
     pub header: PocketHeader,
@@ -34,7 +34,7 @@ pub struct Pocket {
 
 /// ℋ: Immutable Header with Content-Addressable Storage
 /// ℋ≜⟨id:SHA256,V:Signal,f:𝔹⁶⁴⟩:immutable
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct PocketHeader {
     /// SHA256 hash of nucleus content for CAS integrity
     pub id: ContentHash,
@@ -50,7 +50,7 @@ pub struct PocketHeader {
 
 /// ℳ: Mutable Membrane for Adaptive Learning
 /// ℳ≜⟨aff:Hash→ℝ,conf:ℝ[0,1],tag:𝒫(𝕊),use:ℕ⟩:mutable
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PocketMembrane {
     /// Affinity scores for other pockets (Hebbian learning)
     pub affinity_scores: HashMap<ContentHash, f64>,
@@ -70,7 +70,7 @@ pub struct PocketMembrane {
 
 /// 𝒩: Immutable Nucleus with Formal Content
 /// 𝒩≜⟨def:AISP,ir:LLVM,wa:WASM,σ:Sig⟩:immutable
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct PocketNucleus {
     /// AISP definition as canonical AST
     pub aisp_definition: String,
@@ -87,6 +87,24 @@ pub struct PocketNucleus {
 /// Content-addressable hash type
 pub type ContentHash = [u8; 32];
 
+/// Helper functions for creating ContentHash values
+pub mod content_hash {
+    use super::ContentHash;
+    
+    /// Create a ContentHash from a u64 for testing purposes
+    /// This is a convenience function to help with test data creation
+    pub fn from_u64(value: u64) -> ContentHash {
+        let mut hash = [0u8; 32];
+        hash[..8].copy_from_slice(&value.to_be_bytes());
+        hash
+    }
+    
+    /// Create a zero ContentHash
+    pub fn zero() -> ContentHash {
+        [0u8; 32]
+    }
+}
+
 /// 1536-dimensional signal vector (V_H⊕V_L⊕V_S)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SignalVector {
@@ -98,12 +116,39 @@ pub struct SignalVector {
     pub safety: Vec<f32>,
 }
 
+impl Default for SignalVector {
+    fn default() -> Self {
+        Self {
+            semantic: vec![0.0; 768],
+            structural: vec![0.0; 512],
+            safety: vec![0.0; 256],
+        }
+    }
+}
+
+impl Eq for SignalVector {}
+
+impl std::hash::Hash for SignalVector {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // Hash based on significant digits to handle f32 precision
+        for &val in &self.semantic {
+            (val as u32).hash(state);
+        }
+        for &val in &self.structural {
+            (val as u32).hash(state);
+        }
+        for &val in &self.safety {
+            (val as u32).hash(state);
+        }
+    }
+}
+
 /// 64-bit feature flags for pocket capabilities
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct FeatureFlags(pub u64);
 
 /// Digital signature for authenticity
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DigitalSignature {
     pub algorithm: String,
     pub signature_bytes: Vec<u8>,
@@ -111,7 +156,7 @@ pub struct DigitalSignature {
 }
 
 /// Verification certificate for formal properties
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct VerificationCertificate {
     pub properties_verified: Vec<String>,
     pub verification_method: String,
@@ -119,8 +164,6 @@ pub struct VerificationCertificate {
     pub issued_at: u64,
     pub valid_until: Option<u64>,
 }
-
-use std::collections::HashSet;
 
 /// Pocket Architecture Verifier - enforces AISP Layer 1 invariants
 pub struct PocketArchitectureVerifier {
@@ -782,11 +825,6 @@ impl SignalVector {
     }
 }
 
-impl Default for SignalVector {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 impl FeatureFlags {
     /// Create new feature flags

@@ -4,6 +4,7 @@
 
 use super::types::*;
 use crate::{
+    pocket_architecture::content_hash,
     error::{AispError, AispResult},
     pocket_architecture::{ContentHash, InteractionResult},
 };
@@ -404,8 +405,8 @@ mod tests {
     #[test]
     fn test_affinity_update_success() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(123);
-        let pocket_b = ContentHash(456);
+        let pocket_a = content_hash::from_u64(123);
+        let pocket_b = content_hash::from_u64(456);
 
         // Initial affinity should be 0
         assert_eq!(learner.get_affinity(pocket_a, pocket_b), 0.0);
@@ -426,8 +427,8 @@ mod tests {
     #[test]
     fn test_affinity_update_failure() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(123);
-        let pocket_b = ContentHash(456);
+        let pocket_a = content_hash::from_u64(123);
+        let pocket_b = content_hash::from_u64(456);
 
         // Update with failed interaction
         let result = learner.update_affinity(pocket_a, pocket_b, InteractionResult::Failure);
@@ -445,16 +446,16 @@ mod tests {
     #[test]
     fn test_10_to_1_penalty_ratio() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(111);
-        let pocket_b = ContentHash(222);
+        let pocket_a = content_hash::from_u64(111);
+        let pocket_b = content_hash::from_u64(222);
 
         // One success
         let success_affinity = learner
             .update_affinity(pocket_a, pocket_b, InteractionResult::Success)
             .unwrap();
 
-        let pocket_c = ContentHash(333);
-        let pocket_d = ContentHash(444);
+        let pocket_c = content_hash::from_u64(333);
+        let pocket_d = content_hash::from_u64(444);
 
         // One failure
         let failure_affinity = learner
@@ -468,8 +469,8 @@ mod tests {
     #[test]
     fn test_prediction() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(555);
-        let pocket_b = ContentHash(666);
+        let pocket_a = content_hash::from_u64(555);
+        let pocket_b = content_hash::from_u64(666);
 
         // Initial prediction should be neutral
         let (prediction, confidence) = learner.predict_interaction_success(pocket_a, pocket_b);
@@ -495,9 +496,9 @@ mod tests {
         let mut learner = EnhancedHebbianLearner::new();
 
         let interactions = vec![
-            (ContentHash(1), ContentHash(2), InteractionResult::Success),
-            (ContentHash(3), ContentHash(4), InteractionResult::Failure),
-            (ContentHash(5), ContentHash(6), InteractionResult::Success),
+            (content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success),
+            (content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure),
+            (content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success),
         ];
 
         let affinities = learner.batch_update(&interactions).unwrap();
@@ -515,21 +516,21 @@ mod tests {
 
         // Create some relationships
         learner
-            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
+            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
             .unwrap();
         learner
-            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
-            .unwrap();
-
-        learner
-            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
-            .unwrap();
-        learner
-            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
+            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
             .unwrap();
 
         learner
-            .update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success)
+            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
+            .unwrap();
+        learner
+            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
+            .unwrap();
+
+        learner
+            .update_affinity(content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success)
             .unwrap();
 
         let top_affinities = learner.get_top_affinities(2);
@@ -549,8 +550,8 @@ mod tests {
     #[test]
     fn test_convergence_detection() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(777);
-        let pocket_b = ContentHash(888);
+        let pocket_a = content_hash::from_u64(777);
+        let pocket_b = content_hash::from_u64(888);
 
         // Should not converge initially
         assert!(!learner.has_converged(0.01));
@@ -587,8 +588,8 @@ mod tests {
     #[test]
     fn test_affinity_bounds() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(999);
-        let pocket_b = ContentHash(1000);
+        let pocket_a = content_hash::from_u64(999);
+        let pocket_b = content_hash::from_u64(1000);
 
         // Many failures should not go below -100
         for _ in 0..50 {
@@ -617,8 +618,8 @@ mod tests {
     #[test]
     fn test_confidence_tracker() {
         let mut tracker = ConfidenceTracker::new();
-        let pocket_a = ContentHash(111);
-        let pocket_b = ContentHash(222);
+        let pocket_a = content_hash::from_u64(111);
+        let pocket_b = content_hash::from_u64(222);
 
         // Initial confidence should be low
         let initial_confidence = tracker.get_confidence(pocket_a, pocket_b);
@@ -639,16 +640,16 @@ mod tests {
 
         // Add various relationships
         learner
-            .update_affinity(ContentHash(1), ContentHash(2), InteractionResult::Success)
+            .update_affinity(content_hash::from_u64(1), content_hash::from_u64(2), InteractionResult::Success)
             .unwrap();
         learner
-            .update_affinity(ContentHash(3), ContentHash(4), InteractionResult::Failure)
+            .update_affinity(content_hash::from_u64(3), content_hash::from_u64(4), InteractionResult::Failure)
             .unwrap();
         learner
-            .update_affinity(ContentHash(5), ContentHash(6), InteractionResult::Success)
+            .update_affinity(content_hash::from_u64(5), content_hash::from_u64(6), InteractionResult::Success)
             .unwrap();
         learner
-            .update_affinity(ContentHash(7), ContentHash(8), InteractionResult::Failure)
+            .update_affinity(content_hash::from_u64(7), content_hash::from_u64(8), InteractionResult::Failure)
             .unwrap();
 
         let summary = learner.get_affinity_summary();
@@ -663,8 +664,8 @@ mod tests {
     #[test]
     fn test_forgetting_mechanism() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(123);
-        let pocket_b = ContentHash(456);
+        let pocket_a = content_hash::from_u64(123);
+        let pocket_b = content_hash::from_u64(456);
 
         // Build up some affinity
         learner
@@ -684,8 +685,8 @@ mod tests {
     #[test]
     fn test_reset() {
         let mut learner = EnhancedHebbianLearner::new();
-        let pocket_a = ContentHash(789);
-        let pocket_b = ContentHash(101);
+        let pocket_a = content_hash::from_u64(789);
+        let pocket_b = content_hash::from_u64(101);
 
         // Add some data
         learner

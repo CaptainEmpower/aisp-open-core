@@ -31,7 +31,7 @@ pub use types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    pocket_architecture::{ContentHash, InteractionResult},
+    pocket_architecture::{content_hash, ContentHash, InteractionResult},
 };
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -521,8 +521,10 @@ mod tests {
         let mut manager = CoreFeaturesManager::new();
         let context = create_test_context();
 
-        let content_a = ContentHash(123);
-        let content_b = ContentHash(456);
+        let mut content_a = [0u8; 32];
+        content_a[0] = 123;
+        let mut content_b = [0u8; 32];
+        content_b[0] = 200;
         let type_a = create_test_type_signature("TestType");
         let type_b = create_test_type_signature("TestType");
 
@@ -543,8 +545,8 @@ mod tests {
     #[test]
     fn test_interaction_affinity_update() {
         let mut manager = CoreFeaturesManager::new();
-        let content_a = ContentHash(789);
-        let content_b = ContentHash(101);
+        let content_a = content_hash::from_u64(789);
+        let content_b = content_hash::from_u64(101);
 
         let result =
             manager.update_interaction_affinity(content_a, content_b, InteractionResult::Success);
@@ -557,8 +559,8 @@ mod tests {
     #[test]
     fn test_interaction_prediction() {
         let mut manager = CoreFeaturesManager::new();
-        let content_a = ContentHash(111);
-        let content_b = ContentHash(222);
+        let content_a = content_hash::from_u64(111);
+        let content_b = content_hash::from_u64(222);
 
         // Update affinity first
         manager
@@ -579,14 +581,14 @@ mod tests {
 
         let interactions = vec![
             (
-                ContentHash(1),
-                ContentHash(2),
+                content_hash::from_u64(1),
+                content_hash::from_u64(2),
                 create_test_type_signature("Type1"),
                 create_test_type_signature("Type2"),
             ),
             (
-                ContentHash(3),
-                ContentHash(4),
+                content_hash::from_u64(3),
+                content_hash::from_u64(4),
                 create_test_type_signature("Type3"),
                 create_test_type_signature("Type4"),
             ),
@@ -610,9 +612,9 @@ mod tests {
         let context = create_test_context();
 
         let content_pairs = vec![
-            (ContentHash(555), ContentHash(666)),
-            (ContentHash(777), ContentHash(888)),
-            (ContentHash(999), ContentHash(1000)),
+            (content_hash::from_u64(555), content_hash::from_u64(666)),
+            (content_hash::from_u64(777), content_hash::from_u64(888)),
+            (content_hash::from_u64(999), content_hash::from_u64(1000)),
         ];
 
         let recommendations = manager.get_top_recommendations(&content_pairs, &context, 2);
@@ -648,8 +650,10 @@ mod tests {
         let context = create_test_context();
 
         // Generate some activity
-        let content_a = ContentHash(123);
-        let content_b = ContentHash(456);
+        let mut content_a = [0u8; 32];
+        content_a[0] = 123;
+        let mut content_b = [0u8; 32];
+        content_b[0] = 200;
         let type_sig = create_test_type_signature("Test");
 
         manager
@@ -682,8 +686,10 @@ mod tests {
         config.enable_hebbian_learning = false;
 
         let mut manager = CoreFeaturesManager::with_configuration(config);
-        let content_a = ContentHash(123);
-        let content_b = ContentHash(456);
+        let mut content_a = [0u8; 32];
+        content_a[0] = 123;
+        let mut content_b = [0u8; 32];
+        content_b[0] = 200;
 
         // Should fail when trying to update affinity with disabled Hebbian learning
         let result =
@@ -694,8 +700,8 @@ mod tests {
 
     #[test]
     fn test_content_analysis_result() {
-        let content_a = ContentHash(111);
-        let content_b = ContentHash(222);
+        let content_a = content_hash::from_u64(111);
+        let content_b = content_hash::from_u64(222);
 
         let mut result = ContentAnalysisResult::new(content_a, content_b);
         assert_eq!(result.content_a, content_a);
@@ -719,8 +725,10 @@ mod tests {
         let context = create_test_context();
 
         // Generate some activity
-        let content_a = ContentHash(123);
-        let content_b = ContentHash(456);
+        let mut content_a = [0u8; 32];
+        content_a[0] = 123;
+        let mut content_b = [0u8; 32];
+        content_b[0] = 200;
         let type_sig = create_test_type_signature("Test");
 
         manager
