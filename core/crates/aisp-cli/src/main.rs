@@ -1,7 +1,7 @@
 //! AISP CLI - Command Line Interface for AI Symbolic Protocol Validation
 //!
 //! This tool provides comprehensive validation and analysis capabilities for AISP documents
-//! including syntax checking, semantic analysis, relational logic, temporal logic, 
+//! including syntax checking, semantic analysis, relational logic, temporal logic,
 //! and formal verification using Z3.
 
 use aisp_core::*;
@@ -91,7 +91,7 @@ enum Commands {
     Validate {
         /// Files to validate
         files: Vec<PathBuf>,
-        
+
         /// Stop on first error
         #[arg(long = "fail-fast")]
         fail_fast: bool,
@@ -100,11 +100,11 @@ enum Commands {
     Analyze {
         /// File to analyze
         file: PathBuf,
-        
+
         /// Include symbol statistics
         #[arg(long = "symbols")]
         symbols: bool,
-        
+
         /// Include complexity metrics
         #[arg(long = "complexity")]
         complexity: bool,
@@ -118,7 +118,7 @@ enum Commands {
     Format {
         /// File to format
         file: PathBuf,
-        
+
         /// Format in place
         #[arg(short = 'i', long = "in-place")]
         in_place: bool,
@@ -211,24 +211,21 @@ async fn main() -> Result<()> {
     setup_logging(&cli)?;
 
     match cli.command {
-        Some(Commands::Validate { ref files, fail_fast }) => {
-            validate_files(&cli, files.clone(), fail_fast).await
-        }
-        Some(Commands::Analyze { ref file, symbols, complexity }) => {
-            analyze_file(&cli, file.clone(), symbols, complexity).await
-        }
-        Some(Commands::Check { ref files }) => {
-            check_files(&cli, files.clone()).await
-        }
+        Some(Commands::Validate {
+            ref files,
+            fail_fast,
+        }) => validate_files(&cli, files.clone(), fail_fast).await,
+        Some(Commands::Analyze {
+            ref file,
+            symbols,
+            complexity,
+        }) => analyze_file(&cli, file.clone(), symbols, complexity).await,
+        Some(Commands::Check { ref files }) => check_files(&cli, files.clone()).await,
         Some(Commands::Format { ref file, in_place }) => {
             format_file(&cli, file.clone(), in_place).await
         }
-        Some(Commands::Interactive) => {
-            interactive_mode(&cli).await
-        }
-        Some(Commands::Levels) => {
-            show_validation_levels()
-        }
+        Some(Commands::Interactive) => interactive_mode(&cli).await,
+        Some(Commands::Levels) => show_validation_levels(),
         None => {
             // Default behavior: validate input files
             if cli.input.is_empty() {
@@ -263,7 +260,9 @@ async fn validate_files(cli: &Cli, files: Vec<PathBuf>, fail_fast: bool) -> Resu
         let pb = ProgressBar::new(files.len() as u64);
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}",
+                )
                 .unwrap()
                 .progress_chars("#>-"),
         );
@@ -278,20 +277,24 @@ async fn validate_files(cli: &Cli, files: Vec<PathBuf>, fail_fast: bool) -> Resu
         }
 
         let result = validate_single_file(cli, &file).await?;
-        
+
         if !result.valid {
             total_errors += 1;
             if fail_fast {
                 if let Some(pb) = progress {
                     pb.finish_and_clear();
                 }
-                eprintln!("{} Validation failed for {}", "✗".red().bold(), file.display());
+                eprintln!(
+                    "{} Validation failed for {}",
+                    "✗".red().bold(),
+                    file.display()
+                );
                 std::process::exit(1);
             }
         }
 
         results.push(result);
-        
+
         if let Some(pb) = &progress {
             pb.inc(1);
         }
@@ -307,8 +310,11 @@ async fn validate_files(cli: &Cli, files: Vec<PathBuf>, fail_fast: bool) -> Resu
     if total_errors > 0 {
         if !cli.quiet {
             eprintln!();
-            eprintln!("{} {} file(s) failed validation", 
-                "✗".red().bold(), total_errors);
+            eprintln!(
+                "{} {} file(s) failed validation",
+                "✗".red().bold(),
+                total_errors
+            );
         }
         std::process::exit(1);
     } else if !cli.quiet {
@@ -357,9 +363,15 @@ async fn validate_single_file(cli: &Cli, file: &Path) -> Result<CliValidationRes
         ambiguity: validation_result.ambiguity,
         document_size: validation_result.document_size,
         parse_time_ms: validation_result.parse_time.map(|d| d.as_millis() as u64),
-        semantic_time_ms: validation_result.semantic_time.map(|d| d.as_millis() as u64),
+        semantic_time_ms: validation_result
+            .semantic_time
+            .map(|d| d.as_millis() as u64),
         total_time_ms: validation_result.total_time.map(|d| d.as_millis() as u64),
-        warnings: validation_result.warnings.iter().map(|w| w.to_string()).collect(),
+        warnings: validation_result
+            .warnings
+            .iter()
+            .map(|w| w.to_string())
+            .collect(),
         errors: if let Some(error) = &validation_result.error {
             vec![error.to_string()]
         } else {
@@ -409,7 +421,10 @@ async fn validate_single_file(cli: &Cli, file: &Path) -> Result<CliValidationRes
             status,
             properties_checked: total_components,
             properties_proven: verified_count,
-            verification_time_ms: formal.verification_details.performance_metrics.verification_time_ms,
+            verification_time_ms: formal
+                .verification_details
+                .performance_metrics
+                .verification_time_ms,
         });
     }
 
@@ -443,16 +458,21 @@ fn output_human(cli: &Cli, results: &[CliValidationResult], detailed: bool) -> R
     for result in results {
         if !cli.quiet {
             println!("{}", format!("File: {}", result.file.display()).bold());
-            
+
             // Validation status
             if result.valid {
-                println!("  Status: {} {}", "✓".green().bold(), "Valid".green().bold());
+                println!(
+                    "  Status: {} {}",
+                    "✓".green().bold(),
+                    "Valid".green().bold()
+                );
             } else {
                 println!("  Status: {} {}", "✗".red().bold(), "Invalid".red().bold());
             }
 
             // Quality tier
-            println!("  Quality: {} {} (δ={:.3}, ambiguity={:.3})", 
+            println!(
+                "  Quality: {} {} (δ={:.3}, ambiguity={:.3})",
                 result.tier_symbol.blue().bold(),
                 result.tier.blue(),
                 result.delta,
@@ -480,8 +500,10 @@ fn output_human(cli: &Cli, results: &[CliValidationResult], detailed: bool) -> R
                 if let Some(rel) = &result.relational_analysis {
                     println!("  Relational Analysis:");
                     println!("    Consistency: {:.3}", rel.consistency_score);
-                    println!("    Constraints: {}/{} satisfied", 
-                        rel.constraints_satisfied, rel.constraints_total);
+                    println!(
+                        "    Constraints: {}/{} satisfied",
+                        rel.constraints_satisfied, rel.constraints_total
+                    );
                     if rel.conflicts > 0 {
                         println!("    Conflicts: {}", rel.conflicts.to_string().red());
                     }
@@ -498,8 +520,10 @@ fn output_human(cli: &Cli, results: &[CliValidationResult], detailed: bool) -> R
                 if let Some(formal) = &result.formal_verification {
                     println!("  Formal Verification:");
                     println!("    Status: {}", formal.status);
-                    println!("    Properties: {}/{} proven", 
-                        formal.properties_proven, formal.properties_checked);
+                    println!(
+                        "    Properties: {}/{} proven",
+                        formal.properties_proven, formal.properties_checked
+                    );
                     println!("    Time: {}ms", formal.verification_time_ms);
                 }
             }
@@ -530,7 +554,12 @@ fn output_human(cli: &Cli, results: &[CliValidationResult], detailed: bool) -> R
 fn output_minimal(cli: &Cli, results: &[CliValidationResult]) -> Result<()> {
     for result in results {
         let status = if result.valid { "✓" } else { "✗" };
-        let line = format!("{} {} {}", status, result.file.display(), result.tier_symbol);
+        let line = format!(
+            "{} {} {}",
+            status,
+            result.file.display(),
+            result.tier_symbol
+        );
         write_output(cli, &line)?;
     }
     Ok(())
@@ -552,14 +581,18 @@ fn write_output(cli: &Cli, content: &str) -> Result<()> {
 
 /// Analyze a single file in detail
 async fn analyze_file(cli: &Cli, file: PathBuf, _symbols: bool, _complexity: bool) -> Result<()> {
-    println!("{} Analyzing {}", "🔬".bold(), file.display().to_string().cyan());
-    
+    println!(
+        "{} Analyzing {}",
+        "🔬".bold(),
+        file.display().to_string().cyan()
+    );
+
     // For now, just run detailed validation
     let mut detailed_cli = cli.clone();
     detailed_cli.format = OutputFormat::Detailed;
-    
+
     validate_single_file(&detailed_cli, &file).await?;
-    
+
     Ok(())
 }
 
@@ -568,7 +601,7 @@ async fn check_files(cli: &Cli, files: Vec<PathBuf>) -> Result<()> {
     let mut syntax_cli = cli.clone();
     syntax_cli.level = ValidationLevel::Syntax;
     syntax_cli.format = OutputFormat::Minimal;
-    
+
     validate_files(&syntax_cli, files, false).await
 }
 
@@ -583,11 +616,11 @@ async fn format_file(_cli: &Cli, _file: PathBuf, _in_place: bool) -> Result<()> 
 async fn interactive_mode(_cli: &Cli) -> Result<()> {
     println!("{} Interactive AISP Validator", "🚀".bold());
     println!("Enter AISP text (Ctrl+D to validate, 'quit' to exit):");
-    
+
     loop {
         print!("> ");
         io::stdout().flush()?;
-        
+
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
             Ok(0) => break, // EOF
@@ -596,15 +629,16 @@ async fn interactive_mode(_cli: &Cli) -> Result<()> {
                 if input == "quit" {
                     break;
                 }
-                
+
                 // Quick validation
                 let validator = AispValidator::new();
                 let result = validator.validate(input);
-                
+
                 if result.valid {
-                    println!("  {} Valid {} (δ={:.3})", 
-                        "✓".green().bold(), 
-                        result.tier_symbol.blue(), 
+                    println!(
+                        "  {} Valid {} (δ={:.3})",
+                        "✓".green().bold(),
+                        result.tier_symbol.blue(),
                         result.delta
                     );
                 } else {
@@ -620,7 +654,7 @@ async fn interactive_mode(_cli: &Cli) -> Result<()> {
             }
         }
     }
-    
+
     println!("Goodbye!");
     Ok(())
 }
@@ -629,52 +663,73 @@ async fn interactive_mode(_cli: &Cli) -> Result<()> {
 fn show_validation_levels() -> Result<()> {
     println!("{} AISP Validation Levels", "📋".bold());
     println!();
-    
-    println!("{} {} - Basic syntax checking", "1".cyan().bold(), "Syntax".bold());
+
+    println!(
+        "{} {} - Basic syntax checking",
+        "1".cyan().bold(),
+        "Syntax".bold()
+    );
     println!("  • Parse AISP document structure");
     println!("  • Check Unicode symbol usage");
     println!("  • Validate block organization");
     println!();
-    
-    println!("{} {} - Semantic analysis", "2".cyan().bold(), "Semantic".bold());
+
+    println!(
+        "{} {} - Semantic analysis",
+        "2".cyan().bold(),
+        "Semantic".bold()
+    );
     println!("  • Type checking and inference");
     println!("  • Symbol usage validation");
     println!("  • Quality tier calculation (δ)");
     println!("  • Ambiguity measurement");
     println!();
-    
-    println!("{} {} - Relational logic (Level 4)", "3".cyan().bold(), "Relational".bold());
+
+    println!(
+        "{} {} - Relational logic (Level 4)",
+        "3".cyan().bold(),
+        "Relational".bold()
+    );
     println!("  • Set theory validation");
     println!("  • Type relationship analysis");
     println!("  • Constraint satisfaction");
     println!("  • Dependency graph construction");
     println!();
-    
-    println!("{} {} - Temporal logic (Level 5)", "4".cyan().bold(), "Temporal".bold());
+
+    println!(
+        "{} {} - Temporal logic (Level 5)",
+        "4".cyan().bold(),
+        "Temporal".bold()
+    );
     println!("  • Linear Temporal Logic (LTL)");
     println!("  • Computation Tree Logic (CTL)");
     println!("  • Model checking");
     println!("  • Pattern recognition");
     println!();
-    
+
     #[cfg(feature = "z3-verification")]
     {
-        println!("{} {} - Formal verification", "5".cyan().bold(), "Formal".bold());
+        println!(
+            "{} {} - Formal verification",
+            "5".cyan().bold(),
+            "Formal".bold()
+        );
         println!("  • Z3 theorem proving");
         println!("  • Property verification");
         println!("  • Counterexample generation");
         println!("  • Proof certificates");
     }
-    
+
     #[cfg(not(feature = "z3-verification"))]
     {
-        println!("{} {} - Formal verification {}", 
-            "5".cyan().bold(), 
+        println!(
+            "{} {} - Formal verification {}",
+            "5".cyan().bold(),
             "Formal".bold(),
             "(disabled - compile with z3-verification feature)".yellow()
         );
     }
-    
+
     Ok(())
 }
 

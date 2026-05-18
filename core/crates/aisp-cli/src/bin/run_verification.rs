@@ -4,10 +4,7 @@
 //! invariant discovery, satisfiability checking, and proof generation.
 
 use aisp_core::{
-    ast::canonical::{
-        self,
-        CanonicalAispDocument as AispDocument,
-    },
+    ast::canonical::{self, CanonicalAispDocument as AispDocument},
     formal_verification::{FormalVerifier, VerificationConfig, VerificationMethod},
     parser::AispParser,
 };
@@ -59,14 +56,29 @@ fn run_simple_verification() -> Result<(), Box<dyn std::error::Error>> {
     // Display results
     println!("   Verification time: {:?}", verification_time);
     println!("   Status: {:?}", result.status);
-    println!("   Properties checked: {}", result.statistics.properties_checked);
-    println!("   Successful verifications: {}", result.statistics.successful_verifications);
+    println!(
+        "   Properties checked: {}",
+        result.statistics.properties_checked
+    );
+    println!(
+        "   Successful verifications: {}",
+        result.statistics.successful_verifications
+    );
     println!("   Proofs generated: {}", result.proofs.len());
 
     if !result.verified_invariants.is_empty() {
-        println!("   First verified invariant: {}", result.verified_invariants[0].invariant.name);
-        println!("   Proof method: {:?}", result.verified_invariants[0].verification_method);
-        println!("   Confidence: {:.2}%", result.verified_invariants[0].verification_confidence * 100.0);
+        println!(
+            "   First verified invariant: {}",
+            result.verified_invariants[0].invariant.name
+        );
+        println!(
+            "   Proof method: {:?}",
+            result.verified_invariants[0].verification_method
+        );
+        println!(
+            "   Confidence: {:.2}%",
+            result.verified_invariants[0].verification_confidence * 100.0
+        );
     }
 
     Ok(())
@@ -105,10 +117,22 @@ fn run_complex_verification() -> Result<(), Box<dyn std::error::Error>> {
     println!("   Status: {:?}", result.status);
     println!("   Statistics:");
     println!("      Total time: {:?}", result.statistics.total_time);
-    println!("      Properties checked: {}", result.statistics.properties_checked);
-    println!("      Successful verifications: {}", result.statistics.successful_verifications);
-    println!("      Failed verifications: {}", result.statistics.failed_verifications);
-    println!("      Peak memory usage: {} bytes", result.statistics.resource_usage.peak_memory);
+    println!(
+        "      Properties checked: {}",
+        result.statistics.properties_checked
+    );
+    println!(
+        "      Successful verifications: {}",
+        result.statistics.successful_verifications
+    );
+    println!(
+        "      Failed verifications: {}",
+        result.statistics.failed_verifications
+    );
+    println!(
+        "      Peak memory usage: {} bytes",
+        result.statistics.resource_usage.peak_memory
+    );
 
     // Show method distribution
     println!("   Method distribution:");
@@ -118,14 +142,28 @@ fn run_complex_verification() -> Result<(), Box<dyn std::error::Error>> {
 
     // Show proof complexity analysis
     if !result.proofs.is_empty() {
-        let avg_complexity = result.proofs.iter()
+        let avg_complexity = result
+            .proofs
+            .iter()
             .map(|p| p.complexity.steps as f64)
-            .sum::<f64>() / result.proofs.len() as f64;
+            .sum::<f64>()
+            / result.proofs.len() as f64;
         println!("   Average proof complexity: {:.1} steps", avg_complexity);
 
-        let simple_proofs = result.proofs.iter().filter(|p| p.complexity.steps < 10).count();
-        let complex_proofs = result.proofs.iter().filter(|p| p.complexity.steps >= 20).count();
-        println!("   Proof complexity distribution: {} simple, {} complex", simple_proofs, complex_proofs);
+        let simple_proofs = result
+            .proofs
+            .iter()
+            .filter(|p| p.complexity.steps < 10)
+            .count();
+        let complex_proofs = result
+            .proofs
+            .iter()
+            .filter(|p| p.complexity.steps >= 20)
+            .count();
+        println!(
+            "   Proof complexity distribution: {} simple, {} complex",
+            simple_proofs, complex_proofs
+        );
     }
 
     Ok(())
@@ -158,11 +196,11 @@ fn run_parser_integration_test() -> Result<(), Box<dyn std::error::Error>> {
     // Parse the document
     let parser = AispParser::new(aisp_text.to_string());
     let parse_result = parser.parse(aisp_text);
-    
+
     if !parse_result.errors.is_empty() {
         return Err(format!("Parse errors: {:?}", parse_result.errors).into());
     }
-    
+
     let document = parse_result.document.ok_or("Failed to parse document")?;
 
     println!("   Document parsed successfully");
@@ -177,17 +215,25 @@ fn run_parser_integration_test() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("   Verification Results:");
     println!("      Status: {:?}", result.status);
-    println!("      Properties checked: {}", result.statistics.properties_checked);
-    println!("      Successful verifications: {}", result.statistics.successful_verifications);
+    println!(
+        "      Properties checked: {}",
+        result.statistics.properties_checked
+    );
+    println!(
+        "      Successful verifications: {}",
+        result.statistics.successful_verifications
+    );
     println!("      Generated: {} proofs", result.proofs.len());
 
     // Show individual proof details
     for (i, proof) in result.proofs.iter().enumerate().take(3) {
-        println!("   Proof {} ({}): {} steps, depth {}",
-                 i + 1,
-                 &proof.id[..8.min(proof.id.len())],
-                 proof.complexity.steps,
-                 proof.complexity.logical_depth);
+        println!(
+            "   Proof {} ({}): {} steps, depth {}",
+            i + 1,
+            &proof.id[..8.min(proof.id.len())],
+            proof.complexity.steps,
+            proof.complexity.logical_depth
+        );
     }
 
     if result.proofs.len() > 3 {
@@ -221,11 +267,15 @@ fn run_performance_analysis() -> Result<(), Box<dyn std::error::Error>> {
             Ok(result) => {
                 let total_time = start_time.elapsed();
                 println!("      Total time: {:?}", total_time);
-                println!("      Properties: {}/{} verified",
-                         result.statistics.successful_verifications,
-                         result.statistics.properties_checked);
-                println!("      Memory peak: {} KB",
-                         result.statistics.resource_usage.peak_memory / 1024);
+                println!(
+                    "      Properties: {}/{} verified",
+                    result.statistics.successful_verifications,
+                    result.statistics.properties_checked
+                );
+                println!(
+                    "      Memory peak: {} KB",
+                    result.statistics.resource_usage.peak_memory / 1024
+                );
 
                 if !result.proofs.is_empty() {
                     let avg_proof_time = result.statistics.performance.avg_proof_time;
@@ -248,13 +298,19 @@ fn run_method_comparison() -> Result<(), Box<dyn std::error::Error>> {
 
     let methods_to_test = vec![
         ("Direct Proof", vec![VerificationMethod::DirectProof]),
-        ("SMT Verification", vec![VerificationMethod::SmtSolverVerification]),
+        (
+            "SMT Verification",
+            vec![VerificationMethod::SmtSolverVerification],
+        ),
         ("Automated Proof", vec![VerificationMethod::AutomatedProof]),
-        ("Hybrid Approach", vec![
-            VerificationMethod::DirectProof,
-            VerificationMethod::SmtSolverVerification,
-            VerificationMethod::AutomatedProof,
-        ]),
+        (
+            "Hybrid Approach",
+            vec![
+                VerificationMethod::DirectProof,
+                VerificationMethod::SmtSolverVerification,
+                VerificationMethod::AutomatedProof,
+            ],
+        ),
     ];
 
     for (name, methods) in methods_to_test {
@@ -279,14 +335,19 @@ fn run_method_comparison() -> Result<(), Box<dyn std::error::Error>> {
             Ok(result) => {
                 let verification_time = start_time.elapsed();
                 println!("      Time: {:?}", verification_time);
-                println!("      Success rate: {}/{}",
-                         result.statistics.successful_verifications,
-                         result.statistics.properties_checked);
+                println!(
+                    "      Success rate: {}/{}",
+                    result.statistics.successful_verifications,
+                    result.statistics.properties_checked
+                );
 
                 if !result.proofs.is_empty() {
-                    let avg_complexity = result.proofs.iter()
+                    let avg_complexity = result
+                        .proofs
+                        .iter()
                         .map(|p| p.complexity.steps as f64)
-                        .sum::<f64>() / result.proofs.len() as f64;
+                        .sum::<f64>()
+                        / result.proofs.len() as f64;
                     println!("      Avg complexity: {:.1} steps", avg_complexity);
                 }
             }
@@ -326,7 +387,10 @@ fn create_large_test_document() -> AispDocument {
     for i in 0..10 {
         type_defs.push(format!("Counter{}≜ℕ", i));
         type_defs.push(format!("Flag{}≜𝔹", i));
-        type_defs.push(format!("Status{}≜{{State{}A,State{}B,State{}C}}", i, i, i, i));
+        type_defs.push(format!(
+            "Status{}≜{{State{}A,State{}B,State{}C}}",
+            i, i, i, i
+        ));
     }
 
     doc.add_block(canonical::create_types_block(type_defs));
