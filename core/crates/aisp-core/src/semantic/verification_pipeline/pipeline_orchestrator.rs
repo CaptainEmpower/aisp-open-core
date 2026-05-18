@@ -127,15 +127,17 @@ impl PipelineOrchestrator {
 
     /// Optimize resource allocation for performance
     fn optimize_resource_allocation(&mut self) {
-        // Increase thread pool for parallel execution
-        if let Some(thread_count) = self.resource_manager.resource_pools.get_mut("threads") {
-            *thread_count = (*thread_count * 2).min(16); // Cap at 16 threads
-        }
+        // Initialize and increase thread pool for parallel execution
+        let thread_count = self.resource_manager.resource_pools
+            .entry("threads".to_string())
+            .or_insert(4); // Default 4 threads
+        *thread_count = (*thread_count * 2).min(16); // Cap at 16 threads
 
-        // Allocate larger memory pools for performance
-        if let Some(memory_pool) = self.resource_manager.resource_pools.get_mut("memory") {
-            *memory_pool = (*memory_pool * 4).min(16 * 1024 * 1024); // Cap at 16MB
-        }
+        // Initialize and allocate larger memory pools for performance
+        let memory_pool = self.resource_manager.resource_pools
+            .entry("memory".to_string())
+            .or_insert(4 * 1024 * 1024); // Default 4MB
+        *memory_pool = (*memory_pool * 4).min(16 * 1024 * 1024); // Cap at 16MB
     }
 
     /// Check if stage can be executed based on dependencies
