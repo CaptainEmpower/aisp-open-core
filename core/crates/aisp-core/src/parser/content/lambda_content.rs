@@ -53,7 +53,12 @@ impl LambdaContentParser {
     fn parse_unicode_lambda(text: &str) -> LambdaExpression {
         // Find the dot separator
         if let Some(dot_pos) = text.find('.') {
-            let param_part = &text[1..dot_pos].trim(); // Skip the λ
+            // Skip the λ character properly using char boundaries
+            let param_part = if text.starts_with('λ') {
+                &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..dot_pos]
+            } else {
+                &text[1..dot_pos]
+            }.trim();
             let body_part = text[dot_pos + 1..].trim();
 
             let parameters = Self::parse_parameters(param_part);

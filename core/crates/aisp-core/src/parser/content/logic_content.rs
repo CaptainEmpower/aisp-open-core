@@ -62,7 +62,12 @@ impl LogicContentParser {
     fn parse_universal_quantifier(text: &str) -> (Option<Quantifier>, &str) {
         // Find the colon that separates quantifier from expression
         if let Some(colon_pos) = text.find(':') {
-            let quantifier_part = &text[1..colon_pos].trim(); // Skip ∀
+            // Skip the ∀ character properly using char boundaries
+            let quantifier_part = if text.starts_with('∀') {
+                &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..colon_pos]
+            } else {
+                &text[1..colon_pos]
+            }.trim();
             let expression_part = &text[colon_pos + 1..].trim();
 
             let (variable, domain) = Self::parse_quantifier_binding(quantifier_part);
@@ -84,7 +89,12 @@ impl LogicContentParser {
     /// Parse existential quantifier (∃x ∈ Domain: ...)
     fn parse_existential_quantifier(text: &str) -> (Option<Quantifier>, &str) {
         if let Some(colon_pos) = text.find(':') {
-            let quantifier_part = &text[1..colon_pos].trim(); // Skip ∃
+            // Skip the ∃ character properly using char boundaries
+            let quantifier_part = if text.starts_with('∃') {
+                &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..colon_pos]
+            } else {
+                &text[1..colon_pos]
+            }.trim();
             let expression_part = &text[colon_pos + 1..].trim();
 
             let (variable, domain) = Self::parse_quantifier_binding(quantifier_part);
