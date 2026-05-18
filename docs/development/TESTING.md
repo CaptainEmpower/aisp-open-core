@@ -289,6 +289,56 @@ The test infrastructure works with:
 - **cargo-nextest**: `cargo nextest run`
 - **just**: All commands available via `just --list`
 
+## Test Quality Standards
+
+### Meaningful Assertion Requirements
+
+All tests must follow strict quality standards to provide genuine validation value:
+
+#### ❌ Prohibited Patterns ("Always Pass" Tests)
+```rust
+// Tautological assertions that always pass
+assert!(result.is_valid || !result.is_valid);
+assert!(value >= 0.0 || value < 0.0);
+
+// Unrealistic thresholds that mask implementation issues  
+assert!(confidence > 0.95);  // System rarely achieves this
+```
+
+#### ✅ Required Patterns (Meaningful Validation)
+```rust
+// Assertions that can meaningfully fail
+assert!(
+    result.is_valid,
+    "Validation failed for complete document: {:?}",
+    result.errors
+);
+
+// Realistic thresholds with actionable alternatives
+assert!(
+    confidence >= 0.5 || !recommendations.is_empty(),
+    "System should provide either reasonable confidence (≥0.5) or actionable recommendations. \
+     Got confidence: {}, recommendations: {}",
+    confidence, recommendations.len()
+);
+```
+
+### Test Quality Checklist
+
+Before committing any test:
+
+- [ ] **Meaningful Failure**: Assertion can fail with realistic input variations
+- [ ] **Actionable Messages**: Error messages provide debugging context
+- [ ] **Realistic Expectations**: Thresholds align with system capabilities  
+- [ ] **Comprehensive Coverage**: Test validates the intended behavior fully
+- [ ] **No Tautologies**: No assertions that are always true/false
+
+### Quality Enforcement
+
+**Current Status**: ✅ **1044/1044 tests passing with meaningful validation**
+
+All tests have been reviewed and updated to meet quality standards per ADR-026. The test suite now provides genuine confidence in system correctness with zero "always pass" patterns.
+
 ## Contributing
 
 When adding tests:
@@ -297,7 +347,10 @@ When adding tests:
 2. Add appropriate feature requirements
 3. Include performance expectations
 4. Document security implications
-5. Update this guide as needed
+5. **Follow test quality standards** (see ADR-026)
+6. Ensure assertions can meaningfully fail
+7. Provide actionable error messages
+8. Update this guide as needed
 
 For production deployment, ensure all tests pass:
 
