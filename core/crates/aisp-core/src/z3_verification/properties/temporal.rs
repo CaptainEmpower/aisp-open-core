@@ -208,13 +208,13 @@ pub enum ConstraintType {
     Custom(String),
 }
 
-/// Constraint enforcement levels
+/// Constraint enforcement levels (ordered from weakest to strongest)
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum ConstraintEnforcement {
-    Strict,
-    Soft,
-    Preference,
-    Optional,
+    Optional,    // Weakest (index 0)
+    Soft,        // (index 1)  
+    Preference,  // (index 2)
+    Strict,      // Strongest (index 3)
 }
 
 /// Individual state in the state space
