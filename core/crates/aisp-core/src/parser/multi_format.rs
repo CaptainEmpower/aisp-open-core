@@ -1,13 +1,13 @@
 //! Multi-Format Parser Orchestrator
-//! 
+//!
 //! This module implements the core orchestration logic for ADR-023,
 //! coordinating format detection, content extraction, and parser
 //! selection to handle mixed-format documents while maintaining
 //! SRP compliance.
 
-use super::format_detection::{DocumentFormat, FormatDetector, FormatAnalysis};
 use super::aisp_extractor::{AispCodeBlockExtractor, ExtractedAispBlock, ExtractionContext};
-use super::robust_parser::{RobustAispParser, ParseResult};
+use super::format_detection::{DocumentFormat, FormatAnalysis, FormatDetector};
+use super::robust_parser::{ParseResult, RobustAispParser};
 use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::{AispError, AispResult};
 
@@ -16,15 +16,15 @@ use crate::error::{AispError, AispResult};
 pub enum ParsedDocument {
     /// Pure AISP document - single parsed document
     Pure(AispDocument),
-    
+
     /// Mixed format document with separated content
     Mixed {
         /// Original markdown/prose content with AISP blocks removed
         prose_content: String,
-        
+
         /// Parsed AISP documents extracted from code blocks
         aisp_documents: Vec<ParsedAispDocument>,
-        
+
         /// Format analysis and extraction metadata
         metadata: MixedFormatMetadata,
     },
@@ -35,10 +35,10 @@ pub enum ParsedDocument {
 pub struct ParsedAispDocument {
     /// The parsed AISP document
     pub document: AispDocument,
-    
+
     /// Original extraction information
     pub extraction_info: ExtractedAispBlock,
-    
+
     /// Parse warnings specific to this document
     pub warnings: Vec<String>,
 }
@@ -48,16 +48,16 @@ pub struct ParsedAispDocument {
 pub struct MixedFormatMetadata {
     /// Original document format detected
     pub source_format: DocumentFormat,
-    
+
     /// Format analysis results
     pub analysis: FormatAnalysis,
-    
+
     /// Extraction context
     pub extraction_context: ExtractionContext,
-    
+
     /// Overall parsing warnings
     pub warnings: Vec<String>,
-    
+
     /// Performance metrics
     pub metrics: ParsingMetrics,
 }
@@ -67,16 +67,16 @@ pub struct MixedFormatMetadata {
 pub struct ParsingMetrics {
     /// Time spent on format detection (microseconds)
     pub detection_time_us: u64,
-    
+
     /// Time spent on content extraction (microseconds)
     pub extraction_time_us: u64,
-    
+
     /// Time spent on AISP parsing (microseconds)
     pub parsing_time_us: u64,
-    
+
     /// Total document size processed
     pub document_size_bytes: usize,
-    
+
     /// Number of AISP blocks processed
     pub blocks_processed: usize,
 }
@@ -85,10 +85,10 @@ pub struct ParsingMetrics {
 pub struct MultiFormatParser {
     /// Content extractor for mixed formats
     extractor: AispCodeBlockExtractor,
-    
+
     /// Whether to collect detailed metrics
     collect_metrics: bool,
-    
+
     /// Whether to validate extracted AISP blocks
     validate_extracted: bool,
 }
@@ -108,7 +108,7 @@ impl MultiFormatParser {
             validate_extracted: true,
         }
     }
-    
+
     /// Create a parser with custom settings
     pub fn with_options(collect_metrics: bool, validate_extracted: bool) -> Self {
         Self {
@@ -117,63 +117,57 @@ impl MultiFormatParser {
             validate_extracted,
         }
     }
-    
+
     /// Parse a document with automatic format detection
     pub fn parse(&self, content: &str) -> AispResult<ParsedDocument> {
         let start_time = std::time::Instant::now();
-        
+
         // Phase 1: Format Detection
         let detection_start = std::time::Instant::now();
         let analysis = FormatDetector::analyze(content);
         let detection_time_us = detection_start.elapsed().as_micros() as u64;
-        
+
         if !FormatDetector::is_parseable(&analysis.format) {
             return Err(AispError::UnsupportedFormat {
                 format: FormatDetector::format_description(&analysis.format).to_string(),
             });
         }
-        
+
         // Phase 2: Format-specific parsing
         let result = match analysis.format {
-            DocumentFormat::PureAisp => {
-                self.parse_pure_aisp(content, detection_time_us)
-            }
+            DocumentFormat::PureAisp => self.parse_pure_aisp(content, detection_time_us),
             DocumentFormat::MarkdownWithAisp => {
                 self.parse_markdown_with_aisp(content, analysis, detection_time_us)
             }
             DocumentFormat::MixedFormat => {
                 self.parse_mixed_format(content, analysis, detection_time_us)
             }
-            DocumentFormat::Unknown => {
-                Err(AispError::UnsupportedFormat {
-                    format: "Unknown document format".to_string(),
-                })
-            }
+            DocumentFormat::Unknown => Err(AispError::UnsupportedFormat {
+                format: "Unknown document format".to_string(),
+            }),
         };
-        
+
         result
     }
-    
+
     /// Parse pure AISP document using existing parser
     fn parse_pure_aisp(&self, content: &str, detection_time_us: u64) -> AispResult<ParsedDocument> {
         let parsing_start = std::time::Instant::now();
-        
+
         let parser = RobustAispParser::new();
         let parse_result = parser.parse(content);
-        let document = parse_result.document.ok_or_else(|| {
-            AispError::ParseError {
-                message: "Failed to parse document".to_string(),
-                line: 0,
-                column: 0,
-            }
+        let document = parse_result.document.ok_or_else(|| AispError::ParseError {
+            message: "Failed to parse document".to_string(),
+            line: 0,
+            column: 0,
         })?;
-        
+
         let parsing_time_us = parsing_start.elapsed().as_micros() as u64;
-        
+
         // For pure AISP, we just return the document directly
         Ok(ParsedDocument::Pure(document))
     }
-    
+
     /// Parse markdown document with embedded AISP blocks
     fn parse_markdown_with_aisp(
         &self,
@@ -182,12 +176,13 @@ impl MultiFormatParser {
         detection_time_us: u64,
     ) -> AispResult<ParsedDocument> {
         let extraction_start = std::time::Instant::now();
-        
+
         // Extract AISP blocks from markdown
-        let (extracted_blocks, extraction_context) = self.extractor.extract_with_context(content)?;
-        
+        let (extracted_blocks, extraction_context) =
+            self.extractor.extract_with_context(content)?;
+
         let extraction_time_us = extraction_start.elapsed().as_micros() as u64;
-        
+
         if extracted_blocks.is_empty() {
             return Err(AispError::ParseError {
                 message: "No AISP blocks found in markdown document".to_string(),
@@ -195,18 +190,20 @@ impl MultiFormatParser {
                 column: 0,
             });
         }
-        
+
         // Parse each extracted AISP block
         let parsing_start = std::time::Instant::now();
         let mut aisp_documents = Vec::new();
         let mut parsing_warnings = Vec::new();
-        
+
         for extracted_block in extracted_blocks {
             match self.parse_extracted_block(&extracted_block) {
                 Ok(mut parsed_doc) => {
                     // Add extraction context to warnings if needed
                     if extracted_block.content.trim().is_empty() {
-                        parsed_doc.warnings.push("Empty AISP block detected".to_string());
+                        parsed_doc
+                            .warnings
+                            .push("Empty AISP block detected".to_string());
                     }
                     aisp_documents.push(parsed_doc);
                 }
@@ -219,17 +216,18 @@ impl MultiFormatParser {
                 }
             }
         }
-        
+
         let parsing_time_us = parsing_start.elapsed().as_micros() as u64;
-        
+
         if aisp_documents.is_empty() {
             return Err(AispError::ParseError {
-                message: "No valid AISP documents could be parsed from extracted blocks".to_string(),
+                message: "No valid AISP documents could be parsed from extracted blocks"
+                    .to_string(),
                 line: 0,
                 column: 0,
             });
         }
-        
+
         // Build metadata
         let metrics = ParsingMetrics {
             detection_time_us,
@@ -238,7 +236,7 @@ impl MultiFormatParser {
             document_size_bytes: content.len(),
             blocks_processed: aisp_documents.len(),
         };
-        
+
         let metadata = MixedFormatMetadata {
             source_format: analysis.format.clone(),
             analysis,
@@ -246,9 +244,11 @@ impl MultiFormatParser {
             warnings: parsing_warnings,
             metrics,
         };
-        
+
         Ok(ParsedDocument::Mixed {
-            prose_content: metadata.extraction_context.cleaned_markdown
+            prose_content: metadata
+                .extraction_context
+                .cleaned_markdown
                 .as_ref()
                 .unwrap_or(&String::new())
                 .clone(),
@@ -256,7 +256,7 @@ impl MultiFormatParser {
             metadata,
         })
     }
-    
+
     /// Parse mixed format document (basic implementation)
     fn parse_mixed_format(
         &self,
@@ -268,24 +268,27 @@ impl MultiFormatParser {
         // This could be enhanced to handle more complex mixed formats
         self.parse_markdown_with_aisp(content, analysis, detection_time_us)
     }
-    
+
     /// Parse an individual extracted AISP block
-    fn parse_extracted_block(&self, extracted_block: &ExtractedAispBlock) -> AispResult<ParsedAispDocument> {
+    fn parse_extracted_block(
+        &self,
+        extracted_block: &ExtractedAispBlock,
+    ) -> AispResult<ParsedAispDocument> {
         let parser = RobustAispParser::new();
         let parse_result = parser.parse(&extracted_block.content);
-        let document = parse_result.document.ok_or_else(|| {
-            AispError::ParseError {
-                message: "Failed to parse extracted block".to_string(),
-                line: 0,
-                column: 0,
-            }
+        let document = parse_result.document.ok_or_else(|| AispError::ParseError {
+            message: "Failed to parse extracted block".to_string(),
+            line: 0,
+            column: 0,
         })?;
-        
+
         // Collect any warnings from the parser
-        let warnings = parse_result.warnings.iter()
+        let warnings = parse_result
+            .warnings
+            .iter()
             .map(|w| w.message.clone())
             .collect();
-        
+
         Ok(ParsedAispDocument {
             document,
             extraction_info: extracted_block.clone(),
@@ -304,7 +307,7 @@ impl ParsedDocument {
             }
         }
     }
-    
+
     /// Get the primary AISP document (first one for mixed format)
     pub fn get_primary_document(&self) -> Option<&AispDocument> {
         match self {
@@ -314,27 +317,31 @@ impl ParsedDocument {
             }
         }
     }
-    
+
     /// Check if this is a pure AISP document
     pub fn is_pure_aisp(&self) -> bool {
         matches!(self, ParsedDocument::Pure(_))
     }
-    
+
     /// Get all parsing warnings from the result
     pub fn get_all_warnings(&self) -> Vec<&str> {
         match self {
             ParsedDocument::Pure(_) => vec![], // Pure parser warnings handled separately
-            ParsedDocument::Mixed { aisp_documents, metadata, .. } => {
+            ParsedDocument::Mixed {
+                aisp_documents,
+                metadata,
+                ..
+            } => {
                 let mut warnings = Vec::new();
-                
+
                 // Add document-level warnings
                 for doc in aisp_documents {
                     warnings.extend(doc.warnings.iter().map(|s| s.as_str()));
                 }
-                
+
                 // Add metadata warnings
                 warnings.extend(metadata.warnings.iter().map(|s| s.as_str()));
-                
+
                 warnings
             }
         }
@@ -362,7 +369,7 @@ mod tests {
 
         let parser = MultiFormatParser::new();
         let result = parser.parse(content).unwrap();
-        
+
         assert!(result.is_pure_aisp());
         if let ParsedDocument::Pure(doc) = result {
             assert_eq!(doc.header.name, "test");
@@ -394,9 +401,15 @@ More markdown content here."#;
 
         let parser = MultiFormatParser::new();
         let result = parser.parse(content).unwrap();
-        
+
         assert!(!result.is_pure_aisp());
-        if let ParsedDocument::Mixed { aisp_documents, prose_content, metadata, .. } = result {
+        if let ParsedDocument::Mixed {
+            aisp_documents,
+            prose_content,
+            metadata,
+            ..
+        } = result
+        {
             assert_eq!(aisp_documents.len(), 1);
             assert_eq!(aisp_documents[0].document.header.name, "test");
             assert!(prose_content.contains("# AISP Documentation"));
@@ -431,7 +444,7 @@ More markdown content here."#;
 
         let parser = MultiFormatParser::new();
         let result = parser.parse(content).unwrap();
-        
+
         if let ParsedDocument::Mixed { aisp_documents, .. } = result {
             assert_eq!(aisp_documents.len(), 2);
             assert_eq!(aisp_documents[0].document.header.name, "first");
@@ -442,10 +455,10 @@ More markdown content here."#;
     #[test]
     fn test_parse_unknown_format() {
         let content = "This is just plain text with no AISP elements";
-        
+
         let parser = MultiFormatParser::new();
         let result = parser.parse(content);
-        
+
         assert!(result.is_err());
         if let Err(AispError::UnsupportedFormat { format }) = result {
             assert!(format.contains("Unknown"));
@@ -460,7 +473,7 @@ This is markdown but has no AISP blocks."#;
 
         let parser = MultiFormatParser::new();
         let result = parser.parse(content);
-        
+
         assert!(result.is_err());
     }
 
@@ -474,7 +487,7 @@ This is not valid AISP content
 
         let parser = MultiFormatParser::with_options(false, true); // Enable validation
         let result = parser.parse(content);
-        
+
         assert!(result.is_err());
     }
 
@@ -490,7 +503,7 @@ This is not valid AISP content
         let parser = MultiFormatParser::new();
         let result = parser.parse(content).unwrap();
         let documents = result.get_aisp_documents();
-        
+
         assert_eq!(documents.len(), 1);
         assert_eq!(documents[0].header.name, "test");
     }
@@ -511,7 +524,7 @@ This is not valid AISP content
         let parser = MultiFormatParser::new();
         let result = parser.parse(content).unwrap();
         let primary = result.get_primary_document();
-        
+
         assert!(primary.is_some());
         assert_eq!(primary.unwrap().header.name, "test");
     }

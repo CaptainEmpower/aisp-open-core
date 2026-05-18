@@ -3,7 +3,7 @@
 //! Focused parser for lambda expressions following SRP.
 //! Handles parsing of λx.body syntax and function definitions.
 
-use crate::ast::canonical::{LambdaExpression, LogicalExpression, FunctionDefinition};
+use crate::ast::canonical::{FunctionDefinition, LambdaExpression, LogicalExpression};
 use crate::error::{AispError, AispResult};
 
 /// SRP-focused parser for lambda expression content
@@ -15,7 +15,7 @@ impl LambdaContentParser {
         if let Some(pos) = func_text.find('≜') {
             let name = func_text[..pos].trim().to_string();
             let body_text = func_text[pos + '≜'.len_utf8()..].trim();
-            
+
             let lambda = Self::parse_lambda_expression(body_text);
             Some((name, lambda))
         } else {
@@ -26,7 +26,7 @@ impl LambdaContentParser {
     /// Parse lambda expression from text
     pub fn parse_lambda_expression(text: &str) -> LambdaExpression {
         let text = text.trim();
-        
+
         // Handle Unicode lambda: λx.x+1
         if text.starts_with('λ') {
             Self::parse_unicode_lambda(text)
@@ -55,10 +55,10 @@ impl LambdaContentParser {
         if let Some(dot_pos) = text.find('.') {
             let param_part = &text[1..dot_pos].trim(); // Skip the λ
             let body_part = text[dot_pos + 1..].trim();
-            
+
             let parameters = Self::parse_parameters(param_part);
             let body = Self::parse_lambda_body(body_part);
-            
+
             LambdaExpression {
                 parameters,
                 body,
@@ -79,10 +79,10 @@ impl LambdaContentParser {
         if let Some(dot_pos) = text.find('.') {
             let param_part = &text[1..dot_pos].trim(); // Skip the \
             let body_part = text[dot_pos + 1..].trim();
-            
+
             let parameters = Self::parse_parameters(param_part);
             let body = Self::parse_lambda_body(body_part);
-            
+
             LambdaExpression {
                 parameters,
                 body,
@@ -105,13 +105,13 @@ impl LambdaContentParser {
             if let Some(paren_end) = text.find(')') {
                 let param_text = &text[paren_start + 1..paren_end];
                 let parameters = Self::parse_parameter_list(param_text);
-                
+
                 // Extract body from { body } part
                 if let Some(brace_start) = text.find('{') {
                     if let Some(brace_end) = text.rfind('}') {
                         let body_text = &text[brace_start + 1..brace_end].trim();
                         let body = Self::parse_lambda_body(body_text);
-                        
+
                         return LambdaExpression {
                             parameters,
                             body,
@@ -119,7 +119,7 @@ impl LambdaContentParser {
                         };
                     }
                 }
-                
+
                 // Fallback if braces not found
                 return LambdaExpression {
                     parameters,
@@ -128,7 +128,7 @@ impl LambdaContentParser {
                 };
             }
         }
-        
+
         // Complete fallback
         LambdaExpression {
             parameters: vec!["x".to_string()],
@@ -158,16 +158,20 @@ impl LambdaContentParser {
     /// Parse lambda body into logical expression
     fn parse_lambda_body(body_text: &str) -> LogicalExpression {
         let body_text = body_text.trim();
-        
+
         // Check for common logical operators
-        if body_text.contains('+') || body_text.contains('-') || 
-           body_text.contains('*') || body_text.contains('/') {
+        if body_text.contains('+')
+            || body_text.contains('-')
+            || body_text.contains('*')
+            || body_text.contains('/')
+        {
             // Mathematical expression - parse as application
             Self::parse_mathematical_expression(body_text)
         } else if body_text.contains('=') || body_text.contains('<') || body_text.contains('>') {
             // Comparison expression
             Self::parse_comparison_expression(body_text)
-        } else if body_text.contains('∧') || body_text.contains('∨') || body_text.contains('¬') {
+        } else if body_text.contains('∧') || body_text.contains('∨') || body_text.contains('¬')
+        {
             // Logical expression
             LogicalExpression::Raw(body_text.to_string())
         } else {
@@ -195,22 +199,26 @@ impl LambdaContentParser {
     /// Validate lambda expression syntax
     pub fn validate_lambda(lambda: &LambdaExpression) -> AispResult<()> {
         if lambda.parameters.is_empty() {
-            return Err(AispError::validation_error("Lambda expression must have at least one parameter"));
+            return Err(AispError::validation_error(
+                "Lambda expression must have at least one parameter",
+            ));
         }
-        
+
         for param in &lambda.parameters {
             if param.is_empty() {
-                return Err(AispError::validation_error("Lambda parameter cannot be empty"));
+                return Err(AispError::validation_error(
+                    "Lambda parameter cannot be empty",
+                ));
             }
-            
+
             if !Self::is_valid_identifier(param) {
                 return Err(AispError::validation_error(&format!(
-                    "Invalid lambda parameter: '{}'. Must be valid identifier", 
+                    "Invalid lambda parameter: '{}'. Must be valid identifier",
                     param
                 )));
             }
         }
-        
+
         Ok(())
     }
 
@@ -219,12 +227,12 @@ impl LambdaContentParser {
         if name.is_empty() {
             return false;
         }
-        
+
         let first_char = name.chars().next().unwrap();
         if !first_char.is_alphabetic() && first_char != '_' {
             return false;
         }
-        
+
         name.chars().all(|c| c.is_alphanumeric() || c == '_')
     }
 }
@@ -255,7 +263,7 @@ mod tests {
     fn test_parse_function_definition() {
         let result = LambdaContentParser::parse_function_definition("successor≜λn.n + 1");
         assert!(result.is_some());
-        
+
         let (name, lambda) = result.unwrap();
         assert_eq!(name, "successor");
         assert_eq!(lambda.parameters, vec!["n".to_string()]);
@@ -269,7 +277,7 @@ mod tests {
             span: None,
         };
         assert!(LambdaContentParser::validate_lambda(&valid_lambda).is_ok());
-        
+
         let invalid_lambda = LambdaExpression {
             parameters: vec![],
             body: LogicalExpression::Variable("x".to_string()),
@@ -281,8 +289,11 @@ mod tests {
     #[test]
     fn test_parameter_parsing() {
         let params = LambdaContentParser::parse_parameter_list("x, y, z");
-        assert_eq!(params, vec!["x".to_string(), "y".to_string(), "z".to_string()]);
-        
+        assert_eq!(
+            params,
+            vec!["x".to_string(), "y".to_string(), "z".to_string()]
+        );
+
         let single_param = LambdaContentParser::parse_parameters("x");
         assert_eq!(single_param, vec!["x".to_string()]);
     }

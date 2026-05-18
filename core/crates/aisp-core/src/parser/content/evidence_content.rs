@@ -15,7 +15,7 @@ impl EvidenceContentParser {
         if let Some(pos) = entry_text.find('≜') {
             let key = entry_text[..pos].trim();
             let value_text = entry_text[pos + '≜'.len_utf8()..].trim();
-            
+
             match key {
                 "δ" => {
                     if let Ok(delta) = value_text.parse::<f64>() {
@@ -52,40 +52,46 @@ impl EvidenceContentParser {
     /// Parse multiple evidence entries and return structured data
     pub fn parse_evidence_block(content: &str) -> EvidenceData {
         let mut evidence_data = EvidenceData::new();
-        
+
         for line in content.lines() {
             let line = line.trim();
             if line.is_empty() || line.starts_with("//") || line.starts_with(";;") {
                 continue;
             }
-            
+
             if let Some(entry) = Self::parse_evidence_entry(line) {
                 evidence_data.add_entry(entry);
             }
         }
-        
+
         evidence_data
     }
 
     /// Validate delta value (accuracy threshold)
     pub fn validate_delta(delta: f64) -> AispResult<()> {
         if delta < 0.0 {
-            return Err(AispError::validation_error("Delta (δ) must be non-negative"));
+            return Err(AispError::validation_error(
+                "Delta (δ) must be non-negative",
+            ));
         }
-        
+
         if delta > 1.0 {
-            return Err(AispError::validation_error("Delta (δ) should typically be ≤ 1.0 for accuracy thresholds"));
+            return Err(AispError::validation_error(
+                "Delta (δ) should typically be ≤ 1.0 for accuracy thresholds",
+            ));
         }
-        
+
         Ok(())
     }
 
     /// Validate phi value (iteration count or score)
     pub fn validate_phi(phi: u64) -> AispResult<()> {
         if phi == 0 {
-            return Err(AispError::validation_error("Phi (φ) should be positive for meaningful metrics"));
+            return Err(AispError::validation_error(
+                "Phi (φ) should be positive for meaningful metrics",
+            ));
         }
-        
+
         Ok(())
     }
 
@@ -94,13 +100,13 @@ impl EvidenceContentParser {
         if tau.is_empty() {
             return Err(AispError::validation_error("Tau (τ) cannot be empty"));
         }
-        
+
         // Check for common time formats or categories
         if Self::is_time_format(tau) || Self::is_category_format(tau) {
             Ok(())
         } else {
             Err(AispError::validation_error(&format!(
-                "Invalid tau (τ) format: '{}'. Expected time format or category", 
+                "Invalid tau (τ) format: '{}'. Expected time format or category",
                 tau
             )))
         }
@@ -109,35 +115,49 @@ impl EvidenceContentParser {
     /// Check if string represents time format
     fn is_time_format(s: &str) -> bool {
         // Simple time format validation
-        s.contains(':') || s.contains("ms") || s.contains("s") || 
-        s.contains("min") || s.contains("hour") || s.contains("day")
+        s.contains(':')
+            || s.contains("ms")
+            || s.contains("s")
+            || s.contains("min")
+            || s.contains("hour")
+            || s.contains("day")
     }
 
     /// Check if string represents valid category
     fn is_category_format(s: &str) -> bool {
         // Categories like "formal", "semantic", "syntax", etc.
-        matches!(s.to_lowercase().as_str(), 
-            "formal" | "semantic" | "syntax" | "temporal" | "logical" | 
-            "mathematical" | "structural" | "behavioral" | "security" |
-            "performance" | "correctness" | "completeness"
+        matches!(
+            s.to_lowercase().as_str(),
+            "formal"
+                | "semantic"
+                | "syntax"
+                | "temporal"
+                | "logical"
+                | "mathematical"
+                | "structural"
+                | "behavioral"
+                | "security"
+                | "performance"
+                | "correctness"
+                | "completeness"
         )
     }
 
     /// Extract confidence score from evidence data
     pub fn calculate_confidence(evidence: &EvidenceData) -> f64 {
         let mut confidence = 1.0;
-        
+
         // Factor in delta (accuracy threshold)
         if let Some(delta) = evidence.delta {
             confidence *= (1.0 - delta).max(0.0);
         }
-        
+
         // Factor in phi (iteration/score)
         if let Some(phi) = evidence.phi {
             let phi_factor = (phi as f64).min(100.0) / 100.0;
             confidence *= phi_factor;
         }
-        
+
         // Factor in tau category
         if let Some(tau) = &evidence.tau {
             let category_weight = match tau.to_lowercase().as_str() {
@@ -149,7 +169,7 @@ impl EvidenceContentParser {
             };
             confidence *= category_weight;
         }
-        
+
         confidence.min(1.0).max(0.0)
     }
 }
@@ -177,7 +197,7 @@ impl EvidenceData {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     pub fn add_entry(&mut self, entry: EvidenceEntry) {
         match entry {
             EvidenceEntry::Delta(value) => self.delta = Some(value),
@@ -188,11 +208,10 @@ impl EvidenceData {
             }
         }
     }
-    
+
     pub fn is_valid(&self) -> bool {
         // Evidence block should have at least one meaningful value
-        self.delta.is_some() || self.phi.is_some() || 
-        self.tau.is_some() || !self.metrics.is_empty()
+        self.delta.is_some() || self.phi.is_some() || self.tau.is_some() || !self.metrics.is_empty()
     }
 }
 
@@ -221,7 +240,10 @@ mod tests {
     #[test]
     fn test_parse_metric_entry() {
         let entry = EvidenceContentParser::parse_evidence_entry("accuracy≜0.95");
-        assert_eq!(entry, Some(EvidenceEntry::Metric("accuracy".to_string(), 0.95)));
+        assert_eq!(
+            entry,
+            Some(EvidenceEntry::Metric("accuracy".to_string(), 0.95))
+        );
     }
 
     #[test]
@@ -234,7 +256,7 @@ mod tests {
         // Comment
         precision≜0.92
         "#;
-        
+
         let evidence = EvidenceContentParser::parse_evidence_block(content);
         assert_eq!(evidence.delta, Some(0.001));
         assert_eq!(evidence.phi, Some(98));
@@ -271,17 +293,17 @@ mod tests {
     #[test]
     fn test_calculate_confidence() {
         let mut evidence = EvidenceData::new();
-        evidence.delta = Some(0.001);  // High accuracy
-        evidence.phi = Some(95);       // High score
-        evidence.tau = Some("formal".to_string());  // Highest category
-        
+        evidence.delta = Some(0.001); // High accuracy
+        evidence.phi = Some(95); // High score
+        evidence.tau = Some("formal".to_string()); // Highest category
+
         let confidence = EvidenceContentParser::calculate_confidence(&evidence);
         assert!(confidence > 0.9); // Should be high confidence
-        
+
         let mut low_evidence = EvidenceData::new();
-        low_evidence.delta = Some(0.1);  // Lower accuracy
-        low_evidence.tau = Some("syntax".to_string());  // Lower category
-        
+        low_evidence.delta = Some(0.1); // Lower accuracy
+        low_evidence.tau = Some("syntax".to_string()); // Lower category
+
         let low_confidence = EvidenceContentParser::calculate_confidence(&low_evidence);
         assert!(low_confidence < confidence); // Should be lower
     }
@@ -290,10 +312,10 @@ mod tests {
     fn test_evidence_data_validity() {
         let mut evidence = EvidenceData::new();
         assert!(!evidence.is_valid()); // Empty evidence is invalid
-        
+
         evidence.delta = Some(0.001);
         assert!(evidence.is_valid()); // Has delta, now valid
-        
+
         let mut metric_evidence = EvidenceData::new();
         metric_evidence.metrics.insert("accuracy".to_string(), 0.95);
         assert!(metric_evidence.is_valid()); // Has custom metric, valid

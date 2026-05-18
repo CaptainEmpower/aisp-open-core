@@ -3,36 +3,21 @@
 //! Comprehensive AISP parser refactored into focused modules following Single Responsibility Principle.
 //! Each module is under 800 LOC with comprehensive inline unit tests.
 
+use crate::ast::canonical::{
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
+    DocumentMetadata, EvidenceBlock, FunctionDefinition, FunctionsBlock, LambdaExpression,
+    LogicalExpression, MetaBlock, MetaEntry, MetaValue, RulesBlock, TypeDefinition, TypeExpression,
+    TypesBlock,
+};
+use crate::error::{AispError, AispResult};
 use pest::Parser;
 use std::collections::HashMap;
 use std::fmt;
-use crate::error::{AispError, AispResult};
-use crate::ast::canonical::{
-    CanonicalAispDocument as AispDocument,
-    CanonicalAispBlock as AispBlock,
-    DocumentHeader,
-    DocumentMetadata,
-    MetaBlock,
-    TypesBlock,
-    RulesBlock,
-    FunctionsBlock,
-    EvidenceBlock,
-    MetaEntry,
-    MetaValue,
-    TypeDefinition,
-    TypeExpression,
-    LogicalExpression,
-    FunctionDefinition,
-    LambdaExpression,
-};
 
 // Import SRP content parsers
 use super::content::{
-    MetaContentParser,
+    EvidenceContentParser, LambdaContentParser, LogicContentParser, MetaContentParser,
     TypeContentParser,
-    LogicContentParser,
-    LambdaContentParser,
-    EvidenceContentParser,
 };
 
 //
@@ -163,12 +148,7 @@ pub struct ParseError {
 
 impl ParseError {
     /// Create new parse error
-    pub fn new(
-        error_type: ParseErrorType,
-        line: usize,
-        column: usize,
-        message: String,
-    ) -> Self {
+    pub fn new(error_type: ParseErrorType, line: usize, column: usize, message: String) -> Self {
         Self {
             error_type,
             line,
@@ -547,18 +527,16 @@ impl RobustAispParser {
 
         // Attempt primary parsing
         match AispParser::parse(Rule::aisp_document, input) {
-            Ok(pairs) => {
-                match self.build_ast_from_pairs(pairs, input) {
-                    Ok(document) => ParseResult::success(document),
-                    Err(ast_error) => {
-                        if self.config.enable_error_recovery {
-                            self.attempt_error_recovery(input, ast_error)
-                        } else {
-                            ParseResult::failure(vec![self.convert_ast_error_to_parse_error(ast_error)])
-                        }
+            Ok(pairs) => match self.build_ast_from_pairs(pairs, input) {
+                Ok(document) => ParseResult::success(document),
+                Err(ast_error) => {
+                    if self.config.enable_error_recovery {
+                        self.attempt_error_recovery(input, ast_error)
+                    } else {
+                        ParseResult::failure(vec![self.convert_ast_error_to_parse_error(ast_error)])
                     }
                 }
-            }
+            },
             Err(pest_error) => {
                 if self.config.enable_error_recovery {
                     self.parse_with_error_recovery(input, pest_error)
@@ -674,13 +652,11 @@ impl RobustAispParser {
             Rule::gamma_block => self.parse_gamma_block(pair),
             Rule::lambda_block => self.parse_lambda_block(pair),
             Rule::epsilon_block => self.parse_epsilon_block(pair),
-            Rule::malformed_block => {
-                Err(AispError::ParseError {
-                    line: 1,
-                    column: 1,
-                    message: "Malformed block detected during parsing".to_string(),
-                })
-            }
+            Rule::malformed_block => Err(AispError::ParseError {
+                line: 1,
+                column: 1,
+                message: "Malformed block detected during parsing".to_string(),
+            }),
             _ => Err(AispError::ParseError {
                 line: 1,
                 column: 1,
@@ -702,11 +678,14 @@ impl RobustAispParser {
                         raw_entries.push(entry_text.clone());
 
                         if let Some((key, value)) = MetaContentParser::parse_entry(&entry_text) {
-                            entries.insert(key.clone(), MetaEntry {
-                                key: key.clone(),
-                                value,
-                                span: None,
-                            });
+                            entries.insert(
+                                key.clone(),
+                                MetaEntry {
+                                    key: key.clone(),
+                                    value,
+                                    span: None,
+                                },
+                            );
                         }
                     }
                 }
@@ -733,12 +712,17 @@ impl RobustAispParser {
                         let def_text = def.as_str().to_string();
                         raw_definitions.push(def_text.clone());
 
-                        if let Some((name, type_expr)) = TypeContentParser::parse_type_definition(&def_text) {
-                            definitions.insert(name.clone(), TypeDefinition {
-                                name: name.clone(),
-                                type_expr,
-                                span: None,
-                            });
+                        if let Some((name, type_expr)) =
+                            TypeContentParser::parse_type_definition(&def_text)
+                        {
+                            definitions.insert(
+                                name.clone(),
+                                TypeDefinition {
+                                    name: name.clone(),
+                                    type_expr,
+                                    span: None,
+                                },
+                            );
                         }
                     }
                 }
@@ -790,7 +774,9 @@ impl RobustAispParser {
                         let func_text = func.as_str().to_string();
                         raw_functions.push(func_text.clone());
 
-                        if let Some((name, lambda)) = LambdaContentParser::parse_function_definition(&func_text) {
+                        if let Some((name, lambda)) =
+                            LambdaContentParser::parse_function_definition(&func_text)
+                        {
                             functions.push(FunctionDefinition {
                                 name: name.clone(),
                                 lambda,
@@ -826,12 +812,23 @@ impl RobustAispParser {
                         let evidence_text = evidence.as_str().to_string();
                         raw_evidence.push(evidence_text.clone());
 
-                        if let Some(entry) = EvidenceContentParser::parse_evidence_entry(&evidence_text) {
+                        if let Some(entry) =
+                            EvidenceContentParser::parse_evidence_entry(&evidence_text)
+                        {
                             match entry {
-                                super::content::evidence_content::EvidenceEntry::Delta(d) => delta = Some(d),
-                                super::content::evidence_content::EvidenceEntry::Phi(p) => phi = Some(p),
-                                super::content::evidence_content::EvidenceEntry::Tau(t) => tau = Some(t),
-                                super::content::evidence_content::EvidenceEntry::Metric(name, value) => {
+                                super::content::evidence_content::EvidenceEntry::Delta(d) => {
+                                    delta = Some(d)
+                                }
+                                super::content::evidence_content::EvidenceEntry::Phi(p) => {
+                                    phi = Some(p)
+                                }
+                                super::content::evidence_content::EvidenceEntry::Tau(t) => {
+                                    tau = Some(t)
+                                }
+                                super::content::evidence_content::EvidenceEntry::Metric(
+                                    name,
+                                    value,
+                                ) => {
                                     metrics.insert(name, value);
                                 }
                             }
@@ -857,7 +854,11 @@ impl RobustAispParser {
     //
 
     /// Error recovery parsing when primary parsing fails
-    fn parse_with_error_recovery(&self, input: &str, original_error: pest::error::Error<Rule>) -> ParseResult {
+    fn parse_with_error_recovery(
+        &self,
+        input: &str,
+        original_error: pest::error::Error<Rule>,
+    ) -> ParseResult {
         let mut document = AispDocument {
             header: DocumentHeader {
                 version: "5.1".to_string(),
@@ -894,14 +895,20 @@ impl RobustAispParser {
                     }
                 }
                 Err(block_error) => {
-                    errors.push(ParseError::new(
-                        ParseErrorType::RecoveryFailure,
-                        1, // Simplified line number
-                        1, // Simplified column number
-                        format!("Failed to recover {} block: {}", boundary.block_type, block_error),
-                    ).with_context(boundary.content.chars().take(50).collect())
-                     .with_suggestion("Check block syntax".to_string())
-                     .with_suggestion("Verify Unicode encoding".to_string()));
+                    errors.push(
+                        ParseError::new(
+                            ParseErrorType::RecoveryFailure,
+                            1, // Simplified line number
+                            1, // Simplified column number
+                            format!(
+                                "Failed to recover {} block: {}",
+                                boundary.block_type, block_error
+                            ),
+                        )
+                        .with_context(boundary.content.chars().take(50).collect())
+                        .with_suggestion("Check block syntax".to_string())
+                        .with_suggestion("Verify Unicode encoding".to_string()),
+                    );
                 }
             }
         }
@@ -912,7 +919,11 @@ impl RobustAispParser {
         }
 
         ParseResult {
-            document: if document.blocks.is_empty() { None } else { Some(document.clone()) },
+            document: if document.blocks.is_empty() {
+                None
+            } else {
+                Some(document.clone())
+            },
             errors,
             warnings,
             recovery_applied: true,
@@ -1025,7 +1036,8 @@ impl RobustAispParser {
     /// Security validation methods
     fn detect_pre_parse_security_issues(&self, input: &str) -> Option<SecurityIssue> {
         // Check for excessive size (potential DoS)
-        if input.len() > 1_000_000 {  // 1MB limit
+        if input.len() > 1_000_000 {
+            // 1MB limit
             return Some(SecurityIssue::new(
                 SecurityIssueType::ResourceExhaustion,
                 SecuritySeverity::High,
@@ -1085,10 +1097,14 @@ impl RobustAispParser {
         // Check for mixed normalization forms
         input.contains('\u{200D}') || // Zero Width Joiner
         input.contains('\u{200C}') || // Zero Width Non-Joiner  
-        input.contains('\u{FEFF}')    // Byte Order Mark
+        input.contains('\u{FEFF}') // Byte Order Mark
     }
 
-    fn validate_recovered_content(&self, _document: &AispDocument, boundaries: &[BlockBoundary]) -> Vec<SecurityIssue> {
+    fn validate_recovered_content(
+        &self,
+        _document: &AispDocument,
+        boundaries: &[BlockBoundary],
+    ) -> Vec<SecurityIssue> {
         let mut issues = Vec::new();
 
         // Check for suspicious patterns in recovered content
@@ -1115,13 +1131,24 @@ impl RobustAispParser {
     fn safe_slice<'a>(&self, input: &'a str, start: usize, end: usize) -> Option<&'a str> {
         // Convert byte positions to character positions
         let chars: Vec<(usize, char)> = input.char_indices().collect();
-        
+
         // Find character boundary positions
-        let start_char_pos = chars.iter().find(|(pos, _)| *pos >= start).map(|(pos, _)| *pos)?;
-        let end_char_pos = chars.iter().rev().find(|(pos, _)| *pos < end).map(|(pos, _)| *pos + 1).unwrap_or(input.len());
-        
+        let start_char_pos = chars
+            .iter()
+            .find(|(pos, _)| *pos >= start)
+            .map(|(pos, _)| *pos)?;
+        let end_char_pos = chars
+            .iter()
+            .rev()
+            .find(|(pos, _)| *pos < end)
+            .map(|(pos, _)| *pos + 1)
+            .unwrap_or(input.len());
+
         // Ensure positions are within bounds and at character boundaries
-        if start_char_pos <= end_char_pos && input.is_char_boundary(start_char_pos) && input.is_char_boundary(end_char_pos) {
+        if start_char_pos <= end_char_pos
+            && input.is_char_boundary(start_char_pos)
+            && input.is_char_boundary(end_char_pos)
+        {
             Some(&input[start_char_pos..end_char_pos])
         } else {
             None
@@ -1136,23 +1163,26 @@ impl RobustAispParser {
         } else {
             // Find the next character boundary if start is not valid
             let chars: Vec<(usize, char)> = input.char_indices().collect();
-            let safe_start = chars.iter()
+            let safe_start = chars
+                .iter()
                 .find(|(pos, _)| *pos >= start)
                 .map(|(pos, _)| *pos)
                 .unwrap_or(input.len());
-            
+
             if safe_start >= input.len() {
                 return None;
             }
             &input[safe_start..]
         };
-        
+
         if block_type == "EvidenceBlock" {
             // Evidence blocks use ⟨ ⟩ delimiters
-            self.find_balanced_delimiter(remaining, '⟨', '⟩').map(|pos| start + pos)
+            self.find_balanced_delimiter(remaining, '⟨', '⟩')
+                .map(|pos| start + pos)
         } else {
             // Other blocks use { } delimiters
-            self.find_balanced_delimiter(remaining, '{', '}').map(|pos| start + pos)
+            self.find_balanced_delimiter(remaining, '{', '}')
+                .map(|pos| start + pos)
         }
     }
 
@@ -1203,15 +1233,15 @@ impl RobustAispParser {
     /// Convert AST error to parse error
     fn convert_ast_error_to_parse_error(&self, error: AispError) -> ParseError {
         match error {
-            AispError::ParseError { line, column, message } => {
-                ParseError::new(ParseErrorType::StructuralError, line, column, message)
-                    .with_security_impact(SecurityImpact::Low)
-                    .with_suggestion("Check document structure".to_string())
-            }
-            _ => {
-                ParseError::new(ParseErrorType::StructuralError, 0, 0, error.to_string())
-                    .with_security_impact(SecurityImpact::Low)
-            }
+            AispError::ParseError {
+                line,
+                column,
+                message,
+            } => ParseError::new(ParseErrorType::StructuralError, line, column, message)
+                .with_security_impact(SecurityImpact::Low)
+                .with_suggestion("Check document structure".to_string()),
+            _ => ParseError::new(ParseErrorType::StructuralError, 0, 0, error.to_string())
+                .with_security_impact(SecurityImpact::Low),
         }
     }
 
@@ -1219,7 +1249,9 @@ impl RobustAispParser {
     fn attempt_error_recovery(&self, input: &str, error: AispError) -> ParseResult {
         // Simplified error recovery - delegate to main recovery method
         let fake_pest_error = pest::error::Error::new_from_pos(
-            pest::error::ErrorVariant::CustomError { message: error.to_string() },
+            pest::error::ErrorVariant::CustomError {
+                message: error.to_string(),
+            },
             pest::Position::from_start(input),
         );
         self.parse_with_error_recovery(input, fake_pest_error)
@@ -1265,7 +1297,11 @@ impl fmt::Display for ParseResult {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}:{}] {}: {}", self.line, self.column, self.error_type, self.message)
+        write!(
+            f,
+            "[{}:{}] {}: {}",
+            self.line, self.column, self.error_type, self.message
+        )
     }
 }
 
@@ -1283,14 +1319,20 @@ impl fmt::Display for ParseErrorType {
 
 impl fmt::Display for SecurityIssue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{:?}] {}: {}", self.severity, self.issue_type, self.description)
+        write!(
+            f,
+            "[{:?}] {}: {}",
+            self.severity, self.issue_type, self.description
+        )
     }
 }
 
 impl fmt::Display for SecurityIssueType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SecurityIssueType::UnicodeNormalizationAttack => write!(f, "Unicode Normalization Attack"),
+            SecurityIssueType::UnicodeNormalizationAttack => {
+                write!(f, "Unicode Normalization Attack")
+            }
             SecurityIssueType::ExcessiveNesting => write!(f, "Excessive Nesting"),
             SecurityIssueType::SuspiciousPattern => write!(f, "Suspicious Pattern"),
             SecurityIssueType::ResourceExhaustion => write!(f, "Resource Exhaustion"),
@@ -1301,7 +1343,11 @@ impl fmt::Display for SecurityIssueType {
 
 impl fmt::Display for ParseWarning {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}:{}] {}: {}", self.line, self.column, self.warning_type, self.message)
+        write!(
+            f,
+            "[{}:{}] {}: {}",
+            self.line, self.column, self.warning_type, self.message
+        )
     }
 }
 
@@ -1343,7 +1389,7 @@ mod tests {
         let parser = RobustAispParser::new()
             .with_security_validation(false)
             .with_error_recovery(false);
-        
+
         assert!(!parser.has_security_validation());
         assert!(!parser.config.enable_error_recovery);
     }
@@ -1380,11 +1426,11 @@ mod tests {
     #[test]
     fn test_security_validation_large_input() {
         let parser = RobustAispParser::new().with_security_validation(true);
-        
+
         // Create oversized input
         let large_input = "a".repeat(2_000_000);
         let result = parser.parse(&large_input);
-        
+
         // Should be rejected by security validation
         assert!(!result.security_issues.is_empty());
     }
@@ -1394,10 +1440,9 @@ mod tests {
         let _performance_parser = RobustAispParser::new()
             .with_error_recovery(false)
             .with_security_validation(false);
-        
-        let _security_parser = RobustAispParser::new()
-            .with_security_validation(true);
-        
+
+        let _security_parser = RobustAispParser::new().with_security_validation(true);
+
         // Test that configurations are properly set
         assert!(_security_parser.has_security_validation());
         assert!(!_performance_parser.has_security_validation());
@@ -1407,10 +1452,10 @@ mod tests {
     fn test_unicode_safe_slicing() {
         let parser = RobustAispParser::new();
         let unicode_text = "Hello 𝔸 World";
-        
+
         let result = parser.safe_slice(unicode_text, 0, 7);
         assert!(result.is_some());
-        
+
         // Test boundary conditions
         let result = parser.safe_slice(unicode_text, 100, 200);
         assert!(result.is_none());
@@ -1419,10 +1464,10 @@ mod tests {
     #[test]
     fn test_nesting_depth_calculation() {
         let parser = RobustAispParser::new();
-        
+
         let simple = "((()))";
         assert_eq!(parser.calculate_nesting_depth(simple), 3);
-        
+
         let complex = "⟦Ω:Meta⟧ { nested: { deeply: { value: 42 } } }";
         let depth = parser.calculate_nesting_depth(complex);
         assert!(depth > 0);
@@ -1431,10 +1476,10 @@ mod tests {
     #[test]
     fn test_block_structure_validation() {
         let parser = RobustAispParser::new();
-        
+
         let valid = "⟦Ω:Meta⟧ { title ≜ \"test\"; }";
         assert!(parser.validate_block_structure(valid));
-        
+
         let invalid = "⟦Ω:Meta⟧ { title ≜ \"test\";";
         assert!(!parser.validate_block_structure(invalid));
     }
@@ -1442,7 +1487,7 @@ mod tests {
     #[test]
     fn test_balanced_delimiter_finding() {
         let parser = RobustAispParser::new();
-        
+
         let text = "{ nested { content } here }";
         let result = parser.find_balanced_delimiter(text, '{', '}');
         assert!(result.is_some());
@@ -1451,23 +1496,23 @@ mod tests {
     #[test]
     fn test_error_conversion() {
         let parser = RobustAispParser::new();
-        
+
         let ast_error = AispError::ParseError {
             line: 5,
             column: 10,
             message: "Test error".to_string(),
         };
-        
+
         let parse_error = parser.convert_ast_error_to_parse_error(ast_error);
         assert_eq!(parse_error.line, 5);
         assert_eq!(parse_error.column, 10);
         assert_eq!(parse_error.error_type, ParseErrorType::StructuralError);
     }
 
-    #[test] 
+    #[test]
     fn test_comprehensive_unicode_handling() {
         let parser = RobustAispParser::new();
-        
+
         let unicode_input = r#"𝔸5.1.unicode-test@2026-02-01
 ⟦Ω:Meta⟧ {
     Math ≜ "ℕℤℚℝℂ𝔹";
@@ -1493,7 +1538,7 @@ mod tests {
             (10, 20),
             "Test mitigation".to_string(),
         );
-        
+
         assert_eq!(issue.issue_type, SecurityIssueType::ExcessiveNesting);
         assert_eq!(issue.severity, SecuritySeverity::High);
         assert_eq!(issue.location, (10, 20));
@@ -1503,7 +1548,7 @@ mod tests {
     fn test_parse_result_methods() {
         let mut result = ParseResult::new();
         assert!(!result.is_success());
-        
+
         let doc = AispDocument {
             header: DocumentHeader {
                 version: "5.1".to_string(),
@@ -1511,11 +1556,14 @@ mod tests {
                 date: "2026-02-01".to_string(),
                 metadata: None,
             },
-            metadata: DocumentMetadata { domain: None, protocol: None },
+            metadata: DocumentMetadata {
+                domain: None,
+                protocol: None,
+            },
             blocks: Vec::new(),
             span: None,
         };
-        
+
         let success_result = ParseResult::success(doc);
         assert!(success_result.is_success());
     }
