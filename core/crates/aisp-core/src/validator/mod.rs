@@ -10,16 +10,18 @@
 //! - `engine`: Main validation orchestration engine
 
 // Re-export public types and main API
-pub use self::types::{ValidationConfig, ValidationResult};
 pub use self::engine::AispValidator;
+pub use self::structural_validator::{
+    StructuralValidationConfig, StructuralValidationResult, StructuralValidator,
+};
+pub use self::types::{ValidationConfig, ValidationResult};
 pub use self::verification_methods::VerificationMethods;
-pub use self::structural_validator::{StructuralValidator, StructuralValidationConfig, StructuralValidationResult};
 
 // Module declarations
+pub mod engine;
+pub mod structural_validator;
 pub mod types;
 pub mod verification_methods;
-pub mod structural_validator;
-pub mod engine;
 
 // Convenience re-exports for backward compatibility
 pub use engine::AispValidator as Validator;
@@ -35,9 +37,9 @@ mod integration_tests {
         let mut config = ValidationConfig::default();
         config.include_timing = true;
         config.strict_mode = false;
-        
+
         let validator = AispValidator::with_config(config);
-        
+
         let test_document = r#"
 aisp_v: 5.1
 name: integration_test
@@ -45,10 +47,11 @@ date: 2026-01-27
 
 -- Functions --
 test_func ≜ λx.x * 2
-        "#.trim();
-        
+        "#
+        .trim();
+
         let result = validator.validate(test_document);
-        
+
         // Should complete without panicking
         assert!(result.document_size > 0);
         assert!(result.tier_symbol.len() > 0);
@@ -59,9 +62,9 @@ test_func ≜ λx.x * 2
         let mut config = ValidationConfig::default();
         config.strict_mode = true;
         config.strict_formal_verification = false; // Avoid Z3 dependencies in test
-        
+
         let validator = AispValidator::with_config(config);
-        
+
         let test_document = r#"
 aisp_v: 5.1
 name: strict_test
@@ -69,10 +72,11 @@ date: 2026-01-27
 
 -- Functions --
 ambiguous_func ≜ λx.undefined_operation(x)
-        "#.trim();
-        
+        "#
+        .trim();
+
         let result = validator.validate(test_document);
-        
+
         // Should handle strict mode validation
         assert!(result.document_size > 0);
     }
@@ -80,17 +84,17 @@ ambiguous_func ≜ λx.undefined_operation(x)
     #[test]
     fn test_configuration_changes() {
         let mut validator = AispValidator::new();
-        
+
         // Test initial configuration
         assert!(!validator.config().strict_mode);
-        
+
         // Update configuration
         let mut new_config = ValidationConfig::default();
         new_config.strict_mode = true;
         new_config.z3_timeout = Duration::from_secs(60);
-        
+
         validator.configure(new_config);
-        
+
         assert!(validator.config().strict_mode);
         assert_eq!(validator.config().z3_timeout, Duration::from_secs(60));
     }
@@ -99,7 +103,7 @@ ambiguous_func ≜ λx.undefined_operation(x)
     fn test_verification_methods_integration() {
         let config = ValidationConfig::default();
         let methods = VerificationMethods::new(config);
-        
+
         // Test that verification methods can be created and used
         // This is primarily a compilation test
         assert!(true);
@@ -109,7 +113,7 @@ ambiguous_func ≜ λx.undefined_operation(x)
     fn test_validation_result_properties() {
         let config = ValidationConfig::default();
         let validator = AispValidator::with_config(config);
-        
+
         let simple_doc = r#"
 aisp_v: 5.1
 name: simple
@@ -117,10 +121,11 @@ date: 2026-01-27
 
 -- Functions --  
 id ≜ λx.x
-        "#.trim();
-        
+        "#
+        .trim();
+
         let result = validator.validate(simple_doc);
-        
+
         // Test result properties
         assert!(result.tier_symbol.len() > 0);
         assert!(result.tier_name.len() > 0);

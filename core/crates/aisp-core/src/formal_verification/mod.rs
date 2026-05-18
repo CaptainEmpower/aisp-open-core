@@ -3,18 +3,15 @@
 //! This module provides comprehensive formal verification capabilities for AISP documents,
 //! breaking down the verification process into specialized components for maintainability.
 
+pub mod proof_engine;
 pub mod types;
 pub mod verifier;
-pub mod proof_engine;
 
+pub use proof_engine::ProofEngine;
 pub use types::*;
 pub use verifier::FormalVerifier;
-pub use proof_engine::ProofEngine;
 
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::AispResult,
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 
 /// Main formal verification system facade
 pub struct FormalVerificationSystem {
@@ -52,14 +49,17 @@ impl FormalVerificationSystem {
     }
 
     /// Generate proofs for specific properties
-    pub fn generate_proofs(&mut self, properties: &[crate::property_types::PropertyFormula]) -> AispResult<Vec<FormalProof>> {
+    pub fn generate_proofs(
+        &mut self,
+        properties: &[crate::property_types::PropertyFormula],
+    ) -> AispResult<Vec<FormalProof>> {
         let mut proofs = Vec::new();
-        
+
         for property in properties {
             let proof = self.proof_engine.generate_proof(property)?;
             proofs.push(proof);
         }
-        
+
         Ok(proofs)
     }
 
@@ -83,14 +83,17 @@ mod tests {
     #[test]
     fn test_verification_system_creation() {
         let system = FormalVerificationSystem::new();
-        assert_eq!(system.config.timeout_per_property, std::time::Duration::from_secs(30));
+        assert_eq!(
+            system.config.timeout_per_property,
+            std::time::Duration::from_secs(30)
+        );
     }
 
     #[test]
     fn test_system_with_config() {
         let mut config = VerificationConfig::default();
         config.parallel_verification = false;
-        
+
         let system = FormalVerificationSystem::with_config(config.clone());
         assert_eq!(system.config.parallel_verification, false);
     }
@@ -101,7 +104,7 @@ mod tests {
         let _verifier = FormalVerifier::new();
         let _proof_engine = ProofEngine::new();
         let _system = FormalVerificationSystem::new();
-        
+
         // Integration smoke test
         assert!(true);
     }

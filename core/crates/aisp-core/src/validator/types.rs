@@ -3,16 +3,16 @@
 //! Defines core types for AISP document validation configuration,
 //! results, and quality assessment following SRP architecture.
 
+use crate::anti_drift::AntiDriftValidationResult;
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::*;
+use crate::ghost_intent_validation::GhostIntentValidationResult;
+use crate::hebbian_learning::HebbianValidationResult;
+use crate::rossnet_scoring::RossNetValidationResult;
 use crate::semantic::{DeepVerificationResult, QualityTier};
 use crate::tri_vector_validation::TriVectorValidationResult;
 use crate::z3_verification::canonical_types::Z3VerificationResult;
-use crate::ghost_intent_validation::GhostIntentValidationResult;
-use crate::rossnet_scoring::RossNetValidationResult;
-use crate::hebbian_learning::HebbianValidationResult;
-use crate::anti_drift::AntiDriftValidationResult;
-use crate::ast::canonical::CanonicalAispDocument as AispDocument;
-use crate::{MAX_DOCUMENT_SIZE, AISP_VERSION};
+use crate::{AISP_VERSION, MAX_DOCUMENT_SIZE};
 use std::time::Duration;
 
 /// Validation configuration options
@@ -51,7 +51,7 @@ pub struct ValidationConfig {
 impl Default for ValidationConfig {
     fn default() -> Self {
         use crate::z3_verification::Z3VerificationFacade;
-        
+
         Self {
             max_document_size: MAX_DOCUMENT_SIZE,
             strict_mode: false,
@@ -66,7 +66,7 @@ impl Default for ValidationConfig {
             enable_rossnet_scoring: true,
             enable_hebbian_learning: true,
             enable_anti_drift: true,
-            strict_formal_verification: true,  // Default to strict mode for sound verification
+            strict_formal_verification: true, // Default to strict mode for sound verification
         }
     }
 }
@@ -193,7 +193,11 @@ impl ValidationResult {
             rossnet_validation,
             hebbian_validation,
             anti_drift_validation,
-            warnings: analysis.warnings().into_iter().map(|w| AispWarning::warning(w)).collect(),
+            warnings: analysis
+                .warnings()
+                .into_iter()
+                .map(|w| AispWarning::warning(w))
+                .collect(),
             error: None,
         }
     }
@@ -226,7 +230,7 @@ mod tests {
     fn test_validation_result_failed() {
         let error = AispError::validation_error("Test error");
         let result = ValidationResult::failed(error, 1000);
-        
+
         assert!(!result.valid);
         assert_eq!(result.tier, QualityTier::Reject);
         assert_eq!(result.document_size, 1000);
@@ -237,16 +241,16 @@ mod tests {
     fn test_validation_result_acceptable() {
         let error = AispError::validation_error("Test error");
         let mut result = ValidationResult::failed(error, 1000);
-        
+
         // Should not be acceptable when failed
         assert!(!result.is_acceptable());
-        
+
         // Make it acceptable
         result.valid = true;
         result.tier = QualityTier::Gold;
         result.ambiguity = 0.01;
         assert!(result.is_acceptable());
-        
+
         // High ambiguity should make it unacceptable
         result.ambiguity = 0.05;
         assert!(!result.is_acceptable());

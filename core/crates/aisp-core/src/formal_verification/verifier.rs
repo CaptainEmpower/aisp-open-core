@@ -7,9 +7,9 @@ use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     invariant_discovery::InvariantDiscovery,
-    satisfiability_checker::{SatisfiabilityChecker, SatisfiabilityResult, SatisfiabilityConfig},
-    theorem_prover::TheoremProver,
     property_types::PropertyFormula,
+    satisfiability_checker::{SatisfiabilityChecker, SatisfiabilityConfig, SatisfiabilityResult},
+    theorem_prover::TheoremProver,
 };
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
@@ -414,7 +414,7 @@ impl FormalVerifier {
     /// Verify formal properties of an AISP document
     pub fn verify(&mut self, document: &AispDocument) -> AispResult<VerificationResult> {
         let verification_start = Instant::now();
-        
+
         // Initialize result
         let mut result = VerificationResult {
             status: VerificationStatus::Error("Not yet verified".to_string()),
@@ -427,11 +427,11 @@ impl FormalVerifier {
 
         // Discover invariants
         let invariants = self.invariant_discovery.discover_invariants(document)?;
-        
+
         // Verify each discovered invariant
         let mut verified_count = 0;
         let mut failures = Vec::new();
-        
+
         for invariant in invariants {
             match self.verify_invariant(&invariant) {
                 Ok(verified_invariant) => {
@@ -453,7 +453,7 @@ impl FormalVerifier {
 
         // Check overall satisfiability
         result.model = self.check_satisfiability(document)?;
-        
+
         // Update verification status
         let total_properties = result.verified_invariants.len() + failures.len();
         let failed_verifications = failures.len();
@@ -484,15 +484,18 @@ impl FormalVerifier {
     }
 
     /// Verify a single invariant
-    fn verify_invariant(&mut self, invariant: &crate::invariant_types::DiscoveredInvariant) -> AispResult<VerifiedInvariant> {
+    fn verify_invariant(
+        &mut self,
+        invariant: &crate::invariant_types::DiscoveredInvariant,
+    ) -> AispResult<VerifiedInvariant> {
         let start_time = Instant::now();
-        
+
         // Convert invariant to property formula
         let property = PropertyFormula::from_invariant(invariant)?;
-        
+
         // Generate proof using theorem prover
         let proof_tree = self.theorem_prover.prove_formula(&property)?;
-        
+
         // Create formal proof
         let formal_proof = FormalProof {
             id: format!("proof_{}", invariant.id),
@@ -520,10 +523,13 @@ impl FormalVerifier {
     }
 
     /// Check satisfiability of document constraints
-    fn check_satisfiability(&mut self, document: &AispDocument) -> AispResult<Option<crate::satisfiability_checker::ConstraintModel>> {
+    fn check_satisfiability(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<Option<crate::satisfiability_checker::ConstraintModel>> {
         // First extract invariants from the document
         let invariants = self.invariant_discovery.discover_invariants(document)?;
-        
+
         // Check satisfiability of the extracted invariants
         match self.sat_checker.check_invariants(&invariants)? {
             SatisfiabilityResult::Satisfiable(model) => Ok(Some(model)),
@@ -535,16 +541,14 @@ impl FormalVerifier {
     /// Extract proof steps from proof tree
     fn extract_proof_steps(&self, proof_tree: &crate::proof_types::ProofTree) -> Vec<ProofStep> {
         // Implementation would extract actual steps from proof tree
-        vec![
-            ProofStep {
-                step_number: 1,
-                rule_name: "Assumption".to_string(),
-                premises: vec![],
-                conclusion: "Initial assumption".to_string(),
-                justification: "Given premise".to_string(),
-                dependencies: vec![],
-            },
-        ]
+        vec![ProofStep {
+            step_number: 1,
+            rule_name: "Assumption".to_string(),
+            premises: vec![],
+            conclusion: "Initial assumption".to_string(),
+            justification: "Given premise".to_string(),
+            dependencies: vec![],
+        }]
     }
 }
 
@@ -562,15 +566,21 @@ impl PropertyVerifier {
     pub fn verify_property(&mut self, property: &PropertyFormula) -> AispResult<VerifiedInvariant> {
         // Select best strategy
         let strategy = self.selector.select_strategy(&self.strategies, property)?;
-        
+
         // Apply verification strategy
         self.apply_strategy(&strategy, property)
     }
 
     /// Apply verification strategy to property
-    fn apply_strategy(&mut self, strategy: &VerificationStrategy, property: &PropertyFormula) -> AispResult<VerifiedInvariant> {
+    fn apply_strategy(
+        &mut self,
+        strategy: &VerificationStrategy,
+        property: &PropertyFormula,
+    ) -> AispResult<VerifiedInvariant> {
         // Strategy application would be implemented here
-        Err(AispError::validation_error("Strategy application not implemented"))
+        Err(AispError::validation_error(
+            "Strategy application not implemented",
+        ))
     }
 
     /// Create default verification strategies
@@ -615,7 +625,11 @@ impl StrategySelector {
     }
 
     /// Select best strategy for property
-    pub fn select_strategy(&self, strategies: &[VerificationStrategy], property: &PropertyFormula) -> AispResult<VerificationStrategy> {
+    pub fn select_strategy(
+        &self,
+        strategies: &[VerificationStrategy],
+        property: &PropertyFormula,
+    ) -> AispResult<VerificationStrategy> {
         if strategies.is_empty() {
             return Err(AispError::validation_error("No strategies available"));
         }
@@ -659,24 +673,24 @@ impl ProofGenerator {
     /// Generate proof for property
     pub fn generate_proof(&mut self, property: &PropertyFormula) -> AispResult<FormalProof> {
         // Proof generation would be implemented here
-        Err(AispError::validation_error("Proof generation not implemented"))
+        Err(AispError::validation_error(
+            "Proof generation not implemented",
+        ))
     }
 
     /// Create default construction strategies
     fn default_construction_strategies() -> Vec<ProofConstructionStrategy> {
-        vec![
-            ProofConstructionStrategy {
-                name: "Forward Chaining".to_string(),
-                method: ProofConstructionMethod::ForwardChaining,
-                quality: 0.8,
-                complexity_bounds: ComplexityBounds {
-                    max_steps: 100,
-                    max_depth: 10,
-                    max_axioms: 20,
-                    time_bound: std::time::Duration::from_secs(30),
-                },
+        vec![ProofConstructionStrategy {
+            name: "Forward Chaining".to_string(),
+            method: ProofConstructionMethod::ForwardChaining,
+            quality: 0.8,
+            complexity_bounds: ComplexityBounds {
+                max_steps: 100,
+                max_depth: 10,
+                max_axioms: 20,
+                time_bound: std::time::Duration::from_secs(30),
             },
-        ]
+        }]
     }
 }
 
@@ -698,36 +712,30 @@ impl ProofValidator {
 
     /// Create default validation rules
     fn default_validation_rules() -> Vec<ValidationRule> {
-        vec![
-            ValidationRule {
-                name: "Logical Soundness".to_string(),
-                rule_type: ValidationRuleType::LogicalSoundness,
-                implementation: "check_logical_soundness".to_string(),
-                priority: 1,
-            },
-        ]
+        vec![ValidationRule {
+            name: "Logical Soundness".to_string(),
+            rule_type: ValidationRuleType::LogicalSoundness,
+            implementation: "check_logical_soundness".to_string(),
+            priority: 1,
+        }]
     }
 
     /// Create default soundness checkers
     fn default_soundness_checkers() -> Vec<SoundnessChecker> {
-        vec![
-            SoundnessChecker {
-                name: "Type Checker".to_string(),
-                criteria: vec![],
-                algorithm: SoundnessAlgorithm::TypeChecking,
-            },
-        ]
+        vec![SoundnessChecker {
+            name: "Type Checker".to_string(),
+            criteria: vec![],
+            algorithm: SoundnessAlgorithm::TypeChecking,
+        }]
     }
 
     /// Create default completeness analyzers
     fn default_completeness_analyzers() -> Vec<CompletenessAnalyzer> {
-        vec![
-            CompletenessAnalyzer {
-                name: "Coverage Analyzer".to_string(),
-                metrics: vec![],
-                algorithm: CompletenessAlgorithm::CoverageAnalysis,
-            },
-        ]
+        vec![CompletenessAnalyzer {
+            name: "Coverage Analyzer".to_string(),
+            metrics: vec![],
+            algorithm: CompletenessAlgorithm::CoverageAnalysis,
+        }]
     }
 }
 
@@ -749,38 +757,32 @@ impl ProofOptimizer {
 
     /// Create default optimization strategies
     fn default_optimization_strategies() -> Vec<OptimizationStrategy> {
-        vec![
-            OptimizationStrategy {
-                name: "Step Elimination".to_string(),
-                technique: OptimizationTechnique::StepElimination,
-                expected_improvement: 0.3,
-                conditions: vec!["redundant_steps_present".to_string()],
-            },
-        ]
+        vec![OptimizationStrategy {
+            name: "Step Elimination".to_string(),
+            technique: OptimizationTechnique::StepElimination,
+            expected_improvement: 0.3,
+            conditions: vec!["redundant_steps_present".to_string()],
+        }]
     }
 
     /// Create default quality metrics
     fn default_quality_metrics() -> Vec<QualityMetric> {
-        vec![
-            QualityMetric {
-                name: "Proof Length".to_string(),
-                value: 0.0,
-                target_range: (0.0, 100.0),
-                weight: 0.4,
-            },
-        ]
+        vec![QualityMetric {
+            name: "Proof Length".to_string(),
+            value: 0.0,
+            target_range: (0.0, 100.0),
+            weight: 0.4,
+        }]
     }
 
     /// Create default optimization goals
     fn default_goals() -> Vec<OptimizationGoal> {
-        vec![
-            OptimizationGoal {
-                description: "Minimize proof steps".to_string(),
-                goal_type: OptimizationGoalType::MinimizeSteps,
-                target: 50.0,
-                priority: 1,
-            },
-        ]
+        vec![OptimizationGoal {
+            description: "Minimize proof steps".to_string(),
+            goal_type: OptimizationGoalType::MinimizeSteps,
+            target: 50.0,
+            priority: 1,
+        }]
     }
 }
 
@@ -823,11 +825,15 @@ impl StatisticsCollector {
 
 // Extension trait for PropertyFormula
 trait PropertyFormulaExt {
-    fn from_invariant(invariant: &crate::invariant_types::DiscoveredInvariant) -> AispResult<PropertyFormula>;
+    fn from_invariant(
+        invariant: &crate::invariant_types::DiscoveredInvariant,
+    ) -> AispResult<PropertyFormula>;
 }
 
 impl PropertyFormulaExt for PropertyFormula {
-    fn from_invariant(invariant: &crate::invariant_types::DiscoveredInvariant) -> AispResult<PropertyFormula> {
+    fn from_invariant(
+        invariant: &crate::invariant_types::DiscoveredInvariant,
+    ) -> AispResult<PropertyFormula> {
         // Convert invariant to property formula
         // This is a placeholder implementation
         Ok(PropertyFormula {
@@ -836,7 +842,7 @@ impl PropertyFormulaExt for PropertyFormula {
                     predicate: invariant.name.clone(),
                     terms: vec![],
                     type_signature: None,
-                }
+                },
             ),
             quantifiers: vec![],
             free_variables: HashSet::new(),
@@ -858,7 +864,10 @@ mod tests {
     #[test]
     fn test_verifier_creation() {
         let verifier = FormalVerifier::new();
-        assert_eq!(verifier.config.timeout_per_property, std::time::Duration::from_secs(30));
+        assert_eq!(
+            verifier.config.timeout_per_property,
+            std::time::Duration::from_secs(30)
+        );
     }
 
     #[test]
@@ -890,16 +899,25 @@ mod tests {
     fn test_default_strategies() {
         let strategies = PropertyVerifier::default_strategies();
         assert_eq!(strategies.len(), 2);
-        
+
         let smt_strategy = &strategies[0];
-        assert_eq!(smt_strategy.method, VerificationMethod::SmtSolverVerification);
+        assert_eq!(
+            smt_strategy.method,
+            VerificationMethod::SmtSolverVerification
+        );
         assert!(smt_strategy.effectiveness > 0.8);
     }
 
     #[test]
     fn test_proof_construction_methods() {
-        assert_eq!(ProofConstructionMethod::ForwardChaining, ProofConstructionMethod::ForwardChaining);
-        assert_ne!(ProofConstructionMethod::ForwardChaining, ProofConstructionMethod::BackwardChaining);
+        assert_eq!(
+            ProofConstructionMethod::ForwardChaining,
+            ProofConstructionMethod::ForwardChaining
+        );
+        assert_ne!(
+            ProofConstructionMethod::ForwardChaining,
+            ProofConstructionMethod::BackwardChaining
+        );
     }
 
     #[test]

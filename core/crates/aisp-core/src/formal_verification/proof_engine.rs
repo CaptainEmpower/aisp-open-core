@@ -5,8 +5,8 @@
 use super::types::*;
 use crate::{
     error::{AispError, AispResult},
-    property_types::{PropertyFormula, FormulaStructure, AtomicFormula, Term},
     proof_types::ProofTree,
+    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
@@ -689,37 +689,44 @@ impl ProofEngine {
     pub fn generate_proof(&mut self, property: &PropertyFormula) -> AispResult<FormalProof> {
         // Select appropriate generator
         let generator = self.select_generator(property)?;
-        
+
         // Generate proof using selected generator
         let proof = self.apply_generator(&generator, property)?;
-        
+
         // Validate generated proof
         let validation = self.validator.validate(&proof)?;
         if validation != ProofValidation::Valid {
-            return Err(AispError::validation_error("Generated proof failed validation"));
+            return Err(AispError::validation_error(
+                "Generated proof failed validation",
+            ));
         }
-        
+
         // Optimize proof if enabled
         let optimized_proof = if self.config.enable_optimization {
             self.optimizer.optimize(&proof)?
         } else {
             proof
         };
-        
+
         // Store proof in repository
         self.repository.store_proof(&optimized_proof)?;
-        
+
         Ok(optimized_proof)
     }
 
     /// Select appropriate proof generator
     fn select_generator(&self, property: &PropertyFormula) -> AispResult<&ProofGeneratorImpl> {
-        self.generators.first()
+        self.generators
+            .first()
             .ok_or_else(|| AispError::validation_error("No generators available"))
     }
 
     /// Apply generator to property
-    fn apply_generator(&self, generator: &ProofGeneratorImpl, property: &PropertyFormula) -> AispResult<FormalProof> {
+    fn apply_generator(
+        &self,
+        generator: &ProofGeneratorImpl,
+        property: &PropertyFormula,
+    ) -> AispResult<FormalProof> {
         // Generator application would be implemented here
         Ok(FormalProof {
             id: "generated_proof".to_string(),
@@ -740,20 +747,21 @@ impl ProofEngine {
 
     /// Create default proof generators
     fn default_generators() -> Vec<ProofGeneratorImpl> {
-        vec![
-            ProofGeneratorImpl {
-                name: "Automated Theorem Prover".to_string(),
-                strategy: GenerationStrategy::TopDown,
-                supported_types: ["logical", "mathematical"].iter().map(|s| s.to_string()).collect(),
-                efficiency: 0.8,
-                requirements: GeneratorRequirements {
-                    memory: 256 * 1024 * 1024,
-                    cpu_time: Duration::from_secs(10),
-                    workers: 1,
-                    dependencies: vec!["z3".to_string()],
-                },
+        vec![ProofGeneratorImpl {
+            name: "Automated Theorem Prover".to_string(),
+            strategy: GenerationStrategy::TopDown,
+            supported_types: ["logical", "mathematical"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+            efficiency: 0.8,
+            requirements: GeneratorRequirements {
+                memory: 256 * 1024 * 1024,
+                cpu_time: Duration::from_secs(10),
+                workers: 1,
+                dependencies: vec!["z3".to_string()],
             },
-        ]
+        }]
     }
 }
 
@@ -776,72 +784,69 @@ impl AdvancedProofValidator {
 
     /// Create default validation strategies
     fn default_strategies() -> Vec<ValidationStrategy> {
-        vec![
-            ValidationStrategy {
-                name: "Syntactic Validation".to_string(),
-                approach: ValidationApproach::Syntactic,
-                thoroughness: ThornessLevel::Standard,
-                cost: ValidationCost {
-                    time: Duration::from_millis(100),
-                    computation: 0.1,
-                    memory: 1024 * 1024,
-                    human_review: false,
-                },
+        vec![ValidationStrategy {
+            name: "Syntactic Validation".to_string(),
+            approach: ValidationApproach::Syntactic,
+            thoroughness: ThornessLevel::Standard,
+            cost: ValidationCost {
+                time: Duration::from_millis(100),
+                computation: 0.1,
+                memory: 1024 * 1024,
+                human_review: false,
             },
-        ]
+        }]
     }
 
     /// Create default rule checkers
     fn default_rule_checkers() -> HashMap<String, RuleChecker> {
         let mut checkers = HashMap::new();
-        checkers.insert("modus_ponens".to_string(), RuleChecker {
-            rule_name: "Modus Ponens".to_string(),
-            implementation: RuleImplementation::BuiltIn("modus_ponens".to_string()),
-            conditions: vec!["implication_present".to_string()],
-            error_reporter: ErrorReporter {
-                detail_level: ErrorDetailLevel::Standard,
-                suggestions: true,
-                context_size: 3,
+        checkers.insert(
+            "modus_ponens".to_string(),
+            RuleChecker {
+                rule_name: "Modus Ponens".to_string(),
+                implementation: RuleImplementation::BuiltIn("modus_ponens".to_string()),
+                conditions: vec!["implication_present".to_string()],
+                error_reporter: ErrorReporter {
+                    detail_level: ErrorDetailLevel::Standard,
+                    suggestions: true,
+                    context_size: 3,
+                },
             },
-        });
+        );
         checkers
     }
 
     /// Create default semantic validators
     fn default_semantic_validators() -> Vec<SemanticValidator> {
-        vec![
-            SemanticValidator {
-                name: "Mathematical Semantics".to_string(),
-                domain: SemanticDomain::Mathematics,
-                rules: vec![],
-                confidence_threshold: 0.8,
-            },
-        ]
+        vec![SemanticValidator {
+            name: "Mathematical Semantics".to_string(),
+            domain: SemanticDomain::Mathematics,
+            rules: vec![],
+            confidence_threshold: 0.8,
+        }]
     }
 
     /// Create default proof certifiers
     fn default_certifiers() -> Vec<ProofCertifier> {
-        vec![
-            ProofCertifier {
-                name: "Standard Certifier".to_string(),
-                standard: CertificationStandard::FormalMethods,
-                trust_level: TrustLevel::Medium,
-                process: CertificationProcess {
-                    steps: vec![],
-                    review_requirements: ReviewRequirements {
-                        reviewer_count: 2,
-                        expertise_levels: vec![ExpertiseLevel::Advanced],
-                        timeline: Duration::from_days(7),
-                        consensus_threshold: 0.8,
-                    },
-                    documentation: DocumentationRequirements {
-                        required_docs: vec![DocumentationType::ProofDescription],
-                        detail_level: DocumentationDetailLevel::Standard,
-                        format_requirements: vec!["latex".to_string()],
-                    },
+        vec![ProofCertifier {
+            name: "Standard Certifier".to_string(),
+            standard: CertificationStandard::FormalMethods,
+            trust_level: TrustLevel::Medium,
+            process: CertificationProcess {
+                steps: vec![],
+                review_requirements: ReviewRequirements {
+                    reviewer_count: 2,
+                    expertise_levels: vec![ExpertiseLevel::Advanced],
+                    timeline: Duration::from_days(7),
+                    consensus_threshold: 0.8,
+                },
+                documentation: DocumentationRequirements {
+                    required_docs: vec![DocumentationType::ProofDescription],
+                    detail_level: DocumentationDetailLevel::Standard,
+                    format_requirements: vec!["latex".to_string()],
                 },
             },
-        ]
+        }]
     }
 }
 
@@ -868,51 +873,48 @@ impl AdvancedProofOptimizer {
 
     /// Create default optimization algorithms
     fn default_algorithms() -> Vec<OptimizationAlgorithm> {
-        vec![
-            OptimizationAlgorithm {
-                name: "Greedy Step Elimination".to_string(),
-                algorithm_type: OptimizationAlgorithmType::GreedySearch,
-                target: OptimizationTarget::ProofLength,
-                expected_improvement: 0.3,
-                cost: OptimizationCost {
-                    computation: 0.2,
-                    time: Duration::from_millis(500),
-                    memory: 64 * 1024 * 1024,
-                    quality_tradeoffs: vec!["may_reduce_readability".to_string()],
-                },
+        vec![OptimizationAlgorithm {
+            name: "Greedy Step Elimination".to_string(),
+            algorithm_type: OptimizationAlgorithmType::GreedySearch,
+            target: OptimizationTarget::ProofLength,
+            expected_improvement: 0.3,
+            cost: OptimizationCost {
+                computation: 0.2,
+                time: Duration::from_millis(500),
+                memory: 64 * 1024 * 1024,
+                quality_tradeoffs: vec!["may_reduce_readability".to_string()],
             },
-        ]
+        }]
     }
 
     /// Create default quality assessors
     fn default_assessors() -> Vec<QualityAssessor> {
-        vec![
-            QualityAssessor {
-                name: "Proof Length Assessor".to_string(),
-                dimensions: vec![
-                    QualityDimension {
-                        name: "Step Count".to_string(),
-                        scale: QualityScale::Ratio,
-                        value: 0.0,
-                        target: 20.0,
-                    },
-                ],
-                method: AssessmentMethod::Statistical,
-                weight: 0.4,
-            },
-        ]
+        vec![QualityAssessor {
+            name: "Proof Length Assessor".to_string(),
+            dimensions: vec![QualityDimension {
+                name: "Step Count".to_string(),
+                scale: QualityScale::Ratio,
+                value: 0.0,
+                target: 20.0,
+            }],
+            method: AssessmentMethod::Statistical,
+            weight: 0.4,
+        }]
     }
 
     /// Create default transformation rules
     fn default_transformation_rules() -> HashMap<String, TransformationRule> {
         let mut rules = HashMap::new();
-        rules.insert("redundant_step".to_string(), TransformationRule {
-            name: "Redundant Step Elimination".to_string(),
-            source_pattern: "step_followed_by_identity".to_string(),
-            target_pattern: "step_only".to_string(),
-            conditions: vec!["identity_operation_detected".to_string()],
-            cost: 0.1,
-        });
+        rules.insert(
+            "redundant_step".to_string(),
+            TransformationRule {
+                name: "Redundant Step Elimination".to_string(),
+                source_pattern: "step_followed_by_identity".to_string(),
+                target_pattern: "step_only".to_string(),
+                conditions: vec!["identity_operation_detected".to_string()],
+                cost: 0.1,
+            },
+        );
         rules
     }
 }
@@ -967,7 +969,7 @@ impl ProofRepository {
 
         self.proofs.insert(proof.id.clone(), stored_proof);
         self.statistics.total_proofs += 1;
-        
+
         Ok(proof.id.clone())
     }
 }

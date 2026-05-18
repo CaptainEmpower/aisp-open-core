@@ -8,21 +8,21 @@
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    semantic::verification_pipeline::{
-        ComprehensiveVerificationResult, AdversarialTestResults, 
-        EnterpriseSecurityAssessment, ComplianceStatus, PerformanceAnalysis, 
-        AuditSummary, ProductionRecommendation, CertificationEligibility
-    },
     parser::robust_parser::RobustAispParser,
-};
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex, RwLock},
-    time::{Duration, Instant},
-    thread,
-    sync::mpsc,
+    semantic::verification_pipeline::{
+        AdversarialTestResults, AuditSummary, CertificationEligibility, ComplianceStatus,
+        ComprehensiveVerificationResult, EnterpriseSecurityAssessment, PerformanceAnalysis,
+        ProductionRecommendation,
+    },
 };
 use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    sync::mpsc,
+    sync::{Arc, Mutex, RwLock},
+    thread,
+    time::{Duration, Instant},
+};
 
 /// Batch verification engine for processing multiple documents efficiently
 pub struct BatchVerificationEngine {
@@ -92,7 +92,10 @@ pub enum DocumentInput {
     /// Raw AISP document content
     Content { content: String, name: String },
     /// Pre-parsed document
-    Parsed { document: AispDocument, name: String },
+    Parsed {
+        document: AispDocument,
+        name: String,
+    },
 }
 
 /// Priority levels for batch processing
@@ -309,23 +312,23 @@ impl BatchVerificationEngine {
     pub fn new(config: BatchVerificationConfig) -> Self {
         let (task_sender, _task_receiver) = mpsc::channel();
         let (_result_sender, result_receiver) = mpsc::channel();
-        
+
         let worker_pool = WorkerPool {
             workers: Vec::with_capacity(config.max_workers),
             task_sender,
             result_receiver,
         };
-        
+
         let verification_cache = Arc::new(RwLock::new(VerificationCache {
             parsed_documents: HashMap::new(),
             verification_results: HashMap::new(),
             cache_config: CacheConfig {
                 max_entries: config.cache_size_limit,
-                ttl: Duration::from_secs(3600), // 1 hour
+                ttl: Duration::from_secs(3600),        // 1 hour
                 memory_limit: config.memory_limit / 4, // 25% for cache
             },
         }));
-        
+
         let resource_manager = Arc::new(Mutex::new(BatchResourceManager {
             memory_used: 0,
             cpu_usage: 0.0,
@@ -333,7 +336,7 @@ impl BatchVerificationEngine {
             max_memory: config.memory_limit,
             max_concurrent_tasks: config.max_workers * 2,
         }));
-        
+
         let metrics = Arc::new(Mutex::new(BatchMetrics {
             documents_processed: 0,
             total_processing_time: Duration::from_secs(0),
@@ -342,7 +345,7 @@ impl BatchVerificationEngine {
             cache_misses: 0,
             errors: 0,
         }));
-        
+
         Self {
             worker_pool,
             verification_cache,
@@ -351,16 +354,22 @@ impl BatchVerificationEngine {
             metrics,
         }
     }
-    
+
     /// Process batch verification request
-    pub fn verify_batch(&mut self, request: BatchVerificationRequest) -> AispResult<BatchVerificationResults> {
+    pub fn verify_batch(
+        &mut self,
+        request: BatchVerificationRequest,
+    ) -> AispResult<BatchVerificationResults> {
         let start_time = Instant::now();
-        
-        println!("🚀 Starting batch verification for {} documents", request.documents.len());
-        
+
+        println!(
+            "🚀 Starting batch verification for {} documents",
+            request.documents.len()
+        );
+
         // Initialize workers if needed
         self.ensure_workers_running()?;
-        
+
         // Process documents in batches
         let mut document_results = HashMap::new();
         let mut batch_stats = BatchStatistics {
@@ -372,41 +381,42 @@ impl BatchVerificationEngine {
             average_verification_time: Duration::from_secs(0),
             total_processing_time: Duration::from_secs(0),
         };
-        
+
         // Group documents into processing batches
-        let batches: Vec<_> = request.documents
-            .chunks(self.config.batch_size)
-            .collect();
-        
+        let batches: Vec<_> = request.documents.chunks(self.config.batch_size).collect();
+
         for (batch_idx, batch) in batches.iter().enumerate() {
-            println!("📦 Processing batch {}/{} ({} documents)", 
-                    batch_idx + 1, batches.len(), batch.len());
-            
+            println!(
+                "📦 Processing batch {}/{} ({} documents)",
+                batch_idx + 1,
+                batches.len(),
+                batch.len()
+            );
+
             let batch_results = self.process_document_batch(batch, &request.options)?;
-            
+
             for (doc_id, result) in batch_results {
                 if result.error.is_none() {
                     batch_stats.successful_verifications += 1;
                 } else {
                     batch_stats.failed_verifications += 1;
                 }
-                
+
                 if result.from_cache {
                     batch_stats.cache_hits += 1;
                 } else {
                     batch_stats.cache_misses += 1;
                 }
-                
+
                 document_results.insert(doc_id, result);
             }
         }
-        
+
         let total_time = start_time.elapsed();
         batch_stats.total_processing_time = total_time;
-        batch_stats.average_verification_time = Duration::from_nanos(
-            total_time.as_nanos() as u64 / batch_stats.total_documents as u64
-        );
-        
+        batch_stats.average_verification_time =
+            Duration::from_nanos(total_time.as_nanos() as u64 / batch_stats.total_documents as u64);
+
         let batch_status = if batch_stats.failed_verifications == 0 {
             BatchStatus::Success
         } else if batch_stats.successful_verifications > 0 {
@@ -414,19 +424,25 @@ impl BatchVerificationEngine {
         } else {
             BatchStatus::Failure
         };
-        
+
         let performance_metrics = self.calculate_performance_metrics(&batch_stats, total_time);
         let cache_stats = self.get_cache_statistics();
         let timing_breakdown = self.calculate_timing_breakdown(total_time);
-        
+
         println!("✅ Batch verification completed:");
         println!("   Total: {} documents", batch_stats.total_documents);
-        println!("   Success: {} documents", batch_stats.successful_verifications);
+        println!(
+            "   Success: {} documents",
+            batch_stats.successful_verifications
+        );
         println!("   Failed: {} documents", batch_stats.failed_verifications);
         println!("   Cache hits: {}", batch_stats.cache_hits);
         println!("   Total time: {:.2}s", total_time.as_secs_f64());
-        println!("   Throughput: {:.2} docs/sec", performance_metrics.throughput);
-        
+        println!(
+            "   Throughput: {:.2} docs/sec",
+            performance_metrics.throughput
+        );
+
         Ok(BatchVerificationResults {
             document_results,
             batch_statistics: batch_stats,
@@ -436,76 +452,87 @@ impl BatchVerificationEngine {
             timing_breakdown,
         })
     }
-    
+
     /// Process a batch of documents
     fn process_document_batch(
-        &self, 
-        documents: &[DocumentInput], 
-        options: &VerificationOptions
+        &self,
+        documents: &[DocumentInput],
+        options: &VerificationOptions,
     ) -> AispResult<HashMap<String, DocumentVerificationResult>> {
         let mut results = HashMap::new();
-        
+
         // For now, process sequentially (can be parallelized later)
         for doc in documents {
             let doc_id = self.get_document_id(doc);
             let start_time = Instant::now();
-            
+
             // Check cache first
-            if options.verification_level != VerificationLevel::Basic && !options.force_recomputation {
+            if options.verification_level != VerificationLevel::Basic
+                && !options.force_recomputation
+            {
                 if let Some(cached_result) = self.check_cache(&doc_id)? {
-                    results.insert(doc_id.clone(), DocumentVerificationResult {
-                        document_id: doc_id,
-                        verification_result: Some(cached_result),
-                        error: None,
-                        processing_time: Duration::from_millis(1), // Minimal cache lookup time
-                        from_cache: true,
-                        memory_used: 0,
-                    });
+                    results.insert(
+                        doc_id.clone(),
+                        DocumentVerificationResult {
+                            document_id: doc_id,
+                            verification_result: Some(cached_result),
+                            error: None,
+                            processing_time: Duration::from_millis(1), // Minimal cache lookup time
+                            from_cache: true,
+                            memory_used: 0,
+                        },
+                    );
                     continue;
                 }
             }
-            
+
             // Process document
             match self.verify_single_document(doc, options) {
                 Ok(result) => {
                     let processing_time = start_time.elapsed();
-                    
+
                     // Cache the result
                     if self.config.enable_caching {
                         let _ = self.cache_result(&doc_id, &result);
                     }
-                    
-                    results.insert(doc_id.clone(), DocumentVerificationResult {
-                        document_id: doc_id,
-                        verification_result: Some(result),
-                        error: None,
-                        processing_time,
-                        from_cache: false,
-                        memory_used: 0, // TODO: Implement memory tracking
-                    });
-                },
+
+                    results.insert(
+                        doc_id.clone(),
+                        DocumentVerificationResult {
+                            document_id: doc_id,
+                            verification_result: Some(result),
+                            error: None,
+                            processing_time,
+                            from_cache: false,
+                            memory_used: 0, // TODO: Implement memory tracking
+                        },
+                    );
+                }
                 Err(e) => {
                     let processing_time = start_time.elapsed();
-                    results.insert(doc_id.clone(), DocumentVerificationResult {
-                        document_id: doc_id,
-                        verification_result: None,
-                        error: Some(e.to_string()),
-                        processing_time,
-                        from_cache: false,
-                        memory_used: 0,
-                    });
+                    results.insert(
+                        doc_id.clone(),
+                        DocumentVerificationResult {
+                            document_id: doc_id,
+                            verification_result: None,
+                            error: Some(e.to_string()),
+                            processing_time,
+                            from_cache: false,
+                            memory_used: 0,
+                        },
+                    );
                 }
             }
         }
-        
+
         Ok(results)
     }
-    
+
     /// Verify a single document
     fn verify_single_document(
         &self,
         document: &DocumentInput,
-        options: &VerificationOptions
+        options: &VerificationOptions,
     ) -> AispResult<ComprehensiveVerificationResult> {
         // Parse document if needed
         let parsed_doc = match document {
@@ -517,28 +544,33 @@ impl BatchVerificationEngine {
                     Some(doc) => doc,
                     None => return Err(AispError::validation_error("Failed to parse document")),
                 }
-            },
+            }
             DocumentInput::FilePath(path) => {
-                let content = std::fs::read_to_string(path)
-                    .map_err(|e| AispError::validation_error(format!("Failed to read file: {}", e)))?;
+                let content = std::fs::read_to_string(path).map_err(|e| {
+                    AispError::validation_error(format!("Failed to read file: {}", e))
+                })?;
                 let parser = RobustAispParser::new();
                 let parse_result = parser.parse(&content);
                 match parse_result.document {
                     Some(doc) => doc,
                     None => return Err(AispError::validation_error("Failed to parse document")),
                 }
-            },
+            }
         };
-        
+
         // Create comprehensive verification pipeline based on options
         match &options.verification_level {
             VerificationLevel::Basic => Self::create_basic_verification_result(&parsed_doc),
             VerificationLevel::Standard => Self::create_standard_verification_result(&parsed_doc),
-            VerificationLevel::Comprehensive => Self::create_comprehensive_verification_result(&parsed_doc),
-            VerificationLevel::Custom(components) => Self::create_custom_verification_result(&parsed_doc, components),
+            VerificationLevel::Comprehensive => {
+                Self::create_comprehensive_verification_result(&parsed_doc)
+            }
+            VerificationLevel::Custom(components) => {
+                Self::create_custom_verification_result(&parsed_doc, components)
+            }
         }
     }
-    
+
     /// Get document identifier
     fn get_document_id(&self, document: &DocumentInput) -> String {
         match document {
@@ -547,29 +579,37 @@ impl BatchVerificationEngine {
             DocumentInput::Parsed { name, .. } => name.clone(),
         }
     }
-    
+
     /// Check cache for existing result
     fn check_cache(&self, _doc_id: &str) -> AispResult<Option<ComprehensiveVerificationResult>> {
         // Simplified cache check - in real implementation would check TTL and validity
         Ok(None)
     }
-    
+
     /// Cache verification result
-    fn cache_result(&self, _doc_id: &str, _result: &ComprehensiveVerificationResult) -> AispResult<()> {
+    fn cache_result(
+        &self,
+        _doc_id: &str,
+        _result: &ComprehensiveVerificationResult,
+    ) -> AispResult<()> {
         // Simplified caching - in real implementation would handle cache eviction, TTL, etc.
         Ok(())
     }
-    
+
     /// Ensure worker threads are running
     fn ensure_workers_running(&mut self) -> AispResult<()> {
         // Simplified - in real implementation would manage worker thread pool
         Ok(())
     }
-    
+
     /// Calculate performance metrics
-    fn calculate_performance_metrics(&self, stats: &BatchStatistics, total_time: Duration) -> BatchPerformanceMetrics {
+    fn calculate_performance_metrics(
+        &self,
+        stats: &BatchStatistics,
+        total_time: Duration,
+    ) -> BatchPerformanceMetrics {
         BatchPerformanceMetrics {
-            cpu_utilization: 0.7, // Placeholder
+            cpu_utilization: 0.7,    // Placeholder
             memory_utilization: 0.5, // Placeholder
             throughput: stats.total_documents as f64 / total_time.as_secs_f64(),
             worker_efficiency: 0.8, // Placeholder
@@ -580,17 +620,17 @@ impl BatchVerificationEngine {
             },
         }
     }
-    
+
     /// Get cache statistics
     fn get_cache_statistics(&self) -> CacheStatistics {
         CacheStatistics {
-            cache_size: 0, // Placeholder
-            hit_rate: 0.0, // Placeholder
+            cache_size: 0,         // Placeholder
+            hit_rate: 0.0,         // Placeholder
             cache_memory_usage: 0, // Placeholder
-            evictions: 0, // Placeholder
+            evictions: 0,          // Placeholder
         }
     }
-    
+
     /// Calculate timing breakdown
     fn calculate_timing_breakdown(&self, total_time: Duration) -> TimingBreakdown {
         TimingBreakdown {
@@ -601,11 +641,13 @@ impl BatchVerificationEngine {
             cache_operation_time: Duration::from_millis(total_time.as_millis() as u64 / 50),
         }
     }
-    
+
     /// Create basic verification result - syntax and simple semantic checks
-    fn create_basic_verification_result(_document: &AispDocument) -> AispResult<ComprehensiveVerificationResult> {
+    fn create_basic_verification_result(
+        _document: &AispDocument,
+    ) -> AispResult<ComprehensiveVerificationResult> {
         use crate::semantic::{cross_validator::CrossValidationResult, verification_pipeline::*};
-        
+
         Ok(ComprehensiveVerificationResult {
             overall_security_score: 0.7,
             enterprise_compliance_score: 0.6,
@@ -643,7 +685,8 @@ impl BatchVerificationEngine {
             recommendations: vec![ProductionRecommendation {
                 priority: "Medium".to_string(),
                 category: "Verification".to_string(),
-                action: "Consider standard or comprehensive verification for production use".to_string(),
+                action: "Consider standard or comprehensive verification for production use"
+                    .to_string(),
             }],
             certification_eligibility: CertificationEligibility {
                 eligible_standards: vec!["AISP-Basic".to_string()],
@@ -651,11 +694,13 @@ impl BatchVerificationEngine {
             },
         })
     }
-    
+
     /// Create standard verification result - includes formal analysis
-    fn create_standard_verification_result(_document: &AispDocument) -> AispResult<ComprehensiveVerificationResult> {
+    fn create_standard_verification_result(
+        _document: &AispDocument,
+    ) -> AispResult<ComprehensiveVerificationResult> {
         use crate::semantic::{cross_validator::CrossValidationResult, verification_pipeline::*};
-        
+
         Ok(ComprehensiveVerificationResult {
             overall_security_score: 0.85,
             enterprise_compliance_score: 0.8,
@@ -679,7 +724,10 @@ impl BatchVerificationEngine {
                 threat_landscape: vec!["Standard threats mitigated".to_string()],
             },
             compliance_status: ComplianceStatus {
-                compliant_frameworks: vec!["AISP-Standard".to_string(), "ISO-27001-Basic".to_string()],
+                compliant_frameworks: vec![
+                    "AISP-Standard".to_string(),
+                    "ISO-27001-Basic".to_string(),
+                ],
                 violations: Vec::new(),
             },
             performance_analysis: PerformanceAnalysis {
@@ -701,11 +749,13 @@ impl BatchVerificationEngine {
             },
         })
     }
-    
+
     /// Create comprehensive verification result - full pipeline with all checks
-    fn create_comprehensive_verification_result(_document: &AispDocument) -> AispResult<ComprehensiveVerificationResult> {
+    fn create_comprehensive_verification_result(
+        _document: &AispDocument,
+    ) -> AispResult<ComprehensiveVerificationResult> {
         use crate::semantic::{cross_validator::CrossValidationResult, verification_pipeline::*};
-        
+
         Ok(ComprehensiveVerificationResult {
             overall_security_score: 0.95,
             enterprise_compliance_score: 0.92,
@@ -722,14 +772,20 @@ impl BatchVerificationEngine {
                 success_rate: 1.0,
                 attack_resistance_score: 0.95,
                 vulnerabilities_found: Vec::new(),
-                recommendations: vec!["Comprehensive verification passed with excellence".to_string()],
+                recommendations: vec![
+                    "Comprehensive verification passed with excellence".to_string()
+                ],
             },
             security_assessment: EnterpriseSecurityAssessment {
                 security_posture: "High Security Posture".to_string(),
                 threat_landscape: vec!["Advanced threats mitigated".to_string()],
             },
             compliance_status: ComplianceStatus {
-                compliant_frameworks: vec!["AISP-Comprehensive".to_string(), "ISO-27001".to_string(), "SOC-2".to_string()],
+                compliant_frameworks: vec![
+                    "AISP-Comprehensive".to_string(),
+                    "ISO-27001".to_string(),
+                    "SOC-2".to_string(),
+                ],
                 violations: Vec::new(),
             },
             performance_analysis: PerformanceAnalysis {
@@ -738,7 +794,9 @@ impl BatchVerificationEngine {
             },
             audit_summary: AuditSummary {
                 audit_passed: true,
-                findings: vec!["Comprehensive verification completed with high confidence".to_string()],
+                findings: vec![
+                    "Comprehensive verification completed with high confidence".to_string()
+                ],
             },
             recommendations: vec![ProductionRecommendation {
                 priority: "Info".to_string(),
@@ -746,25 +804,36 @@ impl BatchVerificationEngine {
                 action: "Document achieves highest verification standards".to_string(),
             }],
             certification_eligibility: CertificationEligibility {
-                eligible_standards: vec!["AISP-Platinum".to_string(), "ISO-27001".to_string(), "SOC-2-Type-II".to_string()],
+                eligible_standards: vec![
+                    "AISP-Platinum".to_string(),
+                    "ISO-27001".to_string(),
+                    "SOC-2-Type-II".to_string(),
+                ],
                 requirements_met: 0.98,
             },
         })
     }
-    
+
     /// Create custom verification result based on specified components
-    fn create_custom_verification_result(_document: &AispDocument, components: &[String]) -> AispResult<ComprehensiveVerificationResult> {
+    fn create_custom_verification_result(
+        _document: &AispDocument,
+        components: &[String],
+    ) -> AispResult<ComprehensiveVerificationResult> {
         use crate::semantic::{cross_validator::CrossValidationResult, verification_pipeline::*};
-        
+
         let num_components = components.len();
         let base_score = 0.5 + (num_components as f64 * 0.1).min(0.4);
-        
+
         Ok(ComprehensiveVerificationResult {
             overall_security_score: base_score,
             enterprise_compliance_score: base_score * 0.9,
-            attack_resistance_rating: if num_components > 5 { AttackResistanceRating::Enhanced } 
-                                     else if num_components > 3 { AttackResistanceRating::Standard }
-                                     else { AttackResistanceRating::Basic },
+            attack_resistance_rating: if num_components > 5 {
+                AttackResistanceRating::Enhanced
+            } else if num_components > 3 {
+                AttackResistanceRating::Standard
+            } else {
+                AttackResistanceRating::Basic
+            },
             verification_confidence: base_score + 0.1,
             production_readiness_score: base_score * 0.85,
             cross_validation_results: CrossValidationResult::default(),
@@ -777,10 +846,16 @@ impl BatchVerificationEngine {
                 success_rate: 1.0,
                 attack_resistance_score: base_score,
                 vulnerabilities_found: Vec::new(),
-                recommendations: components.iter().map(|c| format!("Verified component: {}", c)).collect(),
+                recommendations: components
+                    .iter()
+                    .map(|c| format!("Verified component: {}", c))
+                    .collect(),
             },
             security_assessment: EnterpriseSecurityAssessment {
-                security_posture: format!("Custom Security Profile ({} components)", num_components),
+                security_posture: format!(
+                    "Custom Security Profile ({} components)",
+                    num_components
+                ),
                 threat_landscape: vec![format!("{} custom components verified", num_components)],
             },
             compliance_status: ComplianceStatus {
@@ -789,18 +864,26 @@ impl BatchVerificationEngine {
             },
             performance_analysis: PerformanceAnalysis {
                 bottlenecks: Vec::new(),
-                optimization_opportunities: if num_components < 5 { 
+                optimization_opportunities: if num_components < 5 {
                     vec!["Consider additional verification components".to_string()]
-                } else { Vec::new() },
+                } else {
+                    Vec::new()
+                },
             },
             audit_summary: AuditSummary {
                 audit_passed: true,
-                findings: vec![format!("Custom verification with {} components completed", num_components)],
+                findings: vec![format!(
+                    "Custom verification with {} components completed",
+                    num_components
+                )],
             },
             recommendations: vec![ProductionRecommendation {
                 priority: "Medium".to_string(),
                 category: "Custom".to_string(),
-                action: format!("Custom verification with {} components completed successfully", num_components),
+                action: format!(
+                    "Custom verification with {} components completed successfully",
+                    num_components
+                ),
             }],
             certification_eligibility: CertificationEligibility {
                 eligible_standards: vec![format!("AISP-Custom-{}", num_components)],
@@ -824,26 +907,26 @@ impl Default for VerificationOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_batch_engine_creation() {
         let config = BatchVerificationConfig::default();
         let _engine = BatchVerificationEngine::new(config);
-        
+
         // Basic smoke test
         assert!(true);
     }
-    
+
     #[test]
     fn test_batch_verification_config() {
         let config = BatchVerificationConfig::default();
-        
+
         assert!(config.max_workers >= 4);
         assert!(config.enable_caching);
         assert!(config.cache_size_limit > 0);
         assert!(config.batch_size > 0);
     }
-    
+
     #[test]
     fn test_document_input_types() {
         let file_input = DocumentInput::FilePath("test.aisp".to_string());
@@ -851,13 +934,13 @@ mod tests {
             content: "test content".to_string(),
             name: "test.aisp".to_string(),
         };
-        
+
         // Basic type validation
         match file_input {
             DocumentInput::FilePath(_) => assert!(true),
             _ => assert!(false),
         }
-        
+
         match content_input {
             DocumentInput::Content { .. } => assert!(true),
             _ => assert!(false),

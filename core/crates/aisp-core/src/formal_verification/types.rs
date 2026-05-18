@@ -3,10 +3,8 @@
 //! Core type definitions for formal verification of AISP documents.
 
 use crate::{
-    invariant_types::DiscoveredInvariant,
+    invariant_types::DiscoveredInvariant, proof_types::ProofTree, property_types::PropertyFormula,
     satisfiability_checker::ConstraintModel,
-    property_types::PropertyFormula,
-    proof_types::ProofTree,
 };
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -34,8 +32,8 @@ pub enum VerificationStatus {
     /// All properties verified successfully
     Verified,
     /// Some properties failed verification
-    PartiallyVerified { 
-        verified_count: usize, 
+    PartiallyVerified {
+        verified_count: usize,
         total_count: usize,
         failures: Vec<VerificationFailure>,
     },
@@ -514,21 +512,33 @@ mod tests {
 
     #[test]
     fn test_verification_status_variants() {
-        assert!(matches!(VerificationStatus::Verified, VerificationStatus::Verified));
-        
+        assert!(matches!(
+            VerificationStatus::Verified,
+            VerificationStatus::Verified
+        ));
+
         let partial = VerificationStatus::PartiallyVerified {
             verified_count: 5,
             total_count: 10,
             failures: vec![],
         };
-        assert!(matches!(partial, VerificationStatus::PartiallyVerified { .. }));
+        assert!(matches!(
+            partial,
+            VerificationStatus::PartiallyVerified { .. }
+        ));
     }
 
     #[test]
     fn test_verification_method_equality() {
-        assert_eq!(VerificationMethod::DirectProof, VerificationMethod::DirectProof);
-        assert_ne!(VerificationMethod::DirectProof, VerificationMethod::InductiveProof);
-        
+        assert_eq!(
+            VerificationMethod::DirectProof,
+            VerificationMethod::DirectProof
+        );
+        assert_ne!(
+            VerificationMethod::DirectProof,
+            VerificationMethod::InductiveProof
+        );
+
         let hybrid1 = VerificationMethod::HybridVerification(vec![
             VerificationMethod::DirectProof,
             VerificationMethod::SmtSolverVerification,
@@ -544,7 +554,7 @@ mod tests {
     fn test_proof_validation() {
         assert_eq!(ProofValidation::Valid, ProofValidation::Valid);
         assert_ne!(ProofValidation::Valid, ProofValidation::Unknown);
-        
+
         let invalid = ProofValidation::Invalid("Logic error".to_string());
         assert!(matches!(invalid, ProofValidation::Invalid(_)));
     }
@@ -563,7 +573,7 @@ mod tests {
         let pending = TaskStatus::Pending;
         let running = TaskStatus::Running;
         let cancelled = TaskStatus::Cancelled;
-        
+
         assert_eq!(pending, TaskStatus::Pending);
         assert_ne!(pending, running);
         assert_ne!(running, cancelled);
@@ -574,7 +584,7 @@ mod tests {
         let timeout = FailureReason::Timeout;
         let counterex = FailureReason::Counterexample("x = 0".to_string());
         let solver_err = FailureReason::SolverError("Z3 timeout".to_string());
-        
+
         assert_eq!(timeout, FailureReason::Timeout);
         assert!(matches!(counterex, FailureReason::Counterexample(_)));
         assert!(matches!(solver_err, FailureReason::SolverError(_)));
@@ -596,7 +606,7 @@ mod tests {
             hit_ratio: 0.8,
             avg_lookup_time: Duration::from_micros(50),
         };
-        
+
         assert_eq!(stats.hits + stats.misses, 100);
         assert_eq!(stats.hit_ratio, 0.8);
     }
