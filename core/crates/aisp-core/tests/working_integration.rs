@@ -4,8 +4,11 @@
 //! validator API and demonstrate end-to-end functionality.
 
 use aisp_core::{
-    validator::{AispValidator, types::{ValidationConfig, ValidationResult}},
-    semantic::QualityTier
+    semantic::QualityTier,
+    validator::{
+        types::{ValidationConfig, ValidationResult},
+        AispValidator,
+    },
 };
 
 /// Helper for asserting validation results with correct API
@@ -20,46 +23,78 @@ impl ValidationAssertion {
 
     pub fn is_valid(self) -> Self {
         if !self.result.valid {
-        // Print the actual result so we can see what we're dealing with
-        println!("Validation result: valid={}, error={:?}, delta={}, tier={:?}", self.result.valid, self.result.error, self.result.delta, self.result.tier);
-    }
-    assert!(self.result.valid, "Document should be valid but got error: {:?}, delta: {}, tier: {:?}", self.result.error, self.result.delta, self.result.tier);
+            // Print the actual result so we can see what we're dealing with
+            println!(
+                "Validation result: valid={}, error={:?}, delta={}, tier={:?}",
+                self.result.valid, self.result.error, self.result.delta, self.result.tier
+            );
+        }
+        assert!(
+            self.result.valid,
+            "Document should be valid but got error: {:?}, delta: {}, tier: {:?}",
+            self.result.error, self.result.delta, self.result.tier
+        );
         self
     }
 
     pub fn is_invalid(self) -> Self {
-        assert!(!self.result.valid, "Document should be invalid but was valid");
+        assert!(
+            !self.result.valid,
+            "Document should be invalid but was valid"
+        );
         self
     }
 
     pub fn has_quality_tier(self, expected: QualityTier) -> Self {
-        assert_eq!(self.result.tier, expected, "Expected quality tier {:?} but got {:?}", expected, self.result.tier);
+        assert_eq!(
+            self.result.tier, expected,
+            "Expected quality tier {:?} but got {:?}",
+            expected, self.result.tier
+        );
         self
     }
 
     pub fn has_error_count(self, expected: usize) -> Self {
         let actual_errors = if self.result.error.is_some() { 1 } else { 0 };
-        assert_eq!(actual_errors, expected, "Expected {} errors but got {}: {:?}", expected, actual_errors, self.result.error);
+        assert_eq!(
+            actual_errors, expected,
+            "Expected {} errors but got {}: {:?}",
+            expected, actual_errors, self.result.error
+        );
         self
     }
 
     pub fn has_delta_above(self, threshold: f64) -> Self {
-        assert!(self.result.delta >= threshold, "Expected delta >= {} but got {}", threshold, self.result.delta);
+        assert!(
+            self.result.delta >= threshold,
+            "Expected delta >= {} but got {}",
+            threshold,
+            self.result.delta
+        );
         self
     }
 
     pub fn has_warnings(self) -> Self {
-        assert!(!self.result.warnings.is_empty(), "Expected warnings but got none");
+        assert!(
+            !self.result.warnings.is_empty(),
+            "Expected warnings but got none"
+        );
         self
     }
 
     pub fn has_timing(self) -> Self {
-        assert!(self.result.total_time.is_some(), "Expected timing information but got none");
+        assert!(
+            self.result.total_time.is_some(),
+            "Expected timing information but got none"
+        );
         self
     }
 
     pub fn has_formal_verification(self) -> Self {
-        assert!(self.result.formal_verification.is_some(), "Expected formal verification result but got none");
+        assert!(
+            self.result.formal_verification.is_some(),
+            "Expected formal verification result but got none"
+        );
         self
     }
 }
@@ -220,14 +255,14 @@ fn test_formal_verification_enabled() {
 
     let mut config = ValidationConfig::default();
     config.enable_formal_verification = true;
-    
+
     let validator = AispValidator::with_config(config);
     let result = validator.validate(document);
 
     ValidationAssertion::new(result)
         .is_valid()
         .has_quality_tier(QualityTier::Platinum);
-        // Note: formal verification results would be in result.formal_verification
+    // Note: formal verification results would be in result.formal_verification
 }
 
 #[test]
@@ -272,7 +307,8 @@ fn test_validation_config_options() {
 fn test_large_document_limit() {
     // Create a document that exceeds size limit
     let large_content = "x≜ℕ\n".repeat(1000);
-    let document = format!(r#"𝔸5.1.LargeTest@2026-01-25
+    let document = format!(
+        r#"𝔸5.1.LargeTest@2026-01-25
 
 ⟦Σ:Types⟧{{
   {}
@@ -282,7 +318,9 @@ fn test_large_document_limit() {
   domain≜large_test
 }}
 
-⟦Ε⟧⟨δ≜0.8⟩"#, large_content);
+⟦Ε⟧⟨δ≜0.8⟩"#,
+        large_content
+    );
 
     let mut config = ValidationConfig::default();
     config.max_document_size = 100; // Very small limit
@@ -337,10 +375,13 @@ fn test_validation_performance() {
         .is_valid()
         .has_quality_tier(QualityTier::Platinum)
         .has_timing();
-    
+
     // Validation should complete reasonably quickly
-    assert!(duration.as_millis() < 5000, 
-        "Validation took too long: {}ms", duration.as_millis());
+    assert!(
+        duration.as_millis() < 5000,
+        "Validation took too long: {}ms",
+        duration.as_millis()
+    );
 }
 
 #[test]
@@ -412,7 +453,10 @@ fn test_strict_mode_validation() {
     let result = validator.validate(document);
 
     // Document may be valid but should have warnings in strict mode
-    assert!(!result.warnings.is_empty(), "Strict mode should generate warnings for low quality");
+    assert!(
+        !result.warnings.is_empty(),
+        "Strict mode should generate warnings for low quality"
+    );
 }
 
 #[test]

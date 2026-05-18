@@ -3,14 +3,14 @@
 //! This module tests Z3-based formal verification with the actual
 //! validator API, focusing on practical verification scenarios.
 
-use aisp_core::{AispValidator, ValidationConfig, ValidationResult, QualityTier};
+use aisp_core::{AispValidator, QualityTier, ValidationConfig, ValidationResult};
 
 /// Helper for formal verification testing
 fn test_formal_verification(document: &str, enable_formal: bool) -> ValidationResult {
     let mut config = ValidationConfig::default();
     config.enable_formal_verification = enable_formal;
     config.include_timing = true;
-    
+
     let validator = AispValidator::with_config(config);
     validator.validate(document)
 }
@@ -44,11 +44,11 @@ fn test_basic_formal_verification() {
 ⟦Ε⟧⟨δ≜0.9;φ≜100⟩"#;
 
     let result = test_formal_verification(document, true);
-    
+
     assert!(result.valid, "Document should be valid: {:?}", result.error);
     assert_eq!(result.tier, QualityTier::Platinum);
     assert!(result.delta >= 0.85);
-    
+
     // Note: formal verification results are in result.formal_verification
     // The exact structure depends on the implementation
 }
@@ -84,8 +84,12 @@ fn test_temporal_formal_verification() {
 ⟦Ε⟧⟨δ≜0.9;φ≜120;τ≜◊⁺⟩"#;
 
     let result = test_formal_verification(document, true);
-    
-    assert!(result.valid, "Temporal document should be valid: {:?}", result.error);
+
+    assert!(
+        result.valid,
+        "Temporal document should be valid: {:?}",
+        result.error
+    );
     assert_eq!(result.tier, QualityTier::Platinum);
     assert!(result.delta >= 0.85);
 }
@@ -126,8 +130,12 @@ fn test_mathematical_formal_verification() {
 ⟦Ε⟧⟨δ≜0.95;φ≜200⟩"#;
 
     let result = test_formal_verification(document, true);
-    
-    assert!(result.valid, "Mathematical document should be valid: {:?}", result.error);
+
+    assert!(
+        result.valid,
+        "Mathematical document should be valid: {:?}",
+        result.error
+    );
     assert_eq!(result.tier, QualityTier::Platinum);
     assert!(result.delta >= 0.9);
 }
@@ -168,8 +176,12 @@ fn test_concurrent_formal_verification() {
 ⟦Ε⟧⟨δ≜0.88;φ≜150;τ≜◊⁺⟩"#;
 
     let result = test_formal_verification(document, true);
-    
-    assert!(result.valid, "Concurrent document should be valid: {:?}", result.error);
+
+    assert!(
+        result.valid,
+        "Concurrent document should be valid: {:?}",
+        result.error
+    );
     assert_eq!(result.tier, QualityTier::Platinum);
     assert!(result.delta >= 0.85);
 }
@@ -195,9 +207,15 @@ fn test_formal_verification_disabled() {
 ⟦Ε⟧⟨δ≜0.8⟩"#;
 
     let result = test_formal_verification(document, false);
-    
-    assert!(result.valid, "Document should be valid without formal verification");
-    assert!(result.formal_verification.is_none(), "No formal verification should be performed");
+
+    assert!(
+        result.valid,
+        "Document should be valid without formal verification"
+    );
+    assert!(
+        result.formal_verification.is_none(),
+        "No formal verification should be performed"
+    );
 }
 
 #[test]
@@ -237,16 +255,22 @@ fn test_formal_verification_with_timing() {
     let start = std::time::Instant::now();
     let result = test_formal_verification(document, true);
     let duration = start.elapsed();
-    
+
     assert!(result.valid, "Document should be valid");
     assert_eq!(result.tier, QualityTier::Platinum);
-    
+
     // Formal verification should complete in reasonable time
-    assert!(duration.as_millis() < 10000, 
-        "Formal verification took too long: {}ms", duration.as_millis());
-    
+    assert!(
+        duration.as_millis() < 10000,
+        "Formal verification took too long: {}ms",
+        duration.as_millis()
+    );
+
     // Should have timing information
-    assert!(result.total_time.is_some(), "Should include timing information");
+    assert!(
+        result.total_time.is_some(),
+        "Should include timing information"
+    );
 }
 
 #[test]
@@ -298,19 +322,25 @@ fn test_comprehensive_formal_validation() {
     config.include_timing = true;
     config.include_ast = true;
     config.strict_mode = true;
-    
+
     let validator = AispValidator::with_config(config);
     let result = validator.validate(document);
-    
-    assert!(result.valid, "Comprehensive document should be valid: {:?}", result.error);
+
+    assert!(
+        result.valid,
+        "Comprehensive document should be valid: {:?}",
+        result.error
+    );
     assert_eq!(result.tier, QualityTier::Platinum);
     assert!(result.delta >= 0.95);
     assert!(result.total_time.is_some(), "Should include timing");
-    
+
     // Should have comprehensive analysis
     if let Some(semantic_analysis) = &result.semantic_analysis {
-        assert!(!semantic_analysis.warnings().is_empty() || result.warnings.is_empty(),
-            "Should have analysis results");
+        assert!(
+            !semantic_analysis.warnings().is_empty() || result.warnings.is_empty(),
+            "Should have analysis results"
+        );
     }
 }
 
@@ -337,15 +367,18 @@ fn test_formal_verification_integration_with_main_validator() {
     // Test both with and without formal verification
     let normal_result = test_formal_verification(document, false);
     let formal_result = test_formal_verification(document, true);
-    
+
     // Both should be valid
     assert!(normal_result.valid, "Normal validation should succeed");
     assert!(formal_result.valid, "Formal validation should succeed");
-    
+
     // Quality should be similar
     assert_eq!(normal_result.tier, formal_result.tier);
-    
+
     // Formal result should have formal verification data
-    assert!(normal_result.formal_verification.is_none(), "Normal should not have formal verification");
+    assert!(
+        normal_result.formal_verification.is_none(),
+        "Normal should not have formal verification"
+    );
     // Note: formal_result.formal_verification might be None if no extractable properties
 }

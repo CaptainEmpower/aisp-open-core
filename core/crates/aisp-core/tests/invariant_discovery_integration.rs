@@ -9,14 +9,13 @@
 #![cfg(feature = "invariant-discovery-integration-deprecated")]
 
 use aisp_core::{
-    invariant_discovery::{
-        InvariantDiscovery, InvariantDiscoveryConfig, InvariantType,
-        DiscoveredInvariant,
-    },
     ast::*,
+    error::AispResult,
+    invariant_discovery::{
+        DiscoveredInvariant, InvariantDiscovery, InvariantDiscoveryConfig, InvariantType,
+    },
     parser_new::AispParser,
     validator::AispValidator,
-    error::AispResult,
 };
 use std::collections::HashMap;
 
@@ -35,40 +34,45 @@ impl DiscoveryTestDocumentBuilder {
     }
 
     pub fn with_meta_block(mut self, content: &str) -> Self {
-        self.blocks.insert("meta".to_string(), format!("⟦Ω:Meta⟧{{{}}}", content));
+        self.blocks
+            .insert("meta".to_string(), format!("⟦Ω:Meta⟧{{{}}}", content));
         self
     }
 
     pub fn with_types_block(mut self, content: &str) -> Self {
-        self.blocks.insert("types".to_string(), format!("⟦Σ:Types⟧{{{}}}", content));
+        self.blocks
+            .insert("types".to_string(), format!("⟦Σ:Types⟧{{{}}}", content));
         self
     }
 
     pub fn with_rules_block(mut self, content: &str) -> Self {
-        self.blocks.insert("rules".to_string(), format!("⟦Γ:Rules⟧{{{}}}", content));
+        self.blocks
+            .insert("rules".to_string(), format!("⟦Γ:Rules⟧{{{}}}", content));
         self
     }
 
     pub fn with_functions_block(mut self, content: &str) -> Self {
-        self.blocks.insert("functions".to_string(), format!("⟦Λ:Funcs⟧{{{}}}", content));
+        self.blocks
+            .insert("functions".to_string(), format!("⟦Λ:Funcs⟧{{{}}}", content));
         self
     }
 
     pub fn with_evidence_block(mut self, content: &str) -> Self {
-        self.blocks.insert("evidence".to_string(), format!("⟦Ε⟧{}", content));
+        self.blocks
+            .insert("evidence".to_string(), format!("⟦Ε⟧{}", content));
         self
     }
 
     pub fn build(self) -> String {
         let mut document = format!("{}\n\n", self.header);
-        
+
         let block_order = ["meta", "types", "rules", "functions", "evidence"];
         for block_name in &block_order {
             if let Some(block_content) = self.blocks.get(*block_name) {
                 document.push_str(&format!("{}\n\n", block_content));
             }
         }
-        
+
         document.trim().to_string()
     }
 }
@@ -90,29 +94,43 @@ impl InvariantAssertion {
     }
 
     pub fn has_count(self, expected: usize) -> Self {
-        assert_eq!(self.invariants.len(), expected, 
-            "Expected {} invariants, but found {}", expected, self.invariants.len());
+        assert_eq!(
+            self.invariants.len(),
+            expected,
+            "Expected {} invariants, but found {}",
+            expected,
+            self.invariants.len()
+        );
         self
     }
 
     pub fn has_type_invariant(self) -> Self {
-        assert!(self.invariants.iter().any(|inv| 
-            matches!(inv.invariant_type, InvariantType::TypeStructural | InvariantType::TypeMembership)),
-            "Expected at least one type invariant");
+        assert!(
+            self.invariants.iter().any(|inv| matches!(
+                inv.invariant_type,
+                InvariantType::TypeStructural | InvariantType::TypeMembership
+            )),
+            "Expected at least one type invariant"
+        );
         self
     }
 
     pub fn has_functional_invariant(self) -> Self {
-        assert!(self.invariants.iter().any(|inv| 
-            matches!(inv.invariant_type, InvariantType::FunctionalProperty | InvariantType::FunctionalMonotonicity)),
-            "Expected at least one functional invariant");
+        assert!(
+            self.invariants.iter().any(|inv| matches!(
+                inv.invariant_type,
+                InvariantType::FunctionalProperty | InvariantType::FunctionalMonotonicity
+            )),
+            "Expected at least one functional invariant"
+        );
         self
     }
 
     pub fn has_high_confidence_invariant(self) -> Self {
-        assert!(self.invariants.iter().any(|inv| 
-            inv.confidence >= 0.8),
-            "Expected at least one high-confidence invariant");
+        assert!(
+            self.invariants.iter().any(|inv| inv.confidence >= 0.8),
+            "Expected at least one high-confidence invariant"
+        );
         self
     }
 
@@ -134,13 +152,13 @@ fn test_basic_invariant_discovery() {
         .with_evidence_block("⟨δ≜0.8⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let config = InvariantDiscoveryConfig::default();
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -158,16 +176,16 @@ fn test_numerical_invariant_discovery() {
         .with_evidence_block("⟨δ≜0.9⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_numerical_analysis = true;
     config.verification_timeout = 5000;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -187,16 +205,16 @@ fn test_pattern_based_invariant_discovery() {
         .with_evidence_block("⟨δ≜0.85⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_patterns = true;
     config.max_invariants = 10;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -215,16 +233,16 @@ fn test_logical_invariant_discovery() {
         .with_evidence_block("⟨δ≜0.75⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_logical_analysis = true;
     config.confidence_threshold = 0.7;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -242,15 +260,15 @@ fn test_structural_invariant_discovery() {
         .with_evidence_block("⟨δ≜0.8⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_structural_analysis = true;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -263,28 +281,33 @@ fn test_structural_invariant_discovery() {
 fn test_complex_document_invariant_discovery() {
     let document_content = DiscoveryTestDocumentBuilder::new()
         .with_meta_block("domain≜complex-test\nprotocol≜\"advanced-aisp\"")
-        .with_types_block(r#"
+        .with_types_block(
+            r#"
             Signal≜V_H⊕V_L⊕V_S
             V_H≜ℝ⁷⁶⁸
             V_L≜ℝ⁵¹²
             V_S≜ℝ²⁵⁶
             State≜{Active,Idle,Error}
-        "#)
-        .with_rules_block(r#"
+        "#,
+        )
+        .with_rules_block(
+            r#"
             ∀s:Signal→WellFormed(s)
             V_H∩V_S≡∅
             V_L∩V_S≡∅
             ∀x:V_H→|x|=768
-        "#)
-        .with_functions_block(r#"
+        "#,
+        )
+        .with_functions_block(
+            r#"
             validate≜λs.CheckDimensions(s)∧CheckDisjoint(s)
             transform≜λ(h,l).Combine(h,l)
-        "#)
+        "#,
+        )
         .with_evidence_block("⟨δ≜0.9;φ≜150;τ≜◊⁺⁺⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_patterns = true;
@@ -292,10 +315,11 @@ fn test_complex_document_invariant_discovery() {
     config.enable_logical_analysis = true;
     config.enable_structural_analysis = true;
     config.max_invariants = 20;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -314,16 +338,16 @@ fn test_invariant_discovery_with_z3_verification() {
         .with_evidence_block("⟨δ≜0.95⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.enable_z3_verification = true;
     config.verification_timeout = 10000;
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     InvariantAssertion::new(invariants)
@@ -342,13 +366,13 @@ fn test_invariant_discovery_export_formats() {
         .with_evidence_block("⟨δ≜0.7⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let config = InvariantDiscoveryConfig::default();
     let mut discovery = InvariantDiscovery::new(config);
-    
-    let invariants = discovery.discover_invariants(&document)
+
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
 
     // Test JSON export
@@ -361,7 +385,10 @@ fn test_invariant_discovery_export_formats() {
 
     // Test human-readable export
     let readable_export = discovery.export_human_readable(&invariants);
-    assert!(!readable_export.is_empty(), "Human-readable export should not be empty");
+    assert!(
+        !readable_export.is_empty(),
+        "Human-readable export should not be empty"
+    );
 }
 
 #[test]
@@ -374,23 +401,27 @@ fn test_invariant_discovery_performance() {
         .with_evidence_block("⟨δ≜0.8⟩")
         .build();
 
-    let document = parse_test_document(&document_content)
-        .expect("Failed to parse test document");
+    let document = parse_test_document(&document_content).expect("Failed to parse test document");
 
     let mut config = InvariantDiscoveryConfig::default();
     config.max_invariants = 5; // Limit for performance test
     config.verification_timeout = 1000; // Short timeout
-    
+
     let mut discovery = InvariantDiscovery::new(config);
-    
+
     let start_time = std::time::Instant::now();
-    let invariants = discovery.discover_invariants(&document)
+    let invariants = discovery
+        .discover_invariants(&document)
         .expect("Failed to discover invariants");
     let duration = start_time.elapsed();
 
     // Performance check - should complete quickly
-    assert!(duration.as_secs() < 5, "Invariant discovery took too long: {:?}", duration);
-    
+    assert!(
+        duration.as_secs() < 5,
+        "Invariant discovery took too long: {:?}",
+        duration
+    );
+
     InvariantAssertion::new(invariants)
         .has_type_invariant()
         .all_verified();

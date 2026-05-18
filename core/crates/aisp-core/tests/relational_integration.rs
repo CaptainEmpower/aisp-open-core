@@ -9,9 +9,9 @@
 #![cfg(feature = "relational-integration-deprecated")]
 
 use aisp_core::{
-    RelationalAnalyzer, AispDocument, AispParser, RelationalAnalysisResult,
-    TypeGraphResult, DependencyAnalysisResult, ConflictDetectionResult,
-    RelationType, CircularDependency, CycleSeverity
+    AispDocument, AispParser, CircularDependency, ConflictDetectionResult, CycleSeverity,
+    DependencyAnalysisResult, RelationType, RelationalAnalysisResult, RelationalAnalyzer,
+    TypeGraphResult,
 };
 
 /// Builder for creating relational analysis test scenarios
@@ -49,7 +49,8 @@ impl RelationalTestBuilder {
 
     pub fn test_relational_analysis(self) -> RelationalResult {
         let parser = AispParser::new();
-        let document = parser.parse(&self.document_source)
+        let document = parser
+            .parse(&self.document_source)
             .expect("Document should parse successfully for relational analysis");
 
         let mut analyzer = RelationalAnalyzer::new();
@@ -59,22 +60,31 @@ impl RelationalTestBuilder {
         if let Some(expected_consistency) = self.expected_consistency {
             let actual_consistency = result.consistency_score;
             if (actual_consistency - expected_consistency).abs() > 0.1 {
-                panic!("Expected consistency score ~{} but got {}", 
-                    expected_consistency, actual_consistency);
+                panic!(
+                    "Expected consistency score ~{} but got {}",
+                    expected_consistency, actual_consistency
+                );
             }
         }
 
         // Verify conflict count
         if result.conflicts.len() != self.expected_conflicts {
-            panic!("Expected {} conflicts but got {}: {:?}", 
-                self.expected_conflicts, result.conflicts.len(), result.conflicts);
+            panic!(
+                "Expected {} conflicts but got {}: {:?}",
+                self.expected_conflicts,
+                result.conflicts.len(),
+                result.conflicts
+            );
         }
 
-        // Verify circular dependency count  
+        // Verify circular dependency count
         if result.circular_dependencies.len() != self.expected_circular_deps {
-            panic!("Expected {} circular dependencies but got {}: {:?}", 
-                self.expected_circular_deps, result.circular_dependencies.len(), 
-                result.circular_dependencies);
+            panic!(
+                "Expected {} circular dependencies but got {}: {:?}",
+                self.expected_circular_deps,
+                result.circular_dependencies.len(),
+                result.circular_dependencies
+            );
         }
 
         RelationalResult::new(document, result)
@@ -89,59 +99,103 @@ pub struct RelationalResult {
 
 impl RelationalResult {
     pub fn new(document: AispDocument, analysis: RelationalAnalysisResult) -> Self {
-        Self { _document: document, analysis }
+        Self {
+            _document: document,
+            analysis,
+        }
     }
 
     pub fn has_type_relationships(self, count: usize) -> Self {
-        assert_eq!(self.analysis.type_relationships.len(), count,
-            "Expected {} type relationships but got {}", 
-            count, self.analysis.type_relationships.len());
+        assert_eq!(
+            self.analysis.type_relationships.len(),
+            count,
+            "Expected {} type relationships but got {}",
+            count,
+            self.analysis.type_relationships.len()
+        );
         self
     }
 
     pub fn has_dependency_depth(self, component: &str, expected_depth: usize) -> Self {
-        let actual_depth = self.analysis.dependency_depths.get(component)
-            .expect(&format!("Component '{}' should have dependency depth", component));
-        assert_eq!(*actual_depth, expected_depth,
-            "Expected depth {} for '{}' but got {}", expected_depth, component, actual_depth);
+        let actual_depth = self
+            .analysis
+            .dependency_depths
+            .get(component)
+            .expect(&format!(
+                "Component '{}' should have dependency depth",
+                component
+            ));
+        assert_eq!(
+            *actual_depth, expected_depth,
+            "Expected depth {} for '{}' but got {}",
+            expected_depth, component, actual_depth
+        );
         self
     }
 
     pub fn has_topological_order_before(self, first: &str, second: &str) -> Self {
-        let first_pos = self.analysis.topological_order.iter()
+        let first_pos = self
+            .analysis
+            .topological_order
+            .iter()
             .position(|x| x == first)
             .expect(&format!("'{}' should be in topological order", first));
-        let second_pos = self.analysis.topological_order.iter()
+        let second_pos = self
+            .analysis
+            .topological_order
+            .iter()
             .position(|x| x == second)
             .expect(&format!("'{}' should be in topological order", second));
-        
-        assert!(first_pos < second_pos,
-            "'{}' should come before '{}' in topological order", first, second);
+
+        assert!(
+            first_pos < second_pos,
+            "'{}' should come before '{}' in topological order",
+            first,
+            second
+        );
         self
     }
 
     pub fn has_conflict_containing(self, message_fragment: &str) -> Self {
-        let found = self.analysis.conflicts.iter()
+        let found = self
+            .analysis
+            .conflicts
+            .iter()
             .any(|conflict| conflict.description.contains(message_fragment));
-        assert!(found, "Expected conflict containing '{}' but conflicts were: {:?}", 
-            message_fragment, self.analysis.conflicts);
+        assert!(
+            found,
+            "Expected conflict containing '{}' but conflicts were: {:?}",
+            message_fragment, self.analysis.conflicts
+        );
         self
     }
 
     pub fn has_circular_dependency(self, components: &[&str]) -> Self {
-        let found = self.analysis.circular_dependencies.iter()
+        let found = self
+            .analysis
+            .circular_dependencies
+            .iter()
             .any(|circular_dep| {
-                circular_dep.cycle.len() == components.len() &&
-                components.iter().all(|comp| circular_dep.cycle.contains(&comp.to_string()))
+                circular_dep.cycle.len() == components.len()
+                    && components
+                        .iter()
+                        .all(|comp| circular_dep.cycle.contains(&comp.to_string()))
             });
-        assert!(found, "Expected circular dependency involving {:?} but found: {:?}", 
-            components, self.analysis.circular_dependencies);
+        assert!(
+            found,
+            "Expected circular dependency involving {:?} but found: {:?}",
+            components, self.analysis.circular_dependencies
+        );
         self
     }
 
     pub fn has_consistency_above(self, threshold: f64) -> Self {
-        assert!(self.analysis.consistency_score >= threshold,
-            "Expected consistency >= {} but got {}", threshold, self.analysis.consistency_score);
+        assert!(
+            self.analysis.consistency_score >= threshold,
+            "Expected consistency >= {} but got {}",
+            threshold,
+            self.analysis.consistency_score
+        );
         self
     }
 }
@@ -190,10 +244,10 @@ fn test_dependency_analysis_ordering() {
     RelationalTestBuilder::new(document)
         .expecting_consistency(1.0)
         .test_relational_analysis()
-        .has_dependency_depth("A", 1)  // No dependencies
-        .has_dependency_depth("B", 2)  // Depends on A
-        .has_dependency_depth("C", 3)  // Depends on B->A
-        .has_dependency_depth("D", 4)  // Depends on C->B->A and A
+        .has_dependency_depth("A", 1) // No dependencies
+        .has_dependency_depth("B", 2) // Depends on A
+        .has_dependency_depth("C", 3) // Depends on B->A
+        .has_dependency_depth("D", 4) // Depends on C->B->A and A
         .has_topological_order_before("A", "B")
         .has_topological_order_before("B", "C")
         .has_topological_order_before("C", "D");
@@ -457,7 +511,7 @@ fn test_relational_consistency_metrics() {
         .test_relational_analysis()
         .has_type_relationships(6) // Clean dependency chain
         .has_dependency_depth("WellFormedType", 1)
-        .has_dependency_depth("ConsistentType", 2)  
+        .has_dependency_depth("ConsistentType", 2)
         .has_dependency_depth("ValidatedType", 3)
         .has_dependency_depth("QualityType", 4)
         .has_consistency_above(0.95);

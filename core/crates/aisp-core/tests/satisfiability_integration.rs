@@ -6,9 +6,11 @@
 use aisp_core::{
     ast::canonical::{self, CanonicalAispDocument as AispDocument},
     invariant_discovery::InvariantDiscovery,
-    satisfiability_checker::{SatisfiabilityChecker, SatisfiabilityConfig, SatisfiabilityResult, ConsistencyResult},
-    parser_new::AispParser,
     invariant_types::InvariantDiscoveryConfig,
+    parser_new::AispParser,
+    satisfiability_checker::{
+        ConsistencyResult, SatisfiabilityChecker, SatisfiabilityConfig, SatisfiabilityResult,
+    },
 };
 
 /// Test satisfiability checking with discovered invariants
@@ -32,7 +34,10 @@ fn test_satisfiability_with_natural_types() {
             assert!(!model.variable_assignments.is_empty());
         }
         SatisfiabilityResult::Unsatisfiable(proof) => {
-            panic!("Natural number invariants should be satisfiable, got proof: {:?}", proof.reason);
+            panic!(
+                "Natural number invariants should be satisfiable, got proof: {:?}",
+                proof.reason
+            );
         }
         SatisfiabilityResult::Unknown(reason) => {
             println!("Satisfiability unknown: {}", reason);
@@ -58,8 +63,10 @@ fn test_consistency_checking() {
 
     match result {
         ConsistencyResult::Consistent(model) => {
-            println!("Invariants are consistent with model: {} assignments",
-                     model.variable_assignments.len());
+            println!(
+                "Invariants are consistent with model: {} assignments",
+                model.variable_assignments.len()
+            );
         }
         ConsistencyResult::Inconsistent(proof) => {
             println!("Found inconsistency: {}", proof.reason);
@@ -92,8 +99,10 @@ fn test_satisfiability_with_custom_config() {
     // Should handle enumeration constraints
     match result {
         SatisfiabilityResult::Satisfiable(model) => {
-            println!("Found satisfying model with {} variables",
-                     model.variable_assignments.len());
+            println!(
+                "Found satisfying model with {} variables",
+                model.variable_assignments.len()
+            );
         }
         _ => {
             // Any result is acceptable for this test
@@ -136,7 +145,10 @@ fn test_parser_integration_with_satisfiability() {
             // Expected for well-formed AISP documents
         }
         SatisfiabilityResult::Unsatisfiable(proof) => {
-            panic!("Well-formed AISP document should be satisfiable: {}", proof.reason);
+            panic!(
+                "Well-formed AISP document should be satisfiable: {}",
+                proof.reason
+            );
         }
         SatisfiabilityResult::Unknown(reason) => {
             println!("Satisfiability check resulted in unknown: {}", reason);
@@ -187,7 +199,11 @@ fn test_satisfiability_performance() {
     let invariants = discovery.discover_invariants(&document).unwrap();
     let discovery_time = discovery_start.elapsed();
 
-    println!("Discovered {} invariants in {:?}", invariants.len(), discovery_time);
+    println!(
+        "Discovered {} invariants in {:?}",
+        invariants.len(),
+        discovery_time
+    );
 
     // Check satisfiability performance
     let mut sat_config = SatisfiabilityConfig::default();
@@ -265,7 +281,10 @@ fn create_large_test_document() -> AispDocument {
 
     // Create enumeration types
     for i in 0..5 {
-        type_defs.push(format!("State{}≜{{Value{}A,Value{}B,Value{}C}}", i, i, i, i));
+        type_defs.push(format!(
+            "State{}≜{{Value{}A,Value{}B,Value{}C}}",
+            i, i, i, i
+        ));
     }
 
     let mut doc = canonical::create_document("LargeSatTest", "5.1", "2026-01-26");

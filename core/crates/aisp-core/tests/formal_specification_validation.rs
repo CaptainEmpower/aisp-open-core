@@ -1,12 +1,12 @@
 //! Formal AISP 5.1 Specification Validation Tests
 //!
 //! These tests validate against the complete formal specification in reference.md,
-//! ensuring compliance with core invariants, evidence requirements, and 
+//! ensuring compliance with core invariants, evidence requirements, and
 //! mathematical foundations rather than just basic syntax.
 
 use aisp_core::{
+    semantic::QualityTier,
     validator::{AispValidator, ValidationConfig, ValidationResult},
-    semantic::QualityTier
 };
 
 /// Formal specification compliant AISP document based on reference.md
@@ -162,31 +162,47 @@ impl FormalValidationAssertion {
     }
 
     pub fn is_formally_valid(self) -> Self {
-        assert!(self.result.valid, "Expected document to be formally valid according to AISP 5.1 spec");
+        assert!(
+            self.result.valid,
+            "Expected document to be formally valid according to AISP 5.1 spec"
+        );
         self
     }
 
     pub fn is_formally_invalid(self) -> Self {
-        assert!(!self.result.valid, "Expected document to fail formal validation");
+        assert!(
+            !self.result.valid,
+            "Expected document to fail formal validation"
+        );
         self
     }
 
     pub fn has_tier(self, expected_tier: QualityTier) -> Self {
-        assert_eq!(self.result.tier, expected_tier, 
-            "Expected tier {:?}, but got {:?}", expected_tier, self.result.tier);
+        assert_eq!(
+            self.result.tier, expected_tier,
+            "Expected tier {:?}, but got {:?}",
+            expected_tier, self.result.tier
+        );
         self
     }
 
     pub fn has_delta_above(self, threshold: f64) -> Self {
-        assert!(self.result.delta >= threshold, 
-            "Expected δ ≥ {}, but got {}", threshold, self.result.delta);
+        assert!(
+            self.result.delta >= threshold,
+            "Expected δ ≥ {}, but got {}",
+            threshold,
+            self.result.delta
+        );
         self
     }
 
     pub fn validates_core_invariant(self) -> Self {
         // Core invariant: ∀D∈AISP:Ambig(D)<0.02
-        assert!(self.result.ambiguity < 0.02, 
-            "Core invariant violation: Ambig(D) = {} ≥ 0.02", self.result.ambiguity);
+        assert!(
+            self.result.ambiguity < 0.02,
+            "Core invariant violation: Ambig(D) = {} ≥ 0.02",
+            self.result.ambiguity
+        );
         self
     }
 
@@ -210,7 +226,7 @@ fn test_formal_specification_compliance() {
     FormalValidationAssertion::new(result)
         .is_formally_valid()
         .has_tier(QualityTier::Gold) // Should achieve high tier with complete formal compliance
-        .has_delta_above(0.75)      // Should meet ◊⁺⁺ threshold
+        .has_delta_above(0.75) // Should meet ◊⁺⁺ threshold
         .validates_core_invariant()
         .has_complete_evidence();
 }
@@ -230,8 +246,7 @@ fn test_incomplete_evidence_rejection() {
     let validator = AispValidator::new();
     let result = validator.validate(INCOMPLETE_EVIDENCE_DOCUMENT);
 
-    FormalValidationAssertion::new(result)
-        .is_formally_invalid(); // Should fail due to incomplete evidence block
+    FormalValidationAssertion::new(result).is_formally_invalid(); // Should fail due to incomplete evidence block
 }
 
 #[test]
@@ -250,14 +265,15 @@ fn test_quality_tier_thresholds() {
     // Test formal tier thresholds from reference.md
     let test_cases = vec![
         ("δ≜0.85", QualityTier::Gold),   // ◊⁺⁺: δ ≥ 0.75
-        ("δ≜0.65", QualityTier::Gold),   // ◊⁺: δ ≥ 0.60  
+        ("δ≜0.65", QualityTier::Gold),   // ◊⁺: δ ≥ 0.60
         ("δ≜0.45", QualityTier::Silver), // ◊: δ ≥ 0.40
         ("δ≜0.25", QualityTier::Bronze), // ◊⁻: δ ≥ 0.20
         ("δ≜0.15", QualityTier::Reject), // ⊘: δ < 0.20
     ];
 
     for (delta_spec, expected_tier) in test_cases {
-        let document = format!(r#"
+        let document = format!(
+            r#"
 𝔸5.1.tier-test@2026-01-26
 
 ⟦Ω:Meta⟧{{
@@ -277,7 +293,9 @@ fn test_quality_tier_thresholds() {
 }}
 
 ⟦Ε⟧⟨{}⟩
-"#, delta_spec);
+"#,
+            delta_spec
+        );
 
         let validator = AispValidator::new();
         let result = validator.validate(&document);
@@ -444,14 +462,16 @@ fn test_formal_verification_integration() {
 
     // Check for formal verification first
     let has_formal_verification = result.formal_verification.is_some();
-    
+
     FormalValidationAssertion::new(result)
         .is_formally_valid()
         .validates_core_invariant();
 
     // Should include formal verification results
-    assert!(has_formal_verification, 
-        "Formal verification should be performed when enabled");
+    assert!(
+        has_formal_verification,
+        "Formal verification should be performed when enabled"
+    );
 }
 
 #[test]

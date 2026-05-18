@@ -9,12 +9,15 @@
 #![cfg(feature = "formal-verification-integration-fixed-deprecated")]
 
 use aisp_core::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, CanonicalAispBlock, MetaBlock},
-    z3_verification::{
-        Z3VerificationFacade, EnhancedVerificationResult as FormalVerificationResult,
-        VerificationStatus, is_z3_available, quick_verify
+    ast::canonical::{
+        CanonicalAispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
+        DocumentMetadata, MetaBlock,
     },
     semantic::MultiLayerVerificationPipeline,
+    z3_verification::{
+        is_z3_available, quick_verify, EnhancedVerificationResult as FormalVerificationResult,
+        VerificationStatus, Z3VerificationFacade,
+    },
 };
 
 /// Create a minimal test document for formal verification
@@ -30,17 +33,15 @@ fn create_test_document() -> AispDocument {
             domain: Some("formal_verification".to_string()),
             protocol: Some("enterprise_verification".to_string()),
         },
-        blocks: vec![
-            CanonicalAispBlock::Meta(MetaBlock {
-                entries: std::collections::HashMap::new(),
-                raw_entries: vec![
-                    "domain = \"formal_verification\"".to_string(),
-                    "version = \"1.0.0\"".to_string(),
-                    "properties = 3".to_string(),
-                ],
-                span: None,
-            }),
-        ],
+        blocks: vec![CanonicalAispBlock::Meta(MetaBlock {
+            entries: std::collections::HashMap::new(),
+            raw_entries: vec![
+                "domain = \"formal_verification\"".to_string(),
+                "version = \"1.0.0\"".to_string(),
+                "properties = 3".to_string(),
+            ],
+            span: None,
+        })],
         span: None,
     }
 }
@@ -58,7 +59,7 @@ fn test_z3_required_formal_verification() {
     println!("✅ Z3 is available, proceeding with formal verification");
 
     let document = create_test_document();
-    
+
     // Create Z3 facade - should succeed since we verified Z3 is available
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
@@ -66,13 +67,20 @@ fn test_z3_required_formal_verification() {
     println!("✅ Z3 facade created successfully");
 
     // Run formal verification
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("Formal verification should succeed with valid document");
 
     println!("📊 Formal verification results:");
     println!("  - Status: {:?}", result.status);
-    println!("  - Properties verified: {}", result.verified_properties.len());
-    println!("  - Verification time: {}ms", result.stats.verification_time_ms);
+    println!(
+        "  - Properties verified: {}",
+        result.verified_properties.len()
+    );
+    println!(
+        "  - Verification time: {}ms",
+        result.stats.verification_time_ms
+    );
     println!("  - SMT queries: {}", result.stats.smt_queries);
 
     // Validation assertions
@@ -95,7 +103,7 @@ fn test_z3_required_formal_verification() {
 }
 
 /// Test Z3 quick verification function that requires Z3
-#[test] 
+#[test]
 fn test_z3_required_quick_verification() {
     println!("⚡ Testing quick verification that REQUIRES Z3...");
 
@@ -105,7 +113,7 @@ fn test_z3_required_quick_verification() {
     }
 
     let document = create_test_document();
-    
+
     let result = quick_verify(&document, None)
         .expect("Quick verification should succeed when Z3 is available");
 
@@ -140,16 +148,32 @@ fn test_z3_required_enterprise_pipeline() {
 
     let document = create_test_document();
     let mut pipeline = MultiLayerVerificationPipeline::new();
-    
-    let result = pipeline.verify_document(&document)
+
+    let result = pipeline
+        .verify_document(&document)
         .expect("Enterprise pipeline verification should succeed");
 
     println!("📊 Enterprise pipeline results:");
-    println!("  - Overall security score: {:.2}", result.overall_security_score);
-    println!("  - Enterprise compliance score: {:.2}", result.enterprise_compliance_score);
-    println!("  - Verification confidence: {:.2}", result.verification_confidence);
-    println!("  - Production readiness: {:.2}", result.production_readiness_score);
-    println!("  - Attack resistance: {:?}", result.attack_resistance_rating);
+    println!(
+        "  - Overall security score: {:.2}",
+        result.overall_security_score
+    );
+    println!(
+        "  - Enterprise compliance score: {:.2}",
+        result.enterprise_compliance_score
+    );
+    println!(
+        "  - Verification confidence: {:.2}",
+        result.verification_confidence
+    );
+    println!(
+        "  - Production readiness: {:.2}",
+        result.production_readiness_score
+    );
+    println!(
+        "  - Attack resistance: {:?}",
+        result.attack_resistance_rating
+    );
 
     // Validation assertions
     assert!(
@@ -207,7 +231,7 @@ fn test_z3_required_error_handling() {
         Ok(verification_result) => {
             println!("✅ Empty document handled gracefully");
             println!("📊 Status: {:?}", verification_result.status);
-            
+
             // Should handle empty document without crashing
             assert!(
                 verification_result.stats.verification_time_ms >= 0,
@@ -234,11 +258,12 @@ fn test_z3_required_verification_status() {
     }
 
     let document = create_test_document();
-    
-    let mut facade = Z3VerificationFacade::new()
-        .expect("Z3 facade should be created when Z3 is available");
 
-    let result = facade.verify_document(&document, None)
+    let mut facade =
+        Z3VerificationFacade::new().expect("Z3 facade should be created when Z3 is available");
+
+    let result = facade
+        .verify_document(&document, None)
         .expect("Document verification should succeed");
 
     // Test that status is not Disabled when Z3 is available
@@ -275,7 +300,7 @@ fn test_z3_required_performance() {
 
     let document = create_test_document();
     let start_time = std::time::Instant::now();
-    
+
     let result = quick_verify(&document, None)
         .expect("Quick verification should succeed for performance test");
 
@@ -283,7 +308,10 @@ fn test_z3_required_performance() {
 
     println!("📊 Performance metrics:");
     println!("  - Total elapsed: {:?}", total_elapsed);
-    println!("  - Internal timing: {}ms", result.stats.verification_time_ms);
+    println!(
+        "  - Internal timing: {}ms",
+        result.stats.verification_time_ms
+    );
     println!("  - SMT queries: {}", result.stats.smt_queries);
     println!("  - Properties: {}", result.verified_properties.len());
 
@@ -320,27 +348,42 @@ fn test_z3_formal_verification_capabilities() {
     println!("✅ Z3 available - demonstrating formal verification capabilities");
 
     let document = create_test_document();
-    
+
     // Test facade creation
     let facade_result = Z3VerificationFacade::new();
-    assert!(facade_result.is_ok(), "Z3 facade should be created when available");
-    
+    assert!(
+        facade_result.is_ok(),
+        "Z3 facade should be created when available"
+    );
+
     let mut facade = facade_result.unwrap();
-    
+
     // Test document verification
     let verification_result = facade.verify_document(&document, None);
-    
+
     match verification_result {
         Ok(result) => {
             println!("🎯 Formal verification capabilities demonstrated:");
             println!("  ✅ Z3 SMT solver integration");
-            println!("  ✅ Property verification: {} properties", result.verified_properties.len());
-            println!("  ✅ Performance tracking: {}ms", result.stats.verification_time_ms);
+            println!(
+                "  ✅ Property verification: {} properties",
+                result.verified_properties.len()
+            );
+            println!(
+                "  ✅ Performance tracking: {}ms",
+                result.stats.verification_time_ms
+            );
             println!("  ✅ Status reporting: {:?}", result.status);
-            println!("  ✅ Statistical analysis: {} SMT queries", result.stats.smt_queries);
-            
+            println!(
+                "  ✅ Statistical analysis: {} SMT queries",
+                result.stats.smt_queries
+            );
+
             // Demonstrate that verification produces meaningful results
-            assert!(result.stats.verification_time_ms >= 0, "Should track timing");
+            assert!(
+                result.stats.verification_time_ms >= 0,
+                "Should track timing"
+            );
             assert!(result.stats.smt_queries >= 0, "Should track SMT queries");
         }
         Err(e) => {

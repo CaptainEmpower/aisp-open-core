@@ -26,7 +26,7 @@ impl AdversarialTestSuite {
             resource_exhaustion_tests: Vec::new(),
             injection_tests: Vec::new(),
         };
-        
+
         suite.initialize_attack_vectors();
         suite
     }
@@ -46,7 +46,8 @@ impl AdversarialTestSuite {
         self.parse_bypass_tests.extend([
             ParseBypassAttack {
                 name: "empty_document_bypass",
-                description: "Empty document that should trigger parsing error but might bypass validation",
+                description:
+                    "Empty document that should trigger parsing error but might bypass validation",
                 attack_payload: "".to_string(),
                 expected_behavior: ExpectedBehavior::ShouldReject,
                 severity: AttackSeverity::High,
@@ -109,7 +110,8 @@ impl AdversarialTestSuite {
             UnicodeAttack {
                 name: "zero_width_injection",
                 description: "Zero-width characters to hide malicious content",
-                malicious_payload: "𝔸5.1.test@2026-01-27⟦Ω:Me\u{200B}ta⟧{Vis\u{200D}ion≜\"test\"}".to_string(),
+                malicious_payload: "𝔸5.1.test@2026-01-27⟦Ω:Me\u{200B}ta⟧{Vis\u{200D}ion≜\"test\"}"
+                    .to_string(),
                 spoofed_target: "⟦Ω:Meta⟧{Vision≜\"test\"}".to_string(),
                 detection_method: DetectionMethod::PatternMatching,
                 mitigation: "Strip zero-width characters".to_string(),
@@ -117,7 +119,8 @@ impl AdversarialTestSuite {
             UnicodeAttack {
                 name: "combining_character_overflow",
                 description: "Excessive combining characters to cause buffer overflow",
-                malicious_payload: "a\u{0301}\u{0302}\u{0303}\u{0304}\u{0305}\u{0306}\u{0307}\u{0308}".to_string(),
+                malicious_payload:
+                    "a\u{0301}\u{0302}\u{0303}\u{0304}\u{0305}\u{0306}\u{0307}\u{0308}".to_string(),
                 spoofed_target: "a".to_string(),
                 detection_method: DetectionMethod::StatisticalAnalysis,
                 mitigation: "Limit combining character sequences".to_string(),
@@ -244,7 +247,8 @@ impl AdversarialTestSuite {
                 description: "JavaScript-like code in string literals",
                 injection_payload: "Vision≜\"<script>alert('xss')</script>\"".to_string(),
                 injection_context: InjectionContext::StringLiteral,
-                expected_sanitization: "Vision≜\"&lt;script&gt;alert('xss')&lt;/script&gt;\"".to_string(),
+                expected_sanitization: "Vision≜\"&lt;script&gt;alert('xss')&lt;/script&gt;\""
+                    .to_string(),
             },
             InjectionAttack {
                 name: "sql_injection_attempt",
@@ -267,7 +271,7 @@ impl AdversarialTestSuite {
     fn generate_deep_nesting(&self, depth: usize) -> String {
         let mut result = String::with_capacity(depth * 20);
         result.push_str("𝔸5.1.nested@2026-01-27");
-        
+
         for i in 0..depth {
             result.push_str(&format!("⟦Ω{i}:Meta⟧{{"));
         }
@@ -275,18 +279,18 @@ impl AdversarialTestSuite {
         for _ in 0..depth {
             result.push('}');
         }
-        
+
         result
     }
 
     /// Get total number of tests across all categories
     pub fn total_test_count(&self) -> usize {
-        self.parse_bypass_tests.len() +
-        self.unicode_confusion_tests.len() +
-        self.boundary_condition_tests.len() +
-        self.malformed_document_tests.len() +
-        self.resource_exhaustion_tests.len() +
-        self.injection_tests.len()
+        self.parse_bypass_tests.len()
+            + self.unicode_confusion_tests.len()
+            + self.boundary_condition_tests.len()
+            + self.malformed_document_tests.len()
+            + self.resource_exhaustion_tests.len()
+            + self.injection_tests.len()
     }
 
     /// Get tests by severity level
@@ -335,12 +339,12 @@ mod tests {
         let total = suite.total_test_count();
         assert_eq!(
             total,
-            suite.parse_bypass_tests.len() +
-            suite.unicode_confusion_tests.len() +
-            suite.boundary_condition_tests.len() +
-            suite.malformed_document_tests.len() +
-            suite.resource_exhaustion_tests.len() +
-            suite.injection_tests.len()
+            suite.parse_bypass_tests.len()
+                + suite.unicode_confusion_tests.len()
+                + suite.boundary_condition_tests.len()
+                + suite.malformed_document_tests.len()
+                + suite.resource_exhaustion_tests.len()
+                + suite.injection_tests.len()
         );
     }
 
@@ -371,17 +375,22 @@ mod tests {
     #[test]
     fn test_attack_payload_generation() {
         let suite = AdversarialTestSuite::new();
-        
+
         // Test that attack payloads are properly initialized (some may be empty by design)
-        let non_empty_payloads = suite.parse_bypass_tests.iter()
+        let non_empty_payloads = suite
+            .parse_bypass_tests
+            .iter()
             .filter(|attack| !attack.attack_payload.is_empty())
             .count();
-        assert!(non_empty_payloads > 0, "Should have at least some non-empty attack payloads");
-        
+        assert!(
+            non_empty_payloads > 0,
+            "Should have at least some non-empty attack payloads"
+        );
+
         for attack in &suite.unicode_confusion_tests {
             assert!(!attack.malicious_payload.is_empty());
         }
-        
+
         for attack in &suite.boundary_condition_tests {
             assert!(!attack.attack_vector.is_empty());
         }

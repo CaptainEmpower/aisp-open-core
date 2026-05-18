@@ -9,20 +9,20 @@
 //! - `execution_engine`: Attack execution and evaluation logic
 
 // Re-export public types and main API
-pub use self::types::*;
-pub use self::test_suite::AdversarialTestSuite;
 pub use self::execution_engine::AttackExecutionEngine;
+pub use self::test_suite::AdversarialTestSuite;
+pub use self::types::*;
 
 // Module declarations
-pub mod types;
-pub mod test_suite;
 pub mod execution_engine;
+pub mod test_suite;
+pub mod types;
 
 // Convenience API for running comprehensive tests
 pub fn run_adversarial_security_assessment() -> SecurityAssessmentReport {
     let test_suite = AdversarialTestSuite::new();
     let execution_engine = AttackExecutionEngine::new();
-    
+
     execution_engine.run_comprehensive_tests(&test_suite)
 }
 
@@ -30,7 +30,7 @@ pub fn run_adversarial_security_assessment() -> SecurityAssessmentReport {
 pub fn run_parse_bypass_tests() -> Vec<AttackResult> {
     let test_suite = AdversarialTestSuite::new();
     let execution_engine = AttackExecutionEngine::new();
-    
+
     let mut results = Vec::new();
     for attack in &test_suite.parse_bypass_tests {
         // This is a simplified version - the full implementation would be in the engine
@@ -71,9 +71,9 @@ mod integration_tests {
         // Test that all components work together
         let test_suite = AdversarialTestSuite::new();
         let execution_engine = AttackExecutionEngine::new();
-        
+
         assert!(test_suite.total_test_count() > 0);
-        
+
         let report = execution_engine.run_comprehensive_tests(&test_suite);
         assert!(report.total_attacks > 0);
         assert!(report.overall_security_score >= 0.0);
@@ -84,14 +84,20 @@ mod integration_tests {
     fn test_convenience_api() {
         let report = run_adversarial_security_assessment();
         assert!(report.total_attacks > 0);
-        assert!(!report.vulnerability_summary.common_weakness_patterns.is_empty() || report.overall_security_score > 0.8);
+        assert!(
+            !report
+                .vulnerability_summary
+                .common_weakness_patterns
+                .is_empty()
+                || report.overall_security_score > 0.8
+        );
     }
 
     #[test]
     fn test_parse_bypass_tests() {
         let results = run_parse_bypass_tests();
         assert!(!results.is_empty());
-        
+
         // Verify all results are parse bypass category
         for result in &results {
             assert_eq!(result.attack_category, AttackCategory::ParseBypass);
@@ -101,7 +107,7 @@ mod integration_tests {
     #[test]
     fn test_attack_types_comprehensive() {
         let test_suite = AdversarialTestSuite::new();
-        
+
         // Verify all attack categories are populated
         assert!(!test_suite.parse_bypass_tests.is_empty());
         assert!(!test_suite.unicode_confusion_tests.is_empty());
@@ -114,20 +120,21 @@ mod integration_tests {
     #[test]
     fn test_attack_severity_distribution() {
         let test_suite = AdversarialTestSuite::new();
-        
+
         // Check that we have attacks of different severity levels
-        let severities: std::collections::HashSet<_> = test_suite.parse_bypass_tests
+        let severities: std::collections::HashSet<_> = test_suite
+            .parse_bypass_tests
             .iter()
             .map(|attack| attack.severity.clone())
             .collect();
-        
+
         assert!(severities.len() > 1); // Should have multiple severity levels
     }
 
     #[test]
     fn test_vulnerability_summary_generation() {
         let execution_engine = AttackExecutionEngine::new();
-        
+
         // Create test attack results
         let test_results = vec![
             AttackResult {
@@ -137,13 +144,13 @@ mod integration_tests {
                 bypass_achieved: true,
                 security_impact: crate::parser::robust_parser::SecuritySeverity::Critical,
                 parser_response: crate::parser::robust_parser::ParseResult {
-                document: None,
-                errors: vec![],
-                warnings: vec![],
-                recovery_applied: false,
-                partial_success: false,
-                security_issues: vec![],
-            },
+                    document: None,
+                    errors: vec![],
+                    warnings: vec![],
+                    recovery_applied: false,
+                    partial_success: false,
+                    security_issues: vec![],
+                },
                 detection_triggered: false,
                 mitigation_effective: false,
                 performance_impact: PerformanceImpact {
@@ -160,13 +167,13 @@ mod integration_tests {
                 bypass_achieved: false,
                 security_impact: crate::parser::robust_parser::SecuritySeverity::Low,
                 parser_response: crate::parser::robust_parser::ParseResult {
-                document: None,
-                errors: vec![],
-                warnings: vec![],
-                recovery_applied: false,
-                partial_success: false,
-                security_issues: vec![],
-            },
+                    document: None,
+                    errors: vec![],
+                    warnings: vec![],
+                    recovery_applied: false,
+                    partial_success: false,
+                    security_issues: vec![],
+                },
                 detection_triggered: true,
                 mitigation_effective: true,
                 performance_impact: PerformanceImpact {
@@ -177,7 +184,7 @@ mod integration_tests {
                 details: "Test low severity attack".to_string(),
             },
         ];
-        
+
         let summary = execution_engine.generate_vulnerability_summary(&test_results);
         assert_eq!(summary.critical_issues, 1);
         assert_eq!(summary.low_risk_issues, 1);

@@ -4,7 +4,9 @@
 
 use crate::parser::robust_parser::RobustAispParser;
 use crate::parser::unicode_support::UnicodeSymbolRegistry;
-use crate::testing::adversarial_framework::{AdversarialTestSuite, AttackCategory, SecurityAssessmentReport};
+use crate::testing::adversarial_framework::{
+    AdversarialTestSuite, AttackCategory, SecurityAssessmentReport,
+};
 
 /// Security validation test suite for parser hardening
 pub struct ParserSecurityTestSuite {
@@ -68,7 +70,8 @@ impl ParserSecurityTestSuite {
         failed_tests += unicode_results.iter().filter(|r| !**r).count();
 
         // Run adversarial testing
-        let adversarial_report = crate::testing::adversarial_framework::run_adversarial_security_assessment();
+        let adversarial_report =
+            crate::testing::adversarial_framework::run_adversarial_security_assessment();
         total_tests += adversarial_report.total_attacks;
         bypass_attempts = adversarial_report.total_attacks;
         successful_bypasses = adversarial_report.bypasses_achieved;
@@ -153,11 +156,11 @@ impl ParserSecurityTestSuite {
 
         // Test Unicode symbol validation
         let test_cases = [
-            ('∀', true),  // Valid universal quantifier
-            ('А', false), // Cyrillic A (should be rejected)
-            ('Α', false), // Greek capital alpha (should be restricted)
+            ('∀', true),         // Valid universal quantifier
+            ('А', false),        // Cyrillic A (should be rejected)
+            ('Α', false),        // Greek capital alpha (should be restricted)
             ('\u{200B}', false), // Zero-width space (should be dangerous)
-            ('⟦', true),  // Valid block delimiter
+            ('⟦', true),         // Valid block delimiter
             ('\u{202E}', false), // Right-to-left override (dangerous)
         ];
 
@@ -169,9 +172,9 @@ impl ParserSecurityTestSuite {
 
         // Test string security analysis
         let test_strings = [
-            ("∀x∈ℕ", true),  // Safe mathematical notation
-            ("Аlpha", false), // Contains Cyrillic A
-            ("test\u{200B}text", false), // Contains zero-width space
+            ("∀x∈ℕ", true),               // Safe mathematical notation
+            ("Аlpha", false),             // Contains Cyrillic A
+            ("test\u{200B}text", false),  // Contains zero-width space
             ("mal\u{202E}icious", false), // Contains RTL override
         ];
 
@@ -187,17 +190,17 @@ impl ParserSecurityTestSuite {
     /// Generate deeply nested payload for testing
     fn generate_deeply_nested_payload(&self, depth: usize) -> String {
         let mut payload = String::from("𝔸5.1.test@2026-01-27");
-        
+
         for i in 0..depth {
             payload.push_str(&format!("⟦Ω{}:Meta⟧{{", i));
         }
-        
+
         payload.push_str("Vision≜\"deep\"");
-        
+
         for _ in 0..depth {
             payload.push('}');
         }
-        
+
         payload
     }
 
@@ -212,7 +215,7 @@ impl ParserSecurityTestSuite {
         let base_score = ((total_tests - failed_tests) as f64 / total_tests as f64) * 100.0;
         let critical_penalty = critical_failures as f64 * 15.0;
         let bypass_penalty = successful_bypasses as f64 * 25.0;
-        
+
         (base_score - critical_penalty - bypass_penalty).max(0.0)
     }
 
@@ -229,44 +232,41 @@ impl ParserSecurityTestSuite {
         let basic_failures = basic_results.iter().filter(|&&r| !r).count();
         if basic_failures > 2 {
             recommendations.push(
-                "Critical: Implement comprehensive input validation and error handling".to_string()
+                "Critical: Implement comprehensive input validation and error handling".to_string(),
             );
         }
 
         // Analyze Unicode security failures
         let unicode_failures = unicode_results.iter().filter(|&&r| !r).count();
         if unicode_failures > 1 {
-            recommendations.push(
-                "High: Deploy Unicode normalization and character validation".to_string()
-            );
+            recommendations
+                .push("High: Deploy Unicode normalization and character validation".to_string());
         }
 
         // Analyze adversarial test results
         if adversarial_report.bypasses_achieved > 0 {
-            recommendations.push(
-                "Critical: Fix verification bypass vulnerabilities immediately".to_string()
-            );
+            recommendations
+                .push("Critical: Fix verification bypass vulnerabilities immediately".to_string());
         }
 
         if adversarial_report.critical_vulnerabilities > 0 {
-            recommendations.push(
-                "Critical: Address critical security vulnerabilities".to_string()
-            );
+            recommendations.push("Critical: Address critical security vulnerabilities".to_string());
         }
 
         if adversarial_report.overall_security_score < 70.0 {
             recommendations.push(
-                "Medium: Improve overall security posture through systematic hardening".to_string()
+                "Medium: Improve overall security posture through systematic hardening".to_string(),
             );
         }
 
         // Add specific recommendations from adversarial report
         recommendations.extend(
-            adversarial_report.recommendations
+            adversarial_report
+                .recommendations
                 .iter()
                 .take(3)
                 .map(|rec| format!("{}: {}", rec.priority, rec.description))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
         );
 
         recommendations
@@ -287,68 +287,83 @@ impl ParserSecurityTestSuite {
     /// Simulate parse bypass attacks
     fn simulate_parse_bypass_attacks(&self) -> Vec<bool> {
         let attack_payloads = vec![
-            "",  // Empty document
-            "𝔸",  // Incomplete header
-            "𝔸5.1.",  // Truncated header
-            "NOT_AISP_DOCUMENT",  // Invalid format
-            "𝔸5.1.test@INVALID_DATE",  // Invalid date
+            "",                       // Empty document
+            "𝔸",                      // Incomplete header
+            "𝔸5.1.",                  // Truncated header
+            "NOT_AISP_DOCUMENT",      // Invalid format
+            "𝔸5.1.test@INVALID_DATE", // Invalid date
         ];
 
-        attack_payloads.iter().map(|payload| {
-            let result = self.parser.parse(payload);
-            // Attack should be blocked
-            result.document.is_none()
-        }).collect()
+        attack_payloads
+            .iter()
+            .map(|payload| {
+                let result = self.parser.parse(payload);
+                // Attack should be blocked
+                result.document.is_none()
+            })
+            .collect()
     }
 
     /// Simulate Unicode confusion attacks
     fn simulate_unicode_confusion_attacks(&self) -> Vec<bool> {
         let attack_payloads = vec![
-            "𝔸5.1.tеst@2026-01-27",  // Contains Cyrillic е
-            "𝔸5.1.test@2026-01-27⟦Ω:MetΑ⟧",  // Contains Greek Α
-            "𝔸5.1.test@2026-01-27⟦Ω\u{200B}:Meta⟧",  // Zero-width space
-            "𝔸5.1.test@2026-01-27⟦\u{202E}Ω:Meta⟧",  // RTL override
+            "𝔸5.1.tеst@2026-01-27",                 // Contains Cyrillic е
+            "𝔸5.1.test@2026-01-27⟦Ω:MetΑ⟧",         // Contains Greek Α
+            "𝔸5.1.test@2026-01-27⟦Ω\u{200B}:Meta⟧", // Zero-width space
+            "𝔸5.1.test@2026-01-27⟦\u{202E}Ω:Meta⟧", // RTL override
         ];
 
-        attack_payloads.iter().map(|payload| {
-            let result = self.parser.parse(payload);
-            // Attack should be detected
-            !result.security_issues.is_empty() || result.document.is_none()
-        }).collect()
+        attack_payloads
+            .iter()
+            .map(|payload| {
+                let result = self.parser.parse(payload);
+                // Attack should be detected
+                !result.security_issues.is_empty() || result.document.is_none()
+            })
+            .collect()
     }
 
     /// Simulate boundary condition attacks
     fn simulate_boundary_attacks(&self) -> Vec<bool> {
         let attack_payloads = vec![
-            self.generate_deeply_nested_payload(200),  // Deep nesting
-            format!("𝔸5.1.test@2026-01-27⟦Ω:Meta⟧{{Vision≜\"{}\"}}", "A".repeat(100_000)),  // Large string
-            "⟦".repeat(1000),  // Many unclosed delimiters
+            self.generate_deeply_nested_payload(200), // Deep nesting
+            format!(
+                "𝔸5.1.test@2026-01-27⟦Ω:Meta⟧{{Vision≜\"{}\"}}",
+                "A".repeat(100_000)
+            ), // Large string
+            "⟦".repeat(1000),                         // Many unclosed delimiters
         ];
 
-        attack_payloads.iter().map(|payload| {
-            let result = self.parser.parse(payload);
-            // Should trigger security measures
-            !result.security_issues.is_empty() || result.document.is_none()
-        }).collect()
+        attack_payloads
+            .iter()
+            .map(|payload| {
+                let result = self.parser.parse(payload);
+                // Should trigger security measures
+                !result.security_issues.is_empty() || result.document.is_none()
+            })
+            .collect()
     }
 
     /// Simulate resource exhaustion attacks
     fn simulate_resource_exhaustion_attacks(&self) -> Vec<bool> {
         let attack_payloads = vec![
-            "A".repeat(5_000_000),  // Massive input
-            self.generate_deeply_nested_payload(500),  // Extremely deep nesting
+            "A".repeat(5_000_000),                    // Massive input
+            self.generate_deeply_nested_payload(500), // Extremely deep nesting
         ];
 
-        attack_payloads.iter().map(|payload| {
-            let start_time = std::time::Instant::now();
-            let result = self.parser.parse(payload);
-            let parse_time = start_time.elapsed();
-            
-            // Should be rejected or complete quickly
-            result.document.is_none() || 
-            !result.security_issues.is_empty() || 
-            parse_time < std::time::Duration::from_secs(5)
-        }).collect()
+        attack_payloads
+            .iter()
+            .map(|payload| {
+                let start_time = std::time::Instant::now();
+                let result = self.parser.parse(payload);
+                let parse_time = start_time.elapsed();
+
+                // Should be rejected or complete quickly
+                result.document.is_none()
+                    || !result.security_issues.is_empty()
+                    || parse_time < std::time::Duration::from_secs(5)
+            })
+            .collect()
     }
 
     /// Simulate injection attacks
@@ -360,16 +375,21 @@ impl ParserSecurityTestSuite {
             "Vision≜\"\\\"; system('malicious'); \\\"\"",
         ];
 
-        injection_payloads.iter().map(|injection| {
-            let payload = format!("𝔸5.1.test@2026-01-27⟦Ω:Meta⟧{{{}}}", injection);
-            let result = self.parser.parse(&payload);
-            
-            // Should parse but with proper escaping/sanitization
-            result.document.is_some() && (
-                !result.security_issues.is_empty() || 
-                result.warnings.iter().any(|w| w.message.contains("injection"))
-            )
-        }).collect()
+        injection_payloads
+            .iter()
+            .map(|injection| {
+                let payload = format!("𝔸5.1.test@2026-01-27⟦Ω:Meta⟧{{{}}}", injection);
+                let result = self.parser.parse(&payload);
+
+                // Should parse but with proper escaping/sanitization
+                result.document.is_some()
+                    && (!result.security_issues.is_empty()
+                        || result
+                            .warnings
+                            .iter()
+                            .any(|w| w.message.contains("injection")))
+            })
+            .collect()
     }
 
     /// Simulate deception attacks
@@ -381,27 +401,37 @@ impl ParserSecurityTestSuite {
             "𝔸5.1.trivial@2026-01-27⟦Γ:Rules⟧{∀x:⊤}",
         ];
 
-        deception_payloads.iter().map(|payload| {
-            let result = self.parser.parse(payload);
-            
-            // Should parse successfully but potentially flag as suspicious
-            result.document.is_some()
-        }).collect()
+        deception_payloads
+            .iter()
+            .map(|payload| {
+                let result = self.parser.parse(payload);
+
+                // Should parse successfully but potentially flag as suspicious
+                result.document.is_some()
+            })
+            .collect()
     }
 
     /// Generate security compliance report
     pub fn generate_compliance_report(&self) -> SecurityComplianceReport {
         let test_results = self.run_comprehensive_security_tests();
-        let adversarial_report = crate::testing::adversarial_framework::run_adversarial_security_assessment();
-        
+        let adversarial_report =
+            crate::testing::adversarial_framework::run_adversarial_security_assessment();
+
         SecurityComplianceReport {
-            timestamp: chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+            timestamp: chrono::Utc::now()
+                .format("%Y-%m-%d %H:%M:%S UTC")
+                .to_string(),
             overall_compliance_score: test_results.security_score,
-            parser_security_score: (test_results.passed_tests as f64 / test_results.total_tests as f64) * 100.0,
+            parser_security_score: (test_results.passed_tests as f64
+                / test_results.total_tests as f64)
+                * 100.0,
             adversarial_resistance_score: adversarial_report.overall_security_score,
             critical_issues_count: test_results.critical_failures,
             bypass_resistance: if test_results.bypass_attempts > 0 {
-                ((test_results.bypass_attempts - test_results.successful_bypasses) as f64 / test_results.bypass_attempts as f64) * 100.0
+                ((test_results.bypass_attempts - test_results.successful_bypasses) as f64
+                    / test_results.bypass_attempts as f64)
+                    * 100.0
             } else {
                 100.0
             },
@@ -452,7 +482,7 @@ mod chrono {
             DateTime
         }
     }
-    
+
     pub struct DateTime;
     impl DateTime {
         pub fn format(&self, _fmt: &str) -> impl std::fmt::Display {
@@ -469,27 +499,39 @@ impl std::fmt::Display for SecurityTestResults {
         write!(f, "Parser Security Test Results\n")?;
         write!(f, "============================\n")?;
         write!(f, "Total Tests: {}\n", self.total_tests)?;
-        write!(f, "Passed: {} ({:.1}%)\n", self.passed_tests, 
-               (self.passed_tests as f64 / self.total_tests as f64) * 100.0)?;
-        write!(f, "Failed: {} ({:.1}%)\n", self.failed_tests,
-               (self.failed_tests as f64 / self.total_tests as f64) * 100.0)?;
+        write!(
+            f,
+            "Passed: {} ({:.1}%)\n",
+            self.passed_tests,
+            (self.passed_tests as f64 / self.total_tests as f64) * 100.0
+        )?;
+        write!(
+            f,
+            "Failed: {} ({:.1}%)\n",
+            self.failed_tests,
+            (self.failed_tests as f64 / self.total_tests as f64) * 100.0
+        )?;
         write!(f, "Critical Failures: {}\n", self.critical_failures)?;
         write!(f, "Bypass Attempts: {}\n", self.bypass_attempts)?;
-        write!(f, "Successful Bypasses: {} ({:.1}%)\n", self.successful_bypasses,
-               if self.bypass_attempts > 0 {
-                   (self.successful_bypasses as f64 / self.bypass_attempts as f64) * 100.0
-               } else {
-                   0.0
-               })?;
+        write!(
+            f,
+            "Successful Bypasses: {} ({:.1}%)\n",
+            self.successful_bypasses,
+            if self.bypass_attempts > 0 {
+                (self.successful_bypasses as f64 / self.bypass_attempts as f64) * 100.0
+            } else {
+                0.0
+            }
+        )?;
         write!(f, "Security Score: {:.1}/100\n", self.security_score)?;
-        
+
         if !self.recommendations.is_empty() {
             write!(f, "\nTop Recommendations:\n")?;
             for (i, rec) in self.recommendations.iter().take(5).enumerate() {
                 write!(f, "{}. {}\n", i + 1, rec)?;
             }
         }
-        
+
         Ok(())
     }
 }
@@ -500,19 +542,31 @@ impl std::fmt::Display for SecurityComplianceReport {
         write!(f, "=====================================\n")?;
         write!(f, "Timestamp: {}\n", self.timestamp)?;
         write!(f, "Compliance Status: {:?}\n", self.compliance_status)?;
-        write!(f, "Overall Score: {:.1}/100\n", self.overall_compliance_score)?;
-        write!(f, "Parser Security: {:.1}/100\n", self.parser_security_score)?;
-        write!(f, "Adversarial Resistance: {:.1}/100\n", self.adversarial_resistance_score)?;
+        write!(
+            f,
+            "Overall Score: {:.1}/100\n",
+            self.overall_compliance_score
+        )?;
+        write!(
+            f,
+            "Parser Security: {:.1}/100\n",
+            self.parser_security_score
+        )?;
+        write!(
+            f,
+            "Adversarial Resistance: {:.1}/100\n",
+            self.adversarial_resistance_score
+        )?;
         write!(f, "Bypass Resistance: {:.1}%\n", self.bypass_resistance)?;
         write!(f, "Critical Issues: {}\n", self.critical_issues_count)?;
-        
+
         if !self.recommendations.is_empty() {
             write!(f, "\nPriority Recommendations:\n")?;
             for (i, rec) in self.recommendations.iter().take(3).enumerate() {
                 write!(f, "{}. {}\n", i + 1, rec)?;
             }
         }
-        
+
         Ok(())
     }
 }
@@ -532,40 +586,48 @@ mod tests {
     fn test_basic_security_tests() {
         let suite = ParserSecurityTestSuite::new();
         let results = suite.run_basic_security_tests();
-        
+
         // Should have multiple security tests
         assert!(results.len() >= 5);
-        
+
         // At least some tests should pass (indicating proper security behavior)
         let pass_rate = results.iter().filter(|&&r| r).count() as f64 / results.len() as f64;
-        assert!(pass_rate > 0.5, "Security test pass rate too low: {:.1}%", pass_rate * 100.0);
+        assert!(
+            pass_rate > 0.5,
+            "Security test pass rate too low: {:.1}%",
+            pass_rate * 100.0
+        );
     }
 
     #[test]
     fn test_unicode_security_tests() {
         let suite = ParserSecurityTestSuite::new();
         let results = suite.run_unicode_security_tests();
-        
+
         // Should have Unicode security tests
         assert!(!results.is_empty());
-        
+
         // Most Unicode security tests should pass
         let pass_rate = results.iter().filter(|&&r| r).count() as f64 / results.len() as f64;
-        assert!(pass_rate >= 0.7, "Unicode security test pass rate too low: {:.1}%", pass_rate * 100.0);
+        assert!(
+            pass_rate >= 0.7,
+            "Unicode security test pass rate too low: {:.1}%",
+            pass_rate * 100.0
+        );
     }
 
     #[test]
     fn test_comprehensive_security_assessment() {
         let suite = ParserSecurityTestSuite::new();
         let results = suite.run_comprehensive_security_tests();
-        
+
         // Should run multiple categories of tests
         assert!(results.total_tests > 10);
-        
+
         // Should have a measurable security score
         assert!(results.security_score >= 0.0);
         assert!(results.security_score <= 100.0);
-        
+
         // Should provide recommendations if there are issues
         if results.failed_tests > 0 || results.critical_failures > 0 {
             assert!(!results.recommendations.is_empty());
@@ -575,38 +637,52 @@ mod tests {
     #[test]
     fn test_targeted_attack_simulation() {
         let suite = ParserSecurityTestSuite::new();
-        
+
         // Test parse bypass simulation
         let bypass_results = suite.run_targeted_attack_simulation(AttackCategory::ParseBypass);
         assert!(!bypass_results.is_empty());
-        
+
         // Test Unicode confusion simulation
-        let unicode_results = suite.run_targeted_attack_simulation(AttackCategory::UnicodeConfusion);
+        let unicode_results =
+            suite.run_targeted_attack_simulation(AttackCategory::UnicodeConfusion);
         assert!(!unicode_results.is_empty());
-        
+
         // Most attacks should be successfully blocked
-        let total_blocked = bypass_results.iter().chain(unicode_results.iter()).filter(|&&r| r).count();
+        let total_blocked = bypass_results
+            .iter()
+            .chain(unicode_results.iter())
+            .filter(|&&r| r)
+            .count();
         let total_attacks = bypass_results.len() + unicode_results.len();
         let block_rate = total_blocked as f64 / total_attacks as f64;
-        assert!(block_rate > 0.6, "Attack blocking rate too low: {:.1}%", block_rate * 100.0);
+        assert!(
+            block_rate > 0.6,
+            "Attack blocking rate too low: {:.1}%",
+            block_rate * 100.0
+        );
     }
 
     #[test]
     fn test_compliance_report_generation() {
         let suite = ParserSecurityTestSuite::new();
         let report = suite.generate_compliance_report();
-        
+
         // Should generate a complete compliance report
         assert!(!report.timestamp.is_empty());
         assert!(report.overall_compliance_score >= 0.0);
         assert!(report.overall_compliance_score <= 100.0);
         assert!(report.parser_security_score >= 0.0);
         assert!(report.parser_security_score <= 100.0);
-        
+
         // Compliance status should be determined correctly
         match report.overall_compliance_score {
-            score if score >= 85.0 => assert_eq!(report.compliance_status, ComplianceStatus::Compliant),
-            score if score >= 70.0 => assert_eq!(report.compliance_status, ComplianceStatus::PartiallyCompliant),
+            score if score >= 85.0 => {
+                assert_eq!(report.compliance_status, ComplianceStatus::Compliant)
+            }
+            score if score >= 70.0 => assert_eq!(
+                report.compliance_status,
+                ComplianceStatus::PartiallyCompliant
+            ),
             _ => assert_eq!(report.compliance_status, ComplianceStatus::NonCompliant),
         }
     }

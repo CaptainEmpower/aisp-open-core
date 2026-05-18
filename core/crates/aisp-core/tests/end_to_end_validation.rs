@@ -4,8 +4,8 @@
 //! through all analysis levels including formal verification.
 
 use aisp_core::{
+    semantic::QualityTier,
     validator::{AispValidator, ValidationConfig, ValidationResult},
-    semantic::QualityTier
 };
 use std::collections::HashMap;
 
@@ -31,38 +31,43 @@ impl TestDocumentBuilder {
     }
 
     pub fn with_meta_block(mut self, content: &str) -> Self {
-        self.blocks.insert("meta".to_string(), format!("⟦Ω:Meta⟧{{{}}}", content));
+        self.blocks
+            .insert("meta".to_string(), format!("⟦Ω:Meta⟧{{{}}}", content));
         self
     }
 
     pub fn with_types_block(mut self, content: &str) -> Self {
-        self.blocks.insert("types".to_string(), format!("⟦Σ:Types⟧{{{}}}", content));
+        self.blocks
+            .insert("types".to_string(), format!("⟦Σ:Types⟧{{{}}}", content));
         self
     }
 
     pub fn with_rules_block(mut self, content: &str) -> Self {
-        self.blocks.insert("rules".to_string(), format!("⟦Γ:Rules⟧{{{}}}", content));
+        self.blocks
+            .insert("rules".to_string(), format!("⟦Γ:Rules⟧{{{}}}", content));
         self
     }
 
     pub fn with_functions_block(mut self, content: &str) -> Self {
-        self.blocks.insert("functions".to_string(), format!("⟦Λ:Funcs⟧{{{}}}", content));
+        self.blocks
+            .insert("functions".to_string(), format!("⟦Λ:Funcs⟧{{{}}}", content));
         self
     }
 
     pub fn with_evidence_block(mut self, content: &str) -> Self {
-        self.blocks.insert("evidence".to_string(), format!("⟦Ε⟧{}", content));
+        self.blocks
+            .insert("evidence".to_string(), format!("⟦Ε⟧{}", content));
         self
     }
 
     pub fn build(self) -> String {
         let mut document = format!("{}\n\n", self.header);
-        
+
         // Add metadata
         for meta in &self.metadata {
             document.push_str(&format!("{}\n", meta));
         }
-        
+
         // Add blocks in order
         let block_order = ["meta", "types", "rules", "functions", "evidence"];
         for block_name in &block_order {
@@ -70,7 +75,7 @@ impl TestDocumentBuilder {
                 document.push_str(&format!("{}\n\n", block_content));
             }
         }
-        
+
         document.trim().to_string()
     }
 }
@@ -86,30 +91,47 @@ impl ValidationAssertion {
     }
 
     pub fn is_valid(self) -> Self {
-        assert!(self.result.valid, "Expected document to be valid, but it was invalid");
+        assert!(
+            self.result.valid,
+            "Expected document to be valid, but it was invalid"
+        );
         self
     }
 
     pub fn is_invalid(self) -> Self {
-        assert!(!self.result.valid, "Expected document to be invalid, but it was valid");
+        assert!(
+            !self.result.valid,
+            "Expected document to be invalid, but it was valid"
+        );
         self
     }
 
     pub fn has_error_count(self, expected: usize) -> Self {
         let actual = if self.result.error.is_some() { 1 } else { 0 };
-        assert_eq!(actual, expected, "Expected {} errors, but found {}", expected, actual);
+        assert_eq!(
+            actual, expected,
+            "Expected {} errors, but found {}",
+            expected, actual
+        );
         self
     }
 
     pub fn has_warning_count(self, expected: usize) -> Self {
         let actual = self.result.warnings.len();
-        assert_eq!(actual, expected, "Expected {} warnings, but found {}", expected, actual);
+        assert_eq!(
+            actual, expected,
+            "Expected {} warnings, but found {}",
+            expected, actual
+        );
         self
     }
 
     pub fn has_tier(self, expected_tier: QualityTier) -> Self {
-        assert_eq!(self.result.tier, expected_tier, 
-            "Expected tier {:?}, but got {:?}", expected_tier, self.result.tier);
+        assert_eq!(
+            self.result.tier, expected_tier,
+            "Expected tier {:?}, but got {:?}",
+            expected_tier, self.result.tier
+        );
         self
     }
 }
@@ -129,7 +151,10 @@ fn test_minimal_valid_document() {
     let validator = AispValidator::new();
     let result = validator.validate(&document);
 
-    println!("Validation result: valid={}, error={:?}", result.valid, result.error);
+    println!(
+        "Validation result: valid={}, error={:?}",
+        result.valid, result.error
+    );
 
     ValidationAssertion::new(result)
         .is_valid()
@@ -152,7 +177,7 @@ fn test_complete_document_validation() {
     ValidationAssertion::new(result)
         .is_valid()
         .has_error_count(0);
-        // Note: Tier assertion removed as it depends on complex semantic analysis
+    // Note: Tier assertion removed as it depends on complex semantic analysis
 }
 
 #[test]
@@ -162,20 +187,17 @@ fn test_invalid_document_syntax() {
     let validator = AispValidator::new();
     let result = validator.validate(document);
 
-    ValidationAssertion::new(result)
-        .is_invalid(); // Should have syntax errors
+    ValidationAssertion::new(result).is_invalid(); // Should have syntax errors
 }
 
 #[test]
 fn test_missing_required_blocks() {
-    let document = TestDocumentBuilder::new()
-        .build(); // No blocks
+    let document = TestDocumentBuilder::new().build(); // No blocks
 
     let validator = AispValidator::new();
     let result = validator.validate(&document);
 
-    ValidationAssertion::new(result)
-        .is_invalid(); // Should be invalid due to missing required blocks
+    ValidationAssertion::new(result).is_invalid(); // Should be invalid due to missing required blocks
 }
 
 #[test]
@@ -257,10 +279,16 @@ fn test_semantic_analysis_integration() {
     assert!(result.valid, "Expected document to be valid");
 
     // Check that semantic analysis was performed
-    assert!(result.semantic_analysis.is_some(), "Expected semantic analysis results");
+    assert!(
+        result.semantic_analysis.is_some(),
+        "Expected semantic analysis results"
+    );
     if let Some(analysis) = result.semantic_analysis {
         assert!(analysis.delta() > 0.0, "Expected positive semantic density");
-        assert!(analysis.tier() != QualityTier::Reject, "Expected non-reject tier");
+        assert!(
+            analysis.tier() != QualityTier::Reject,
+            "Expected non-reject tier"
+        );
     }
 }
 
@@ -284,7 +312,10 @@ fn test_symbol_statistics_collection() {
 
     if let Some(analysis) = result.semantic_analysis {
         let stats = analysis.symbol_stats();
-        assert!(!stats.category_counts.is_empty() || true, "Expected symbol statistics to be collected");
+        assert!(
+            !stats.category_counts.is_empty() || true,
+            "Expected symbol statistics to be collected"
+        );
         // Note: symbol_stats() returns MockSymbolStats which has category_counts
     }
 }
@@ -297,11 +328,17 @@ fn test_error_reporting_detail() {
     let result = validator.validate(document);
 
     assert!(!result.valid, "Expected document to be invalid");
-    assert!(result.error.is_some(), "Expected parsing errors to be reported");
-    
+    assert!(
+        result.error.is_some(),
+        "Expected parsing errors to be reported"
+    );
+
     // Check that error messages are informative
     if let Some(error) = &result.error {
-        assert!(!error.to_string().is_empty(), "Error messages should not be empty");
+        assert!(
+            !error.to_string().is_empty(),
+            "Error messages should not be empty"
+        );
         // Could add more specific error message checks here
     }
 }
@@ -330,9 +367,12 @@ fn test_performance_validation() {
     let result = validator.validate(&document);
     let duration = start.elapsed();
 
-    ValidationAssertion::new(result)
-        .is_valid();
+    ValidationAssertion::new(result).is_valid();
 
     // Basic performance check - should complete in reasonable time
-    assert!(duration.as_secs() < 5, "Validation took too long: {:?}", duration);
+    assert!(
+        duration.as_secs() < 5,
+        "Validation took too long: {:?}",
+        duration
+    );
 }

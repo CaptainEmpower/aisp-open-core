@@ -4,21 +4,38 @@
 //! with real AISP documents and produces expected results.
 
 use aisp_core::{
-    validator::{AispValidator, types::{ValidationConfig, ValidationResult}},
-    semantic::QualityTier
+    semantic::QualityTier,
+    validator::{
+        types::{ValidationConfig, ValidationResult},
+        AispValidator,
+    },
 };
 
 /// Helper to assert validation results
 fn assert_valid_document(result: &ValidationResult, expected_tier: QualityTier) {
-    assert!(result.valid, "Document should be valid but got error: {:?}", result.error);
-    assert_eq!(result.tier, expected_tier,
-        "Expected quality tier {:?} but got {:?}", expected_tier, result.tier);
-    assert!(result.delta >= 0.5, "Delta should be reasonable: {}", result.delta);
+    assert!(
+        result.valid,
+        "Document should be valid but got error: {:?}",
+        result.error
+    );
+    assert_eq!(
+        result.tier, expected_tier,
+        "Expected quality tier {:?} but got {:?}",
+        expected_tier, result.tier
+    );
+    assert!(
+        result.delta >= 0.5,
+        "Delta should be reasonable: {}",
+        result.delta
+    );
 }
 
 fn assert_invalid_document(result: ValidationResult) {
     assert!(!result.valid, "Document should be invalid but was valid");
-    assert!(result.error.is_some(), "Invalid document should have an error");
+    assert!(
+        result.error.is_some(),
+        "Invalid document should have an error"
+    );
 }
 
 #[test]
@@ -97,7 +114,7 @@ fn test_document_with_syntax_errors() {
     assert_invalid_document(result);
 }
 
-#[test]  
+#[test]
 fn test_document_with_types() {
     let document = r#"𝔸5.1.TypeTest@2026-01-25
 
@@ -166,7 +183,7 @@ fn test_formal_verification_enabled() {
 
     let mut config = ValidationConfig::default();
     config.enable_formal_verification = true;
-    
+
     let validator = AispValidator::with_config(config);
     let result = validator.validate(document);
 
@@ -195,16 +212,20 @@ fn test_validation_config_options() {
     let result = validator.validate(document);
 
     assert_valid_document(&result, QualityTier::Silver);
-    
+
     // Verify timing information is included when requested
-    assert!(result.total_time.is_some(), "Timing information should be present");
+    assert!(
+        result.total_time.is_some(),
+        "Timing information should be present"
+    );
 }
 
 #[test]
 fn test_large_document_limit() {
     // Create a document that exceeds size limit
     let large_content = "x≜ℕ\n".repeat(1000); // Make it large
-    let document = format!(r#"𝔸5.1.LargeTest@2026-01-25
+    let document = format!(
+        r#"𝔸5.1.LargeTest@2026-01-25
 
 ⟦Σ:Types⟧{{
   {}
@@ -214,7 +235,9 @@ fn test_large_document_limit() {
   domain≜large_test
 }}
 
-⟦Ε⟧⟨δ≜0.8⟩"#, large_content);
+⟦Ε⟧⟨δ≜0.8⟩"#,
+        large_content
+    );
 
     let mut config = ValidationConfig::default();
     config.max_document_size = 100; // Very small limit
@@ -267,15 +290,21 @@ fn test_validation_performance() {
     let duration = start.elapsed();
 
     assert_valid_document(&result, QualityTier::Platinum);
-    
+
     // Validation should complete reasonably quickly
-    assert!(duration.as_millis() < 5000, 
-        "Validation took too long: {}ms", duration.as_millis());
-    
+    assert!(
+        duration.as_millis() < 5000,
+        "Validation took too long: {}ms",
+        duration.as_millis()
+    );
+
     // Timing information should be available
     if let Some(total_time) = result.total_time {
-        assert!(total_time.as_millis() < 5000,
-            "Reported timing too high: {}ms", total_time.as_millis());
+        assert!(
+            total_time.as_millis() < 5000,
+            "Reported timing too high: {}ms",
+            total_time.as_millis()
+        );
     }
 }
 

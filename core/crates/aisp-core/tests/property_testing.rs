@@ -9,13 +9,13 @@
 // Skip this entire test file - needs API updates
 #![cfg(feature = "property-testing-deprecated")]
 
-use proptest::prelude::*;
 use aisp_core::{
     ast::*,
-    validator::{AispValidator, ValidationConfig},
     parser_new::AispParser,
     semantic::QualityTier,
+    validator::{AispValidator, ValidationConfig},
 };
+use proptest::prelude::*;
 
 /// Strategy for generating valid AISP identifiers
 fn aisp_identifier() -> impl Strategy<Value = String> {
@@ -44,9 +44,7 @@ fn aisp_date() -> impl Strategy<Value = String> {
 /// Strategy for generating AISP document headers
 fn aisp_header() -> impl Strategy<Value = String> {
     (aisp_version(), aisp_identifier(), aisp_date())
-        .prop_map(|(version, name, date)| {
-            format!("𝔸{}.{}@{}", version, name, date)
-        })
+        .prop_map(|(version, name, date)| format!("𝔸{}.{}@{}", version, name, date))
 }
 
 /// Strategy for generating meta entries
@@ -62,9 +60,7 @@ fn meta_entry() -> impl Strategy<Value = String> {
 /// Strategy for generating meta blocks
 fn meta_block() -> impl Strategy<Value = String> {
     prop::collection::vec(meta_entry(), 1..=5)
-        .prop_map(|entries| {
-            format!("⟦Ω:Meta⟧{{\n{}\n}}", entries.join("\n"))
-        })
+        .prop_map(|entries| format!("⟦Ω:Meta⟧{{\n{}\n}}", entries.join("\n")))
 }
 
 /// Strategy for generating type expressions
@@ -79,14 +75,12 @@ fn type_expression() -> impl Strategy<Value = String> {
         prop::collection::vec(aisp_identifier(), 1..=4)
             .prop_map(|ids| format!("{{{}}}", ids.join(","))),
     ];
-    
+
     leaf.prop_recursive(3, 64, 10, |inner| {
         prop_oneof![
             inner.clone().prop_map(|s| format!("[{}]", s)),
-            (inner.clone(), inner.clone())
-                .prop_map(|(a, b)| format!("({},{})", a, b)),
-            (inner.clone(), inner.clone())
-                .prop_map(|(a, b)| format!("{}→{}", a, b)),
+            (inner.clone(), inner.clone()).prop_map(|(a, b)| format!("({},{})", a, b)),
+            (inner.clone(), inner.clone()).prop_map(|(a, b)| format!("{}→{}", a, b)),
         ]
     })
 }
@@ -100,9 +94,7 @@ fn type_definition() -> impl Strategy<Value = String> {
 /// Strategy for generating types blocks
 fn types_block() -> impl Strategy<Value = String> {
     prop::collection::vec(type_definition(), 1..=6)
-        .prop_map(|defs| {
-            format!("⟦Σ:Types⟧{{\n{}\n}}", defs.join("\n"))
-        })
+        .prop_map(|defs| format!("⟦Σ:Types⟧{{\n{}\n}}", defs.join("\n")))
 }
 
 /// Strategy for generating logical expressions
@@ -114,17 +106,14 @@ fn logical_expression() -> impl Strategy<Value = String> {
         Just("true".to_string()),
         Just("false".to_string()),
     ];
-    
+
     leaf.prop_recursive(3, 32, 5, |inner| {
         prop_oneof![
             (aisp_identifier(), aisp_identifier())
                 .prop_map(|(var, domain)| format!("∀{}:{}→Valid({})", var, domain, var)),
-            (inner.clone(), inner.clone())
-                .prop_map(|(a, b)| format!("{}∧{}", a, b)),
-            (inner.clone(), inner.clone())
-                .prop_map(|(a, b)| format!("{}∨{}", a, b)),
-            (inner.clone(), inner.clone())
-                .prop_map(|(a, b)| format!("{}⇒{}", a, b)),
+            (inner.clone(), inner.clone()).prop_map(|(a, b)| format!("{}∧{}", a, b)),
+            (inner.clone(), inner.clone()).prop_map(|(a, b)| format!("{}∨{}", a, b)),
+            (inner.clone(), inner.clone()).prop_map(|(a, b)| format!("{}⇒{}", a, b)),
             inner.clone().prop_map(|s| format!("¬{}", s)),
         ]
     })
@@ -132,16 +121,13 @@ fn logical_expression() -> impl Strategy<Value = String> {
 
 /// Strategy for generating rules
 fn rule() -> impl Strategy<Value = String> {
-    logical_expression()
-        .prop_map(|expr| format!("  {}", expr))
+    logical_expression().prop_map(|expr| format!("  {}", expr))
 }
 
 /// Strategy for generating rules blocks
 fn rules_block() -> impl Strategy<Value = String> {
     prop::collection::vec(rule(), 1..=4)
-        .prop_map(|rules| {
-            format!("⟦Γ:Rules⟧{{\n{}\n}}", rules.join("\n"))
-        })
+        .prop_map(|rules| format!("⟦Γ:Rules⟧{{\n{}\n}}", rules.join("\n")))
 }
 
 /// Strategy for generating lambda expressions
@@ -159,9 +145,7 @@ fn function_definition() -> impl Strategy<Value = String> {
 /// Strategy for generating functions blocks
 fn functions_block() -> impl Strategy<Value = String> {
     prop::collection::vec(function_definition(), 1..=4)
-        .prop_map(|funcs| {
-            format!("⟦Λ:Funcs⟧{{\n{}\n}}", funcs.join("\n"))
-        })
+        .prop_map(|funcs| format!("⟦Λ:Funcs⟧{{\n{}\n}}", funcs.join("\n")))
 }
 
 /// Strategy for generating evidence entries
@@ -185,9 +169,7 @@ fn evidence_entry() -> impl Strategy<Value = String> {
 /// Strategy for generating evidence blocks
 fn evidence_block() -> impl Strategy<Value = String> {
     prop::collection::vec(evidence_entry(), 1..=6)
-        .prop_map(|entries| {
-            format!("⟦Ε⟧⟨{}⟩", entries.join(";"))
-        })
+        .prop_map(|entries| format!("⟦Ε⟧⟨{}⟩", entries.join(";")))
 }
 
 /// Strategy for generating complete AISP documents
@@ -199,17 +181,20 @@ fn aisp_document() -> impl Strategy<Value = String> {
         rules_block(),
         functions_block(),
         evidence_block(),
-    ).prop_map(|(header, meta, types, rules, funcs, evidence)| {
-        format!("{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}", 
-                header, meta, types, rules, funcs, evidence)
-    })
+    )
+        .prop_map(|(header, meta, types, rules, funcs, evidence)| {
+            format!(
+                "{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}",
+                header, meta, types, rules, funcs, evidence
+            )
+        })
 }
 
 /// Strategy for generating minimal valid AISP documents
 fn minimal_aisp_document() -> impl Strategy<Value = String> {
-    (aisp_header(), aisp_identifier())
-        .prop_map(|(header, domain)| {
-            format!(r#"{}
+    (aisp_header(), aisp_identifier()).prop_map(|(header, domain)| {
+        format!(
+            r#"{}
 
 ⟦Ω:Meta⟧{{
   domain≜{}
@@ -227,8 +212,10 @@ fn minimal_aisp_document() -> impl Strategy<Value = String> {
   id≜λx.x
 }}
 
-⟦Ε⟧⟨δ≜0.5⟩"#, header, domain)
-        })
+⟦Ε⟧⟨δ≜0.5⟩"#,
+            header, domain
+        )
+    })
 }
 
 /// Strategy for generating malformed documents (for negative testing)
@@ -259,9 +246,9 @@ proptest! {
     fn prop_minimal_documents_parse(doc in minimal_aisp_document()) {
         let mut parser = AispParser::new(doc.clone());
         let result = parser.parse();
-        
+
         prop_assert!(result.is_ok(), "Minimal document should parse: {}", doc);
-        
+
         if let Ok(parsed) = result {
             prop_assert_eq!(parsed.blocks.len(), 5, "Should have exactly 5 blocks");
             prop_assert!(parsed.header.version.len() > 0, "Should have version");
@@ -275,12 +262,12 @@ proptest! {
     fn prop_parser_deterministic(doc in minimal_aisp_document()) {
         let mut parser1 = AispParser::new(doc.clone());
         let mut parser2 = AispParser::new(doc.clone());
-        
+
         let result1 = parser1.parse();
         let result2 = parser2.parse();
-        
+
         prop_assert_eq!(result1.is_ok(), result2.is_ok(), "Parser should be deterministic");
-        
+
         if result1.is_ok() && result2.is_ok() {
             let doc1 = result1.unwrap();
             let doc2 = result2.unwrap();
@@ -293,10 +280,10 @@ proptest! {
     #[test]
     fn prop_validator_consistent(doc in minimal_aisp_document()) {
         let validator = AispValidator::new();
-        
+
         let result1 = validator.validate(&doc);
         let result2 = validator.validate(&doc);
-        
+
         prop_assert_eq!(result1.valid, result2.valid, "Validation should be consistent");
         prop_assert_eq!(result1.tier, result2.tier, "Quality tier should be consistent");
         prop_assert!((result1.delta - result2.delta).abs() < 1e-10, "Delta should be consistent");
@@ -308,7 +295,7 @@ proptest! {
     fn prop_valid_documents_reasonable_metrics(doc in minimal_aisp_document()) {
         let validator = AispValidator::new();
         let result = validator.validate(&doc);
-        
+
         if result.valid {
             prop_assert!(result.delta >= 0.0 && result.delta <= 1.0, "Delta should be in [0,1]");
             prop_assert!(result.ambiguity >= 0.0 && result.ambiguity <= 1.0, "Ambiguity should be in [0,1]");
@@ -322,14 +309,14 @@ proptest! {
     fn prop_quality_tier_monotonic(delta in 0.0f64..1.0) {
         let tier = QualityTier::from_delta(delta);
         let tier_value = tier.value();
-        
+
         // Test monotonicity: higher delta should never give lower tier
         let higher_delta = (delta + 0.1).min(1.0);
         let higher_tier = QualityTier::from_delta(higher_delta);
         let higher_tier_value = higher_tier.value();
-        
-        prop_assert!(higher_tier_value >= tier_value, 
-                    "Higher delta ({}) should give higher or equal tier ({} >= {})", 
+
+        prop_assert!(higher_tier_value >= tier_value,
+                    "Higher delta ({}) should give higher or equal tier ({} >= {})",
                     higher_delta, higher_tier_value, tier_value);
     }
 
@@ -338,13 +325,13 @@ proptest! {
     fn prop_malformed_documents_fail_gracefully(doc in malformed_document()) {
         let validator = AispValidator::new();
         let result = validator.validate(&doc);
-        
+
         // Should either fail validation or have clear error
         prop_assert!(
             !result.valid || result.error.is_some(),
             "Malformed documents should fail validation or have clear errors"
         );
-        
+
         // Should never panic - this property is enforced by the test not panicking
         prop_assert!(result.tier_value <= 4, "Tier value should be bounded even for invalid docs");
     }
@@ -354,21 +341,21 @@ proptest! {
     fn prop_document_size_correlates_complexity(doc in aisp_document()) {
         let validator = AispValidator::new();
         let result = validator.validate(&doc);
-        
+
         let doc_size = doc.len();
-        
+
         // Larger documents should generally have higher symbol counts (if valid)
         if let Some(analysis) = result.semantic_analysis {
             if doc_size > 500 {
-                prop_assert!(analysis.symbol_stats.total_tokens > 50, 
+                prop_assert!(analysis.symbol_stats.total_tokens > 50,
                            "Large documents should have substantial token counts");
             }
-            
+
             // Symbol ratio should be reasonable
             if analysis.symbol_stats.total_tokens > 0 {
-                let symbol_ratio = analysis.symbol_stats.total_symbols as f64 / 
+                let symbol_ratio = analysis.symbol_stats.total_symbols as f64 /
                                  analysis.symbol_stats.total_tokens as f64;
-                prop_assert!(symbol_ratio >= 0.0 && symbol_ratio <= 1.0, 
+                prop_assert!(symbol_ratio >= 0.0 && symbol_ratio <= 1.0,
                            "Symbol ratio should be in [0,1]");
             }
         }
@@ -406,14 +393,14 @@ proptest! {
             // Find evidence block
             if let Some(AispBlock::Evidence(evidence)) = parsed.blocks.iter()
                 .find(|b| matches!(b, AispBlock::Evidence(_))) {
-                
+
                 if let Some(parsed_delta) = evidence.delta {
-                    prop_assert!((parsed_delta - delta).abs() < 0.01, 
+                    prop_assert!((parsed_delta - delta).abs() < 0.01,
                                "Delta should be preserved in parsing");
                 }
-                
+
                 if let Some(parsed_phi) = evidence.phi {
-                    prop_assert!((parsed_phi - phi).abs() < 1.0, 
+                    prop_assert!((parsed_phi - phi).abs() < 1.0,
                                "Phi should be preserved in parsing");
                 }
             }
@@ -428,22 +415,22 @@ proptest! {
             strict_mode: true,
             ..ValidationConfig::default()
         };
-        
+
         let validator_default = AispValidator::with_config(default_config);
         let validator_strict = AispValidator::with_config(strict_config);
-        
+
         let result_default = validator_default.validate(&doc);
         let result_strict = validator_strict.validate(&doc);
-        
+
         // Core metrics should be the same
         if result_default.valid && result_strict.valid {
-            prop_assert!((result_default.delta - result_strict.delta).abs() < 1e-6, 
+            prop_assert!((result_default.delta - result_strict.delta).abs() < 1e-6,
                        "Delta should be stable across configs");
         }
-        
+
         // Strict mode should never be more lenient
         if result_strict.valid {
-            prop_assert!(result_default.valid, 
+            prop_assert!(result_default.valid,
                        "If strict mode passes, default should also pass");
         }
     }
@@ -474,7 +461,7 @@ mod edge_case_properties {
 
             let validator = AispValidator::new();
             let result = validator.validate(&doc);
-            
+
             // Should not panic and should have clear validation result
             prop_assert!(result.tier_value <= 4);
             prop_assert!(result.delta >= 0.0 && result.delta <= 1.0);
@@ -508,7 +495,7 @@ mod edge_case_properties {
             let start = std::time::Instant::now();
             let result = validator.validate(&large_doc);
             let duration = start.elapsed();
-            
+
             // Should complete within reasonable time (adjust threshold as needed)
             prop_assert!(duration.as_secs() < 5, "Large documents should validate within 5 seconds");
             prop_assert!(result.tier_value <= 4);
@@ -542,10 +529,10 @@ mod edge_case_properties {
 
             let validator = AispValidator::new();
             let result = validator.validate(&doc);
-            
+
             // Should handle Unicode properly without panicking
             prop_assert!(result.tier_value <= 4);
-            
+
             if result.valid {
                 prop_assert!(result.delta >= 0.0 && result.delta <= 1.0);
             }

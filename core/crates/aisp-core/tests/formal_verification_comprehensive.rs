@@ -9,16 +9,21 @@
 #![cfg(feature = "formal-verification-comprehensive-deprecated")]
 
 use aisp_core::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, CanonicalAispBlock, MetaBlock, MetaValue, MetaEntry, TypesBlock, RulesBlock, FunctionsBlock, TypeDefinition, TypeExpression, BasicType, LogicalRule, LogicalExpression, FunctionDefinition, ParameterDefinition},
-    z3_verification::{
-        Z3VerificationFacade, EnhancedVerificationResult, 
-        VerificationStatus, EnhancedZ3Verifier, PropertyResult, VerifiedProperty, PropertyCategory
+    ast::canonical::{
+        BasicType, CanonicalAispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
+        DocumentMetadata, FunctionDefinition, FunctionsBlock, LogicalExpression, LogicalRule,
+        MetaBlock, MetaEntry, MetaValue, ParameterDefinition, RulesBlock, TypeDefinition,
+        TypeExpression, TypesBlock,
     },
     semantic::{
-        MultiLayerVerificationPipeline, 
+        behavioral_verifier::{BehavioralVerificationResult, BehavioralVerifier},
+        cross_validator::{CrossValidationChecker, CrossValidationResult},
         deep_verifier::{DeepSemanticVerifier, DeepVerificationResult},
-        behavioral_verifier::{BehavioralVerifier, BehavioralVerificationResult},
-        cross_validator::{CrossValidationChecker, CrossValidationResult}
+        MultiLayerVerificationPipeline,
+    },
+    z3_verification::{
+        EnhancedVerificationResult, EnhancedZ3Verifier, PropertyCategory, PropertyResult,
+        VerificationStatus, VerifiedProperty, Z3VerificationFacade,
     },
 };
 
@@ -71,12 +76,15 @@ impl ComprehensiveFormalTestBuilder {
 
     /// Run formal verification with Z3 integration
     pub fn test_formal_verification(self) -> ComprehensiveTestResult {
-        println!("🔬 Running comprehensive formal verification test: {}", self.test_name);
+        println!(
+            "🔬 Running comprehensive formal verification test: {}",
+            self.test_name
+        );
 
         // Test Z3 facade verification
         let z3_result = self.test_z3_verification();
 
-        // Test enterprise pipeline verification  
+        // Test enterprise pipeline verification
         let pipeline_result = self.test_enterprise_pipeline();
 
         // Test individual verifier components
@@ -95,16 +103,23 @@ impl ComprehensiveFormalTestBuilder {
         match Z3VerificationFacade::new() {
             Ok(mut facade) => {
                 println!("✅ Z3 Facade created successfully for {}", self.test_name);
-                
+
                 match facade.verify_document(&self.document, None) {
                     Ok(result) => {
                         println!("📊 Z3 Verification Status: {:?}", result.status);
-                        println!("📊 Properties Verified: {}", result.verified_properties.len());
-                        println!("📊 Verification Time: {}ms", result.stats.verification_time_ms);
+                        println!(
+                            "📊 Properties Verified: {}",
+                            result.verified_properties.len()
+                        );
+                        println!(
+                            "📊 Verification Time: {}ms",
+                            result.stats.verification_time_ms
+                        );
 
                         // Validate expectations
                         let properties_match = if self.expected_properties > 0 {
-                            result.verified_properties.len() >= self.expected_properties / 2 // Allow some tolerance
+                            result.verified_properties.len() >= self.expected_properties / 2
+                        // Allow some tolerance
                         } else {
                             true // No expectations set
                         };
@@ -132,7 +147,10 @@ impl ComprehensiveFormalTestBuilder {
                 }
             }
             Err(e) => {
-                println!("⚠️ Z3 Facade creation failed (expected without Z3): {:?}", e);
+                println!(
+                    "⚠️ Z3 Facade creation failed (expected without Z3): {:?}",
+                    e
+                );
                 Z3TestResult {
                     success: true, // This is expected behavior without Z3
                     status: VerificationStatus::Disabled,
@@ -147,9 +165,9 @@ impl ComprehensiveFormalTestBuilder {
 
     fn test_enterprise_pipeline(&self) -> PipelineTestResult {
         println!("🏢 Testing enterprise verification pipeline...");
-        
+
         let mut pipeline = MultiLayerVerificationPipeline::with_enhanced_security();
-        
+
         match pipeline.verify_document(&self.document) {
             Ok(result) => {
                 println!("✅ Pipeline verification completed successfully");
@@ -203,7 +221,8 @@ impl ComprehensiveFormalTestBuilder {
         let mut cross_validator = CrossValidationChecker::with_strict_validation();
         let cross_validation_result = cross_validator.cross_validate(&self.document);
 
-        let success = semantic_result.is_ok() && behavioral_result.is_ok() && cross_validation_result.is_ok();
+        let success =
+            semantic_result.is_ok() && behavioral_result.is_ok() && cross_validation_result.is_ok();
 
         if success {
             println!("✅ All component verification tests passed");
@@ -218,7 +237,9 @@ impl ComprehensiveFormalTestBuilder {
             cross_validation_success: cross_validation_result.is_ok(),
             semantic_score: semantic_result.map(|r| r.overall_confidence).unwrap_or(0.0),
             behavioral_score: behavioral_result.map(|r| r.overall_score).unwrap_or(0.0),
-            cross_validation_score: cross_validation_result.map(|r| r.overall_consistency_score).unwrap_or(0.0),
+            cross_validation_score: cross_validation_result
+                .map(|r| r.overall_consistency_score)
+                .unwrap_or(0.0),
         }
     }
 }
@@ -270,7 +291,7 @@ pub struct ComponentTestResult {
 /// Create a comprehensive test document with types, rules, and functions
 fn create_comprehensive_test_document() -> AispDocument {
     use std::collections::HashMap;
-    
+
     AispDocument {
         header: DocumentHeader {
             version: "5.1".to_string(),
@@ -379,7 +400,7 @@ fn create_minimal_test_document() -> AispDocument {
     AispDocument {
         header: DocumentHeader {
             version: "5.1".to_string(),
-            name: "MinimalTest".to_string(), 
+            name: "MinimalTest".to_string(),
             date: "2026-01-27".to_string(),
             metadata: None,
         },
@@ -387,13 +408,11 @@ fn create_minimal_test_document() -> AispDocument {
             domain: Some("test".to_string()),
             protocol: None,
         },
-        blocks: vec![
-            CanonicalAispBlock::Meta(MetaBlock {
-                entries: std::collections::HashMap::new(),
-                raw_entries: vec!["domain = test".to_string()],
-                span: None,
-            }),
-        ],
+        blocks: vec![CanonicalAispBlock::Meta(MetaBlock {
+            entries: std::collections::HashMap::new(),
+            raw_entries: vec!["domain = test".to_string()],
+            span: None,
+        })],
         span: None,
     }
 }
@@ -437,21 +456,27 @@ fn test_z3_facade_integration() {
     println!("🔬 Testing Z3 facade integration specifically...");
 
     let document = create_comprehensive_test_document();
-    
+
     match Z3VerificationFacade::new() {
         Ok(mut facade) => {
             println!("✅ Z3 Facade created successfully");
-            
+
             let result = facade.verify_document(&document, None);
-            
+
             match result {
                 Ok(verification_result) => {
                     println!("✅ Z3 verification completed");
                     println!("📊 Status: {:?}", verification_result.status);
-                    println!("📊 Properties: {}", verification_result.verified_properties.len());
-                    
+                    println!(
+                        "📊 Properties: {}",
+                        verification_result.verified_properties.len()
+                    );
+
                     // Should have some verification status
-                    assert!(!matches!(verification_result.status, VerificationStatus::Failed(_)));
+                    assert!(!matches!(
+                        verification_result.status,
+                        VerificationStatus::Failed(_)
+                    ));
                 }
                 Err(e) => {
                     println!("⚠️ Z3 verification failed (acceptable): {:?}", e);
@@ -460,7 +485,10 @@ fn test_z3_facade_integration() {
             }
         }
         Err(e) => {
-            println!("ℹ️ Z3 Facade creation failed (expected without Z3): {:?}", e);
+            println!(
+                "ℹ️ Z3 Facade creation failed (expected without Z3): {:?}",
+                e
+            );
             // This is expected without Z3 support
         }
     }
@@ -472,23 +500,50 @@ fn test_enterprise_pipeline_integration() {
 
     let document = create_comprehensive_test_document();
     let mut pipeline = MultiLayerVerificationPipeline::with_enhanced_security();
-    
+
     let result = pipeline.verify_document(&document);
-    
+
     match result {
         Ok(verification_result) => {
             println!("✅ Pipeline verification successful");
-            println!("📊 Overall success: {}", verification_result.overall_success);
-            println!("📊 Semantic score: {:.2}", verification_result.semantic_score);
-            println!("📊 Behavioral score: {:.2}", verification_result.behavioral_score);
-            println!("📊 Compliance score: {:.2}", verification_result.compliance_score);
-            println!("📊 Security score: {:.2}", verification_result.security_score);
-            println!("📊 Execution time: {:?}", verification_result.execution_time);
-            
+            println!(
+                "📊 Overall success: {}",
+                verification_result.overall_success
+            );
+            println!(
+                "📊 Semantic score: {:.2}",
+                verification_result.semantic_score
+            );
+            println!(
+                "📊 Behavioral score: {:.2}",
+                verification_result.behavioral_score
+            );
+            println!(
+                "📊 Compliance score: {:.2}",
+                verification_result.compliance_score
+            );
+            println!(
+                "📊 Security score: {:.2}",
+                verification_result.security_score
+            );
+            println!(
+                "📊 Execution time: {:?}",
+                verification_result.execution_time
+            );
+
             // Basic validation
-            assert!(verification_result.semantic_score >= 0.0 && verification_result.semantic_score <= 1.0);
-            assert!(verification_result.behavioral_score >= 0.0 && verification_result.behavioral_score <= 1.0);
-            assert!(verification_result.compliance_score >= 0.0 && verification_result.compliance_score <= 1.0);
+            assert!(
+                verification_result.semantic_score >= 0.0
+                    && verification_result.semantic_score <= 1.0
+            );
+            assert!(
+                verification_result.behavioral_score >= 0.0
+                    && verification_result.behavioral_score <= 1.0
+            );
+            assert!(
+                verification_result.compliance_score >= 0.0
+                    && verification_result.compliance_score <= 1.0
+            );
             assert!(verification_result.execution_time.as_millis() < 30000); // Should complete within 30 seconds
         }
         Err(e) => {
@@ -503,22 +558,46 @@ fn test_semantic_verifier_integration() {
 
     let document = create_comprehensive_test_document();
     let mut verifier = DeepSemanticVerifier::with_enhanced_security();
-    
+
     let result = verifier.verify_document(&document);
-    
+
     match result {
         Ok(verification_result) => {
             println!("✅ Semantic verification successful");
-            println!("📊 Overall confidence: {:.2}", verification_result.overall_confidence);
-            println!("📊 Type safety score: {:.2}", verification_result.type_safety_score);
-            println!("📊 Logic consistency: {:.2}", verification_result.logic_consistency_score);
-            println!("📊 Mathematical correctness: {:.2}", verification_result.mathematical_correctness_score);
-            
+            println!(
+                "📊 Overall confidence: {:.2}",
+                verification_result.overall_confidence
+            );
+            println!(
+                "📊 Type safety score: {:.2}",
+                verification_result.type_safety_score
+            );
+            println!(
+                "📊 Logic consistency: {:.2}",
+                verification_result.logic_consistency_score
+            );
+            println!(
+                "📊 Mathematical correctness: {:.2}",
+                verification_result.mathematical_correctness_score
+            );
+
             // Validation
-            assert!(verification_result.overall_confidence >= 0.0 && verification_result.overall_confidence <= 1.0);
-            assert!(verification_result.type_safety_score >= 0.0 && verification_result.type_safety_score <= 1.0);
-            assert!(verification_result.logic_consistency_score >= 0.0 && verification_result.logic_consistency_score <= 1.0);
-            assert!(verification_result.mathematical_correctness_score >= 0.0 && verification_result.mathematical_correctness_score <= 1.0);
+            assert!(
+                verification_result.overall_confidence >= 0.0
+                    && verification_result.overall_confidence <= 1.0
+            );
+            assert!(
+                verification_result.type_safety_score >= 0.0
+                    && verification_result.type_safety_score <= 1.0
+            );
+            assert!(
+                verification_result.logic_consistency_score >= 0.0
+                    && verification_result.logic_consistency_score <= 1.0
+            );
+            assert!(
+                verification_result.mathematical_correctness_score >= 0.0
+                    && verification_result.mathematical_correctness_score <= 1.0
+            );
         }
         Err(e) => {
             panic!("Semantic verification should not fail: {:?}", e);
@@ -532,20 +611,32 @@ fn test_behavioral_verifier_integration() {
 
     let document = create_comprehensive_test_document();
     let mut verifier = BehavioralVerifier::new_strict();
-    
+
     let result = verifier.verify_behavior(&document);
-    
+
     match result {
         Ok(verification_result) => {
             println!("✅ Behavioral verification successful");
-            println!("📊 Overall confidence: {:.2}", verification_result.overall_confidence);
+            println!(
+                "📊 Overall confidence: {:.2}",
+                verification_result.overall_confidence
+            );
             println!("📊 Overall score: {:.2}", verification_result.overall_score);
             println!("📊 Violations: {}", verification_result.violations.len());
-            println!("📊 Security events: {}", verification_result.security_events.len());
-            
+            println!(
+                "📊 Security events: {}",
+                verification_result.security_events.len()
+            );
+
             // Validation
-            assert!(verification_result.overall_confidence >= 0.0 && verification_result.overall_confidence <= 1.0);
-            assert!(verification_result.overall_score >= 0.0 && verification_result.overall_score <= 1.0);
+            assert!(
+                verification_result.overall_confidence >= 0.0
+                    && verification_result.overall_confidence <= 1.0
+            );
+            assert!(
+                verification_result.overall_score >= 0.0
+                    && verification_result.overall_score <= 1.0
+            );
         }
         Err(e) => {
             panic!("Behavioral verification should not fail: {:?}", e);
@@ -559,19 +650,34 @@ fn test_cross_validator_integration() {
 
     let document = create_comprehensive_test_document();
     let mut validator = CrossValidationChecker::with_strict_validation();
-    
+
     let result = validator.cross_validate(&document);
-    
+
     match result {
         Ok(validation_result) => {
             println!("✅ Cross validation successful");
-            println!("📊 Overall consistency: {:.2}", validation_result.overall_consistency_score);
-            println!("📊 Confidence score: {:.2}", validation_result.confidence_score);
-            println!("📊 Discrepancies: {}", validation_result.discrepancies.len());
-            
+            println!(
+                "📊 Overall consistency: {:.2}",
+                validation_result.overall_consistency_score
+            );
+            println!(
+                "📊 Confidence score: {:.2}",
+                validation_result.confidence_score
+            );
+            println!(
+                "📊 Discrepancies: {}",
+                validation_result.discrepancies.len()
+            );
+
             // Validation
-            assert!(validation_result.overall_consistency_score >= 0.0 && validation_result.overall_consistency_score <= 1.0);
-            assert!(validation_result.confidence_score >= 0.0 && validation_result.confidence_score <= 1.0);
+            assert!(
+                validation_result.overall_consistency_score >= 0.0
+                    && validation_result.overall_consistency_score <= 1.0
+            );
+            assert!(
+                validation_result.confidence_score >= 0.0
+                    && validation_result.confidence_score <= 1.0
+            );
         }
         Err(e) => {
             panic!("Cross validation should not fail: {:?}", e);
@@ -585,36 +691,48 @@ fn test_performance_benchmarks() {
 
     let document = create_comprehensive_test_document();
     let start_time = std::time::Instant::now();
-    
+
     // Test semantic verification performance
     let semantic_start = std::time::Instant::now();
     let mut semantic_verifier = DeepSemanticVerifier::with_enhanced_security();
     let _semantic_result = semantic_verifier.verify_document(&document);
     let semantic_duration = semantic_start.elapsed();
-    
-    // Test behavioral verification performance  
+
+    // Test behavioral verification performance
     let behavioral_start = std::time::Instant::now();
     let mut behavioral_verifier = BehavioralVerifier::new_strict();
     let _behavioral_result = behavioral_verifier.verify_behavior(&document);
     let behavioral_duration = behavioral_start.elapsed();
-    
+
     // Test pipeline performance
     let pipeline_start = std::time::Instant::now();
     let mut pipeline = MultiLayerVerificationPipeline::with_enhanced_security();
     let _pipeline_result = pipeline.verify_document(&document);
     let pipeline_duration = pipeline_start.elapsed();
-    
+
     let total_duration = start_time.elapsed();
-    
+
     println!("📊 Performance Results:");
     println!("  - Semantic verification: {:?}", semantic_duration);
     println!("  - Behavioral verification: {:?}", behavioral_duration);
     println!("  - Pipeline verification: {:?}", pipeline_duration);
     println!("  - Total time: {:?}", total_duration);
-    
+
     // Performance assertions (should be fast)
-    assert!(semantic_duration.as_millis() < 10000, "Semantic verification should complete within 10 seconds");
-    assert!(behavioral_duration.as_millis() < 10000, "Behavioral verification should complete within 10 seconds");
-    assert!(pipeline_duration.as_millis() < 30000, "Pipeline verification should complete within 30 seconds");
-    assert!(total_duration.as_millis() < 60000, "Total benchmarks should complete within 1 minute");
+    assert!(
+        semantic_duration.as_millis() < 10000,
+        "Semantic verification should complete within 10 seconds"
+    );
+    assert!(
+        behavioral_duration.as_millis() < 10000,
+        "Behavioral verification should complete within 10 seconds"
+    );
+    assert!(
+        pipeline_duration.as_millis() < 30000,
+        "Pipeline verification should complete within 30 seconds"
+    );
+    assert!(
+        total_duration.as_millis() < 60000,
+        "Total benchmarks should complete within 1 minute"
+    );
 }

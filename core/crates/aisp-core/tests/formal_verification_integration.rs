@@ -11,12 +11,14 @@
 #![cfg(feature = "formal-verification-integration-deprecated")]
 
 use aisp_core::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, CanonicalAispBlock, MetaBlock},
-    z3_verification::{
-        Z3VerificationFacade, 
-        VerificationStatus, PropertyResult, is_z3_available, quick_verify
+    ast::canonical::{
+        CanonicalAispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
+        DocumentMetadata, MetaBlock,
     },
     semantic::MultiLayerVerificationPipeline,
+    z3_verification::{
+        is_z3_available, quick_verify, PropertyResult, VerificationStatus, Z3VerificationFacade,
+    },
 };
 
 /// Create a minimal test document for formal verification
@@ -32,17 +34,15 @@ fn create_test_document() -> AispDocument {
             domain: Some("formal_verification".to_string()),
             protocol: Some("enterprise_verification".to_string()),
         },
-        blocks: vec![
-            CanonicalAispBlock::Meta(MetaBlock {
-                entries: std::collections::HashMap::new(),
-                raw_entries: vec![
-                    "domain = \"formal_verification\"".to_string(),
-                    "version = \"1.0.0\"".to_string(),
-                    "properties = 3".to_string(),
-                ],
-                span: None,
-            }),
-        ],
+        blocks: vec![CanonicalAispBlock::Meta(MetaBlock {
+            entries: std::collections::HashMap::new(),
+            raw_entries: vec![
+                "domain = \"formal_verification\"".to_string(),
+                "version = \"1.0.0\"".to_string(),
+                "properties = 3".to_string(),
+            ],
+            span: None,
+        })],
         span: None,
     }
 }
@@ -60,7 +60,7 @@ fn test_z3_required_basic_property_verification() {
     println!("✅ Z3 is available, proceeding with basic property verification");
 
     let document = create_test_document();
-    
+
     // Create Z3 facade - should succeed since we verified Z3 is available
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
@@ -68,13 +68,20 @@ fn test_z3_required_basic_property_verification() {
     println!("✅ Z3 facade created successfully");
 
     // Run formal verification
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("Formal verification should succeed with valid document");
 
     println!("📊 Basic property verification results:");
     println!("  - Status: {:?}", result.status);
-    println!("  - Properties verified: {}", result.verified_properties.len());
-    println!("  - Verification time: {}ms", result.stats.verification_time_ms);
+    println!(
+        "  - Properties verified: {}",
+        result.verified_properties.len()
+    );
+    println!(
+        "  - Verification time: {}ms",
+        result.stats.verification_time_ms
+    );
     println!("  - SMT queries: {}", result.stats.smt_queries);
 
     // Validation assertions
@@ -102,7 +109,7 @@ fn test_z3_required_temporal_property_verification() {
     }
 
     let document = create_test_document();
-    
+
     let result = quick_verify(&document, None)
         .expect("Temporal verification should succeed when Z3 is available");
 
@@ -131,11 +138,12 @@ fn test_z3_required_falsifiable_properties() {
     }
 
     let document = create_test_document();
-    
+
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
 
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("Falsifiable property verification should succeed");
 
     println!("📊 Falsifiable property verification results:");
@@ -151,10 +159,16 @@ fn test_z3_required_falsifiable_properties() {
                 println!("✅ Property '{}' proven", property.id);
             }
             PropertyResult::Disproven => {
-                println!("❌ Property '{}' disproven (counterexample available)", property.id);
+                println!(
+                    "❌ Property '{}' disproven (counterexample available)",
+                    property.id
+                );
             }
             PropertyResult::Unknown => {
-                println!("🟡 Property '{}' unknown (timeout/resource limit)", property.id);
+                println!(
+                    "🟡 Property '{}' unknown (timeout/resource limit)",
+                    property.id
+                );
             }
             _ => {
                 println!("ℹ️ Property '{}': {:?}", property.id, property.result);
@@ -176,11 +190,12 @@ fn test_z3_required_complex_mathematical_proofs() {
     }
 
     let document = create_test_document();
-    
+
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
 
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("Mathematical proof verification should succeed");
 
     println!("📊 Complex mathematical proof results:");
@@ -213,7 +228,7 @@ fn test_z3_required_concurrent_system_verification() {
     }
 
     let document = create_test_document();
-    
+
     let result = quick_verify(&document, None)
         .expect("Concurrent system verification should succeed when Z3 is available");
 
@@ -229,10 +244,16 @@ fn test_z3_required_concurrent_system_verification() {
                 println!("🔒 Concurrent property '{}' verified", property.id);
             }
             PropertyResult::Disproven => {
-                println!("⚠️ Concurrent property '{}' violated (safety issue!)", property.id);
+                println!(
+                    "⚠️ Concurrent property '{}' violated (safety issue!)",
+                    property.id
+                );
             }
             _ => {
-                println!("🟡 Concurrent property '{}': {:?}", property.id, property.result);
+                println!(
+                    "🟡 Concurrent property '{}': {:?}",
+                    property.id, property.result
+                );
             }
         }
     }
@@ -256,7 +277,7 @@ fn test_z3_required_timeout_handling() {
     }
 
     let document = create_test_document();
-    
+
     // Test with very short timeout to force timeout behavior
     let result = quick_verify(&document, None)
         .expect("Timeout verification should succeed (may timeout internally)");
@@ -274,7 +295,10 @@ fn test_z3_required_timeout_handling() {
                 println!("⏰ Property '{}' timed out (expected)", property.id);
             }
             _ => {
-                println!("🏃 Property '{}' completed: {:?}", property.id, property.result);
+                println!(
+                    "🏃 Property '{}' completed: {:?}",
+                    property.id, property.result
+                );
             }
         }
     }
@@ -299,11 +323,12 @@ fn test_z3_required_smt_formula_generation() {
     }
 
     let document = create_test_document();
-    
+
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
 
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("SMT formula generation should succeed");
 
     println!("📊 SMT formula generation results:");
@@ -315,14 +340,15 @@ fn test_z3_required_smt_formula_generation() {
     // Check SMT formula generation
     for property in &result.verified_properties {
         if !property.smt_formula.is_empty() {
-            println!("📜 SMT formula for '{}': {} chars", property.id, property.smt_formula.len());
+            println!(
+                "📜 SMT formula for '{}': {} chars",
+                property.id,
+                property.smt_formula.len()
+            );
         }
     }
 
-    assert!(
-        result.stats.smt_queries >= 0,
-        "Should track SMT queries"
-    );
+    assert!(result.stats.smt_queries >= 0, "Should track SMT queries");
 
     assert!(
         result.stats.verification_time_ms < 10000,
@@ -343,11 +369,12 @@ fn test_z3_required_end_to_end_formal_validation() {
     }
 
     let document = create_test_document();
-    
+
     let mut facade = Z3VerificationFacade::new()
         .expect("Z3 facade creation should succeed when Z3 is available");
 
-    let result = facade.verify_document(&document, None)
+    let result = facade
+        .verify_document(&document, None)
         .expect("End-to-end formal validation should succeed");
 
     println!("📊 End-to-end formal validation results:");
@@ -359,17 +386,26 @@ fn test_z3_required_end_to_end_formal_validation() {
     println!("  - Peak memory: {} bytes", result.stats.peak_memory);
 
     // Check comprehensive verification results
-    let proven_count = result.verified_properties.iter()
+    let proven_count = result
+        .verified_properties
+        .iter()
         .filter(|p| p.result == PropertyResult::Proven)
         .count();
-    let disproven_count = result.verified_properties.iter()
+    let disproven_count = result
+        .verified_properties
+        .iter()
         .filter(|p| p.result == PropertyResult::Disproven)
         .count();
-    let unknown_count = result.verified_properties.iter()
+    let unknown_count = result
+        .verified_properties
+        .iter()
         .filter(|p| p.result == PropertyResult::Unknown)
         .count();
 
-    println!("  - Proven: {}, Disproven: {}, Unknown: {}", proven_count, disproven_count, unknown_count);
+    println!(
+        "  - Proven: {}, Disproven: {}, Unknown: {}",
+        proven_count, disproven_count, unknown_count
+    );
 
     // Performance validation
     assert!(
@@ -391,30 +427,53 @@ fn test_z3_required_integration_with_validation_levels() {
     }
 
     let document = create_test_document();
-    
+
     // Test integration with enterprise pipeline
     let mut pipeline = MultiLayerVerificationPipeline::new();
-    let pipeline_result = pipeline.verify_document(&document)
+    let pipeline_result = pipeline
+        .verify_document(&document)
         .expect("Pipeline integration should succeed when Z3 is available");
 
     println!("📊 Validation level integration results:");
-    println!("  - Overall security score: {:.2}", pipeline_result.overall_security_score);
-    println!("  - Enterprise compliance score: {:.2}", pipeline_result.enterprise_compliance_score);
-    println!("  - Verification confidence: {:.2}", pipeline_result.verification_confidence);
-    println!("  - Production readiness: {:.2}", pipeline_result.production_readiness_score);
-    println!("  - Attack resistance: {:?}", pipeline_result.attack_resistance_rating);
-    println!("  - Recommendations: {}", pipeline_result.recommendations.len());
+    println!(
+        "  - Overall security score: {:.2}",
+        pipeline_result.overall_security_score
+    );
+    println!(
+        "  - Enterprise compliance score: {:.2}",
+        pipeline_result.enterprise_compliance_score
+    );
+    println!(
+        "  - Verification confidence: {:.2}",
+        pipeline_result.verification_confidence
+    );
+    println!(
+        "  - Production readiness: {:.2}",
+        pipeline_result.production_readiness_score
+    );
+    println!(
+        "  - Attack resistance: {:?}",
+        pipeline_result.attack_resistance_rating
+    );
+    println!(
+        "  - Recommendations: {}",
+        pipeline_result.recommendations.len()
+    );
 
     // Test Z3 facade integration
     let facade_result = quick_verify(&document, None)
         .expect("Quick verification should succeed when Z3 is available");
 
     println!("  - Z3 status: {:?}", facade_result.status);
-    println!("  - Z3 properties: {}", facade_result.verified_properties.len());
+    println!(
+        "  - Z3 properties: {}",
+        facade_result.verified_properties.len()
+    );
 
     // Validation assertions
     assert!(
-        pipeline_result.overall_security_score >= 0.0 && pipeline_result.overall_security_score <= 1.0,
+        pipeline_result.overall_security_score >= 0.0
+            && pipeline_result.overall_security_score <= 1.0,
         "Overall security score should be normalized"
     );
 

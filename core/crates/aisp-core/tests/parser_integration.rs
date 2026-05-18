@@ -6,8 +6,8 @@
 use aisp_core::{
     ast::canonical::{CanonicalAispDocument as AispDocument, *},
     parser_new::AispParser,
-    validator::{AispValidator, ValidationConfig},
     semantic::QualityTier,
+    validator::{AispValidator, ValidationConfig},
 };
 
 /// Builder for creating parser test cases
@@ -45,8 +45,13 @@ impl ParserTestBuilder {
             ParseResult::Failed
         } else {
             let document = result.expect("Parsing should succeed");
-            assert_eq!(document.blocks.len(), self.expected_blocks, 
-                "Expected {} blocks but got {}", self.expected_blocks, document.blocks.len());
+            assert_eq!(
+                document.blocks.len(),
+                self.expected_blocks,
+                "Expected {} blocks but got {}",
+                self.expected_blocks,
+                document.blocks.len()
+            );
             ParseResult::Success(document)
         }
     }
@@ -83,24 +88,30 @@ impl DocumentAssertion {
     }
 
     pub fn has_meta_block(self) -> MetaBlockAssertion {
-        let meta_block = self.document.blocks.iter()
+        let meta_block = self
+            .document
+            .blocks
+            .iter()
             .find_map(|block| match block {
                 AispBlock::Meta(meta) => Some(meta.clone()),
                 _ => None,
             })
             .expect("Expected meta block");
-        
+
         MetaBlockAssertion::new(meta_block)
     }
 
     pub fn has_evidence_block(self) -> EvidenceBlockAssertion {
-        let evidence_block = self.document.blocks.iter()
+        let evidence_block = self
+            .document
+            .blocks
+            .iter()
             .find_map(|block| match block {
                 AispBlock::Evidence(evidence) => Some(evidence.clone()),
                 _ => None,
             })
             .expect("Expected evidence block");
-        
+
         EvidenceBlockAssertion::new(evidence_block)
     }
 }
@@ -120,8 +131,11 @@ impl MetaBlockAssertion {
     }
 
     pub fn has_entry(self, key: &str) -> Self {
-        assert!(self.meta.entries.contains_key(key), 
-            "Expected entry '{}' not found", key);
+        assert!(
+            self.meta.entries.contains_key(key),
+            "Expected entry '{}' not found",
+            key
+        );
         self
     }
 }
@@ -137,8 +151,12 @@ impl EvidenceBlockAssertion {
 
     pub fn has_delta(self, expected: f64) -> Self {
         let actual = self.evidence.delta.expect("Expected delta value");
-        assert!((actual - expected).abs() < 0.001,
-            "Expected delta {} but got {}", expected, actual);
+        assert!(
+            (actual - expected).abs() < 0.001,
+            "Expected delta {} but got {}",
+            expected,
+            actual
+        );
         self
     }
 
@@ -250,13 +268,15 @@ fn test_parse_complex_types() {
         .test_parse()
     {
         // Find types block and verify type definitions
-        let types_block = document.blocks.iter()
+        let types_block = document
+            .blocks
+            .iter()
             .find_map(|block| match block {
                 AispBlock::Types(types) => Some(types),
                 _ => None,
             })
             .expect("Expected types block");
-        
+
         assert!(types_block.definitions.contains_key("MyNat"));
         assert!(types_block.definitions.contains_key("MyEnum"));
     } else {
@@ -291,7 +311,7 @@ fn test_validation_integration() {
 
     let validator = AispValidator::new();
     let result = validator.validate(input);
-    
+
     // Just verify the validation runs without panic
     // Actual validity depends on semantic analysis implementation
     assert!(result.delta > 0.0);
@@ -307,18 +327,14 @@ fn test_invalid_syntax() {
   INVALID_SYNTAX_HERE
 }"#;
 
-    ParserTestBuilder::new(input)
-        .should_fail()
-        .test_parse();
+    ParserTestBuilder::new(input).should_fail().test_parse();
 }
 
 #[test]
 fn test_empty_document() {
     let input = "";
 
-    ParserTestBuilder::new(input)
-        .should_fail()
-        .test_parse();
+    ParserTestBuilder::new(input).should_fail().test_parse();
 }
 
 #[test]

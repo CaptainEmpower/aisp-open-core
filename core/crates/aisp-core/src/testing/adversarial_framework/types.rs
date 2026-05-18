@@ -10,7 +10,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum AttackSeverity {
     Low,
-    Medium, 
+    Medium,
     High,
     Critical,
 }
@@ -322,8 +322,14 @@ mod tests {
     #[test]
     fn test_attack_category_display() {
         assert_eq!(format!("{}", AttackCategory::ParseBypass), "Parse Bypass");
-        assert_eq!(format!("{}", AttackCategory::UnicodeConfusion), "Unicode Confusion");
-        assert_eq!(format!("{}", AttackCategory::InjectionAttack), "Injection Attack");
+        assert_eq!(
+            format!("{}", AttackCategory::UnicodeConfusion),
+            "Unicode Confusion"
+        );
+        assert_eq!(
+            format!("{}", AttackCategory::InjectionAttack),
+            "Injection Attack"
+        );
     }
 
     #[test]
@@ -346,7 +352,7 @@ mod tests {
         let severity = AttackSeverity::High;
         let cloned = severity.clone();
         assert_eq!(severity, cloned);
-        
+
         let category = AttackCategory::ParseBypass;
         let cloned_cat = category.clone();
         assert_eq!(category, cloned_cat);

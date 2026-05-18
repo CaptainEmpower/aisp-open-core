@@ -9,9 +9,8 @@
 #![cfg(feature = "semantic-integration-deprecated")]
 
 use aisp_core::{
-    SemanticAnalyzer, AispDocument, AispParser, SemanticAnalysisResult,
-    ValidationLevel, QualityAnalyzer, SymbolAnalyzer, TypeChecker,
-    QualityTier, AispError, AispWarning
+    AispDocument, AispError, AispParser, AispWarning, QualityAnalyzer, QualityTier,
+    SemanticAnalysisResult, SemanticAnalyzer, SymbolAnalyzer, TypeChecker, ValidationLevel,
 };
 use std::collections::HashMap;
 
@@ -50,7 +49,8 @@ impl SemanticTestBuilder {
 
     pub fn test_semantic_analysis(self) -> SemanticResult {
         let parser = AispParser::new();
-        let document = parser.parse(&self.document_source)
+        let document = parser
+            .parse(&self.document_source)
             .expect("Document should parse successfully for semantic analysis");
 
         let mut analyzer = SemanticAnalyzer::new();
@@ -58,21 +58,31 @@ impl SemanticTestBuilder {
 
         // Verify error count
         if result.errors.len() != self.expected_errors {
-            panic!("Expected {} errors but got {}: {:?}", 
-                self.expected_errors, result.errors.len(), result.errors);
+            panic!(
+                "Expected {} errors but got {}: {:?}",
+                self.expected_errors,
+                result.errors.len(),
+                result.errors
+            );
         }
 
         // Verify warning count
         if result.warnings.len() != self.expected_warnings {
-            panic!("Expected {} warnings but got {}: {:?}", 
-                self.expected_warnings, result.warnings.len(), result.warnings);
+            panic!(
+                "Expected {} warnings but got {}: {:?}",
+                self.expected_warnings,
+                result.warnings.len(),
+                result.warnings
+            );
         }
 
         // Verify quality tier if specified
         if let Some(expected_quality) = self.expected_quality {
             if result.quality_tier != expected_quality {
-                panic!("Expected quality tier {:?} but got {:?}", 
-                    expected_quality, result.quality_tier);
+                panic!(
+                    "Expected quality tier {:?} but got {:?}",
+                    expected_quality, result.quality_tier
+                );
             }
         }
 
@@ -92,48 +102,83 @@ impl SemanticResult {
     }
 
     pub fn has_type_definitions(self, count: usize) -> Self {
-        assert_eq!(self.analysis.type_definitions.len(), count,
-            "Expected {} type definitions but got {}", count, self.analysis.type_definitions.len());
+        assert_eq!(
+            self.analysis.type_definitions.len(),
+            count,
+            "Expected {} type definitions but got {}",
+            count,
+            self.analysis.type_definitions.len()
+        );
         self
     }
 
     pub fn has_function_definitions(self, count: usize) -> Self {
-        assert_eq!(self.analysis.function_definitions.len(), count,
-            "Expected {} function definitions but got {}", count, self.analysis.function_definitions.len());
+        assert_eq!(
+            self.analysis.function_definitions.len(),
+            count,
+            "Expected {} function definitions but got {}",
+            count,
+            self.analysis.function_definitions.len()
+        );
         self
     }
 
     pub fn has_symbol_count(self, count: usize) -> Self {
-        assert_eq!(self.analysis.symbol_table.len(), count,
-            "Expected {} symbols but got {}", count, self.analysis.symbol_table.len());
+        assert_eq!(
+            self.analysis.symbol_table.len(),
+            count,
+            "Expected {} symbols but got {}",
+            count,
+            self.analysis.symbol_table.len()
+        );
         self
     }
 
     pub fn has_delta_above(self, threshold: f64) -> Self {
-        assert!(self.analysis.delta >= threshold,
-            "Expected delta >= {} but got {}", threshold, self.analysis.delta);
+        assert!(
+            self.analysis.delta >= threshold,
+            "Expected delta >= {} but got {}",
+            threshold,
+            self.analysis.delta
+        );
         self
     }
 
     pub fn has_ambiguity_below(self, threshold: f64) -> Self {
-        assert!(self.analysis.ambiguity <= threshold,
-            "Expected ambiguity <= {} but got {}", threshold, self.analysis.ambiguity);
+        assert!(
+            self.analysis.ambiguity <= threshold,
+            "Expected ambiguity <= {} but got {}",
+            threshold,
+            self.analysis.ambiguity
+        );
         self
     }
 
     pub fn has_error_containing(self, message_fragment: &str) -> Self {
-        let found = self.analysis.errors.iter()
+        let found = self
+            .analysis
+            .errors
+            .iter()
             .any(|error| error.message.contains(message_fragment));
-        assert!(found, "Expected error containing '{}' but errors were: {:?}", 
-            message_fragment, self.analysis.errors);
+        assert!(
+            found,
+            "Expected error containing '{}' but errors were: {:?}",
+            message_fragment, self.analysis.errors
+        );
         self
     }
 
     pub fn has_warning_containing(self, message_fragment: &str) -> Self {
-        let found = self.analysis.warnings.iter()
+        let found = self
+            .analysis
+            .warnings
+            .iter()
             .any(|warning| warning.message.contains(message_fragment));
-        assert!(found, "Expected warning containing '{}' but warnings were: {:?}", 
-            message_fragment, self.analysis.warnings);
+        assert!(
+            found,
+            "Expected warning containing '{}' but warnings were: {:?}",
+            message_fragment, self.analysis.warnings
+        );
         self
     }
 }
