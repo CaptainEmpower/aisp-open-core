@@ -74,8 +74,8 @@ mod integration_tests {
         // Should work regardless of Z3 feature availability
         match verification_result.status {
             VerificationStatus::AllVerified
-            | VerificationStatus::PartiallyVerified
-            | VerificationStatus::Incomplete
+            | VerificationStatus::PartiallyVerified { .. }
+            | VerificationStatus::Incomplete { .. }
             | VerificationStatus::Disabled => {
                 // All acceptable for integration test
                 assert!(true);

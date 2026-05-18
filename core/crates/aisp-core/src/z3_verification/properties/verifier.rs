@@ -429,6 +429,11 @@ impl PropertyVerifier {
         Some(Context::thread_local())
     }
 
+    /// Get verification statistics
+    pub fn get_stats(&self) -> &EnhancedVerificationStats {
+        &self.stats
+    }
+
     /// Verify tri-vector properties
     pub fn verify_tri_vector_properties(
         &mut self,
@@ -992,8 +997,8 @@ mod tests {
         let config = AdvancedVerificationConfig::default();
         let verifier = PropertyVerifier::new(config);
 
-        assert_eq!(verifier.stats.successful_proofs, 0);
-        assert_eq!(verifier.stats.counterexamples, 0);
+        assert_eq!(verifier.stats.proven_properties, 0);
+        assert_eq!(verifier.stats.disproven_properties, 0);
         assert_eq!(verifier.stats.smt_queries, 0);
     }
 

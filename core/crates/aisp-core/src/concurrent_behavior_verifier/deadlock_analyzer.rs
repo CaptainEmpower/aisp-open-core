@@ -52,7 +52,7 @@ pub enum DetectionApproach {
 }
 
 /// Computational complexity classes
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum ComplexityClass {
     Constant,
     Logarithmic,

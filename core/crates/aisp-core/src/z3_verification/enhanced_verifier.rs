@@ -207,10 +207,10 @@ mod tests {
 
             // Test empty properties
             let empty_props = vec![];
-            assert_eq!(
+            assert!(matches!(
                 verifier.determine_status(&empty_props),
-                Z3VerificationStatus::Incomplete
-            );
+                Z3VerificationStatus::Incomplete { .. }
+            ));
 
             // Test all proven properties
             let proven_props = vec![Z3VerifiedProperty::new(

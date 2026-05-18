@@ -209,7 +209,7 @@ pub enum ConstraintType {
 }
 
 /// Constraint enforcement levels
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum ConstraintEnforcement {
     Strict,
     Soft,

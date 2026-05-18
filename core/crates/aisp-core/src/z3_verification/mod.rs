@@ -151,6 +151,8 @@ mod tests {
             solver_tactics: vec!["simplify".to_string()],
             max_memory_mb: 2048,
             random_seed: Some(123),
+            max_recursion_depth: 1000,
+            parallel_solving: false,
         };
 
         let verifier_result = create_configured_verifier(config);
@@ -182,8 +184,8 @@ mod tests {
             // With Z3, we should get a proper result
             match verification_result.status {
                 VerificationStatus::AllVerified
-                | VerificationStatus::PartiallyVerified
-                | VerificationStatus::Incomplete => {
+                | VerificationStatus::PartiallyVerified { .. }
+                | VerificationStatus::Incomplete { .. } => {
                     // All acceptable for minimal document
                     assert!(true);
                 }
@@ -218,7 +220,10 @@ mod tests {
             "test".to_string(),
             PropertyCategory::TypeSafety,
             "Test property".to_string(),
-            PropertyResult::Proven,
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_secs(1),
+            },
         );
         assert_eq!(property.id, "test");
         assert_eq!(property.category, PropertyCategory::TypeSafety);
@@ -252,16 +257,31 @@ mod tests {
     #[test]
     fn test_property_result_types() {
         let results = [
-            PropertyResult::Proven,
-            PropertyResult::Disproven,
-            PropertyResult::Unknown,
-            PropertyResult::Error("test".to_string()),
-            PropertyResult::Unsupported,
+            PropertyResult::Proven {
+                proof_certificate: "test_proof".to_string(),
+                verification_time: std::time::Duration::from_secs(1),
+            },
+            PropertyResult::Disproven {
+                counterexample: "test_counter".to_string(),
+                verification_time: std::time::Duration::from_secs(1),
+            },
+            PropertyResult::Unknown {
+                reason: "test_reason".to_string(),
+                partial_progress: 0.5,
+            },
+            PropertyResult::Error {
+                error_message: "test".to_string(),
+                error_code: 1,
+            },
+            PropertyResult::Unsupported {
+                property_type: "test_type".to_string(),
+                suggested_alternative: None,
+            },
         ];
 
         assert_eq!(results.len(), 5);
-        assert_eq!(results[0], PropertyResult::Proven);
-        assert_ne!(results[0], PropertyResult::Disproven);
+        assert!(matches!(results[0], PropertyResult::Proven { .. }));
+        assert!(!matches!(results[0], PropertyResult::Disproven { .. }));
     }
 
     #[test]
