@@ -458,20 +458,35 @@ mod tests {
 
     #[test]
     fn test_factor_category() {
-        assert_eq!(FactorCategory::ResourceExhaustion, FactorCategory::ResourceExhaustion);
-        assert_ne!(FactorCategory::ResourceExhaustion, FactorCategory::LoadIncrease);
+        assert_eq!(
+            FactorCategory::ResourceExhaustion,
+            FactorCategory::ResourceExhaustion
+        );
+        assert_ne!(
+            FactorCategory::ResourceExhaustion,
+            FactorCategory::LoadIncrease
+        );
     }
 
     #[test]
     fn test_implementation_complexity() {
-        assert_eq!(ImplementationComplexity::Easy, ImplementationComplexity::Easy);
-        assert_ne!(ImplementationComplexity::Easy, ImplementationComplexity::Complex);
+        assert_eq!(
+            ImplementationComplexity::Easy,
+            ImplementationComplexity::Easy
+        );
+        assert_ne!(
+            ImplementationComplexity::Easy,
+            ImplementationComplexity::Complex
+        );
     }
 
     #[test]
     fn test_default_degradation_analysis() {
         let analysis = PerformanceDegradationAnalysis::default();
-        assert_eq!(analysis.overall_assessment.severity, DegradationSeverity::None);
+        assert_eq!(
+            analysis.overall_assessment.severity,
+            DegradationSeverity::None
+        );
         assert_eq!(analysis.overall_assessment.degradation_score, 0.0);
         assert!(analysis.degradation_patterns.is_empty());
     }

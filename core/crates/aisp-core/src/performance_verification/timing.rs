@@ -419,13 +419,25 @@ mod tests {
 
     #[test]
     fn test_temporal_violation_type() {
-        assert_eq!(TemporalViolationType::ClockDrift, TemporalViolationType::ClockDrift);
-        assert_ne!(TemporalViolationType::ClockDrift, TemporalViolationType::EventOrdering);
+        assert_eq!(
+            TemporalViolationType::ClockDrift,
+            TemporalViolationType::ClockDrift
+        );
+        assert_ne!(
+            TemporalViolationType::ClockDrift,
+            TemporalViolationType::EventOrdering
+        );
     }
 
     #[test]
     fn test_causal_relationship() {
-        assert_eq!(CausalRelationship::HappensBefore, CausalRelationship::HappensBefore);
-        assert_ne!(CausalRelationship::HappensBefore, CausalRelationship::Concurrent);
+        assert_eq!(
+            CausalRelationship::HappensBefore,
+            CausalRelationship::HappensBefore
+        );
+        assert_ne!(
+            CausalRelationship::HappensBefore,
+            CausalRelationship::Concurrent
+        );
     }
 }

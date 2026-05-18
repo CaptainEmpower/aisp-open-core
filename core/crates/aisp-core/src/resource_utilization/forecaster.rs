@@ -89,11 +89,11 @@ pub struct TrendComponent {
 /// Types of trends
 #[derive(Debug, Clone)]
 pub enum TrendType {
-    Linear(f64),           // Rate of change
-    Exponential(f64),      // Growth factor
-    Seasonal(Duration),    // Cycle period
-    Cyclical(Duration),    // Irregular cycle period
-    Random(f64),          // Noise level
+    Linear(f64),        // Rate of change
+    Exponential(f64),   // Growth factor
+    Seasonal(Duration), // Cycle period
+    Cyclical(Duration), // Irregular cycle period
+    Random(f64),        // Noise level
 }
 
 /// Accuracy metrics for forecast
@@ -155,14 +155,15 @@ impl ResourceForecaster {
     pub fn add_data_point(&mut self, resource_type: ResourceType, data_point: DataPoint) {
         // Clone the resource_type so we can use it later
         let resource_type_key = resource_type.clone();
-        
+
         self.historical_data
             .entry(resource_type)
             .or_insert_with(Vec::new)
             .push(data_point);
-        
+
         // Keep only recent data points based on configuration
-        let cutoff_time = std::time::Instant::now() - Duration::from_secs(self.config.historical_periods as u64 * 3600);
+        let cutoff_time = std::time::Instant::now()
+            - Duration::from_secs(self.config.historical_periods as u64 * 3600);
         if let Some(data) = self.historical_data.get_mut(&resource_type_key) {
             data.retain(|point| point.timestamp > cutoff_time);
         }
@@ -170,32 +171,34 @@ impl ResourceForecaster {
 
     /// Generate forecast for specific resource
     pub fn forecast_resource(&self, resource_type: &ResourceType) -> AispResult<ForecastResult> {
-        let historical_data = self.historical_data
-            .get(resource_type)
-            .ok_or_else(|| crate::error::AispError::validation_error(
-                &format!("No historical data for resource type: {:?}", resource_type)
-            ))?;
+        let historical_data = self.historical_data.get(resource_type).ok_or_else(|| {
+            crate::error::AispError::validation_error(&format!(
+                "No historical data for resource type: {:?}",
+                resource_type
+            ))
+        })?;
 
         if historical_data.len() < 3 {
             return Err(crate::error::AispError::validation_error(
-                "Insufficient historical data for forecasting"
+                "Insufficient historical data for forecasting",
             ));
         }
 
         // Analyze trends in historical data
         let trends = self.analyze_trends(historical_data)?;
-        
+
         // Generate projections
         let projected_values = self.generate_projections(historical_data, &trends)?;
-        
+
         // Calculate forecast confidence
         let confidence = self.calculate_forecast_confidence(historical_data, &trends);
-        
+
         // Calculate accuracy metrics
         let accuracy_metrics = self.calculate_accuracy_metrics(historical_data);
-        
+
         // Generate recommendations
-        let recommendations = self.generate_forecast_recommendations(resource_type, &projected_values, &trends)?;
+        let recommendations =
+            self.generate_forecast_recommendations(resource_type, &projected_values, &trends)?;
 
         Ok(ForecastResult {
             resource_type: resource_type.clone(),
@@ -215,7 +218,7 @@ impl ResourceForecaster {
             match self.forecast_resource(resource_type) {
                 Ok(forecast) => {
                     results.insert(resource_type.clone(), forecast);
-                },
+                }
                 Err(_) => {
                     // Skip resources with insufficient data
                     continue;
@@ -237,7 +240,7 @@ impl ResourceForecaster {
         // Extract values and calculate basic statistics
         let values: Vec<f64> = data.iter().map(|dp| dp.value).collect();
         let mean = values.iter().sum::<f64>() / values.len() as f64;
-        
+
         // Calculate linear trend
         let linear_trend = self.calculate_linear_trend(&values);
         if linear_trend.abs() > 0.01 {
@@ -257,17 +260,18 @@ impl ResourceForecaster {
         }
 
         // Calculate volatility
-        let variance = values.iter()
-            .map(|v| (v - mean).powi(2))
-            .sum::<f64>() / values.len() as f64;
+        let variance = values.iter().map(|v| (v - mean).powi(2)).sum::<f64>() / values.len() as f64;
         let volatility = variance.sqrt() / mean;
-        
+
         if volatility > 0.1 {
             trends.push(TrendComponent {
                 trend_type: TrendType::Random(volatility),
                 strength: volatility.min(1.0),
                 duration: Duration::from_secs(3600), // 1 hour cycles for volatility
-                factors: vec!["Market volatility".to_string(), "Usage variability".to_string()],
+                factors: vec![
+                    "Market volatility".to_string(),
+                    "Usage variability".to_string(),
+                ],
             });
         }
 
@@ -304,7 +308,7 @@ impl ResourceForecaster {
     fn detect_seasonal_pattern(&self, values: &[f64]) -> Option<TrendComponent> {
         // Simple seasonal detection - look for repeating patterns
         let cycle_length = 24; // Assume 24-hour cycles
-        
+
         if values.len() < cycle_length * 2 {
             return None;
         }
@@ -313,7 +317,8 @@ impl ResourceForecaster {
         let mut max_correlation = 0.0;
         let mut best_period = cycle_length;
 
-        for period in [12, 24, 168] { // 12h, 24h, 168h (weekly)
+        for period in [12, 24, 168] {
+            // 12h, 24h, 168h (weekly)
             if values.len() < period * 2 {
                 continue;
             }
@@ -362,10 +367,14 @@ impl ResourceForecaster {
     }
 
     /// Generate projections based on trends
-    fn generate_projections(&self, data: &[DataPoint], trends: &[TrendComponent]) -> AispResult<Vec<ProjectedValue>> {
+    fn generate_projections(
+        &self,
+        data: &[DataPoint],
+        trends: &[TrendComponent],
+    ) -> AispResult<Vec<ProjectedValue>> {
         let mut projections = Vec::new();
         let latest_value = data.last().unwrap().value;
-        
+
         // Generate projections for time horizon
         let steps = (self.config.time_horizon.as_secs() / 3600).max(1) as usize; // Hourly projections
         let step_duration = self.config.time_horizon / steps as u32;
@@ -373,7 +382,7 @@ impl ResourceForecaster {
         for step in 1..=steps {
             let time_offset = step_duration * step as u32;
             let hours_ahead = time_offset.as_secs_f64() / 3600.0;
-            
+
             // Apply trend components
             let mut predicted_value = latest_value;
             let mut factors = Vec::new();
@@ -383,27 +392,31 @@ impl ResourceForecaster {
                     TrendType::Linear(slope) => {
                         predicted_value += slope * hours_ahead * trend.strength;
                         factors.push(format!("Linear trend: {:.3}/hour", slope));
-                    },
+                    }
                     TrendType::Exponential(factor) => {
                         predicted_value *= factor.powf(hours_ahead * trend.strength);
                         factors.push(format!("Exponential growth: {:.3}", factor));
-                    },
+                    }
                     TrendType::Seasonal(period) => {
-                        let cycle_position = (hours_ahead * 3600.0 % period.as_secs_f64()) / period.as_secs_f64();
-                        let seasonal_factor = (cycle_position * 2.0 * std::f64::consts::PI).sin() * 0.1 * trend.strength;
+                        let cycle_position =
+                            (hours_ahead * 3600.0 % period.as_secs_f64()) / period.as_secs_f64();
+                        let seasonal_factor = (cycle_position * 2.0 * std::f64::consts::PI).sin()
+                            * 0.1
+                            * trend.strength;
                         predicted_value *= 1.0 + seasonal_factor;
                         factors.push(format!("Seasonal adjustment: {:.3}", seasonal_factor));
-                    },
+                    }
                     TrendType::Random(noise) => {
                         // Add uncertainty for random component
                         factors.push(format!("Volatility factor: {:.3}", noise));
-                    },
+                    }
                     _ => {}
                 }
             }
 
             // Calculate confidence intervals
-            let volatility = trends.iter()
+            let volatility = trends
+                .iter()
                 .find_map(|t| match t.trend_type {
                     TrendType::Random(noise) => Some(noise),
                     _ => None,
@@ -411,7 +424,7 @@ impl ResourceForecaster {
                 .unwrap_or(0.05);
 
             let confidence_width = predicted_value * volatility * (hours_ahead / 24.0).sqrt();
-            
+
             projections.push(ProjectedValue {
                 time_offset,
                 predicted_value: predicted_value.max(0.0),
@@ -428,13 +441,13 @@ impl ResourceForecaster {
     fn calculate_forecast_confidence(&self, data: &[DataPoint], trends: &[TrendComponent]) -> f64 {
         // Base confidence on data quality and trend strength
         let data_quality = (data.len() as f64 / self.config.historical_periods as f64).min(1.0);
-        
+
         let trend_confidence = if trends.is_empty() {
             0.5 // Neutral confidence with no trends
         } else {
             trends.iter().map(|t| t.strength).sum::<f64>() / trends.len() as f64
         };
-        
+
         // Combine factors
         (data_quality * 0.6 + trend_confidence * 0.4).min(1.0)
     }
@@ -455,7 +468,7 @@ impl ResourceForecaster {
         &self,
         resource_type: &ResourceType,
         projections: &[ProjectedValue],
-        trends: &[TrendComponent]
+        trends: &[TrendComponent],
     ) -> AispResult<Vec<ForecastRecommendation>> {
         let mut recommendations = Vec::new();
 
@@ -472,7 +485,8 @@ impl ResourceForecaster {
                     },
                     description: format!(
                         "Scale up {:?} before reaching {:.1}% utilization",
-                        resource_type, projection.predicted_value * 100.0
+                        resource_type,
+                        projection.predicted_value * 100.0
                     ),
                     estimated_impact: projection.predicted_value - 0.8,
                 });
@@ -481,12 +495,18 @@ impl ResourceForecaster {
         }
 
         // Check for maintenance windows
-        if trends.iter().any(|t| matches!(t.trend_type, TrendType::Linear(slope) if slope < -0.01)) {
+        if trends
+            .iter()
+            .any(|t| matches!(t.trend_type, TrendType::Linear(slope) if slope < -0.01))
+        {
             recommendations.push(ForecastRecommendation {
                 recommendation_type: ForecastRecommendationType::MaintenanceScheduling,
                 target_time: Duration::from_secs(3600), // Next hour
                 urgency: RecommendationPriority::Medium,
-                description: format!("Schedule maintenance for {:?} during low usage period", resource_type),
+                description: format!(
+                    "Schedule maintenance for {:?} during low usage period",
+                    resource_type
+                ),
                 estimated_impact: 0.1,
             });
         }
@@ -499,7 +519,7 @@ impl Default for ForecastConfig {
     fn default() -> Self {
         Self {
             time_horizon: Duration::from_secs(24 * 3600), // 24 hours
-            historical_periods: 168, // 1 week of hourly data
+            historical_periods: 168,                      // 1 week of hourly data
             confidence_threshold: 0.75,
             enable_seasonal_adjustments: true,
             smoothing_factor: 0.3,
@@ -514,7 +534,10 @@ mod tests {
     #[test]
     fn test_forecaster_creation() {
         let forecaster = ResourceForecaster::new();
-        assert_eq!(forecaster.config.time_horizon, Duration::from_secs(24 * 3600));
+        assert_eq!(
+            forecaster.config.time_horizon,
+            Duration::from_secs(24 * 3600)
+        );
         assert!(forecaster.config.enable_seasonal_adjustments);
         assert_eq!(forecaster.config.confidence_threshold, 0.75);
     }
@@ -522,13 +545,13 @@ mod tests {
     #[test]
     fn test_add_data_point() {
         let mut forecaster = ResourceForecaster::new();
-        
+
         let data_point = DataPoint {
             timestamp: std::time::Instant::now(),
             value: 0.75,
             metadata: HashMap::new(),
         };
-        
+
         forecaster.add_data_point(ResourceType::Memory, data_point);
         assert_eq!(forecaster.historical_data.len(), 1);
         assert_eq!(forecaster.historical_data[&ResourceType::Memory].len(), 1);
@@ -537,17 +560,25 @@ mod tests {
     #[test]
     fn test_linear_trend_calculation() {
         let forecaster = ResourceForecaster::new();
-        
+
         // Test increasing trend
         let increasing_values = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let slope = forecaster.calculate_linear_trend(&increasing_values);
-        assert!(slope > 0.9 && slope < 1.1, "Expected slope ~1.0, got {}", slope);
-        
+        assert!(
+            slope > 0.9 && slope < 1.1,
+            "Expected slope ~1.0, got {}",
+            slope
+        );
+
         // Test decreasing trend
         let decreasing_values = vec![5.0, 4.0, 3.0, 2.0, 1.0];
         let slope = forecaster.calculate_linear_trend(&decreasing_values);
-        assert!(slope < -0.9 && slope > -1.1, "Expected slope ~-1.0, got {}", slope);
-        
+        assert!(
+            slope < -0.9 && slope > -1.1,
+            "Expected slope ~-1.0, got {}",
+            slope
+        );
+
         // Test flat trend
         let flat_values = vec![3.0, 3.0, 3.0, 3.0, 3.0];
         let slope = forecaster.calculate_linear_trend(&flat_values);
@@ -558,21 +589,21 @@ mod tests {
     fn test_forecast_with_sufficient_data() {
         let mut forecaster = ResourceForecaster::new();
         forecaster.config.time_horizon = Duration::from_secs(3600); // 1 hour for testing
-        
+
         // Add trending data points
         let base_time = std::time::Instant::now();
         for i in 0..10 {
             let data_point = DataPoint {
                 timestamp: base_time + Duration::from_secs(i * 360), // 6-minute intervals
-                value: 0.5 + (i as f64 * 0.02), // Slight upward trend
+                value: 0.5 + (i as f64 * 0.02),                      // Slight upward trend
                 metadata: HashMap::new(),
             };
             forecaster.add_data_point(ResourceType::CPU, data_point);
         }
-        
+
         let forecast = forecaster.forecast_resource(&ResourceType::CPU);
         assert!(forecast.is_ok());
-        
+
         let result = forecast.unwrap();
         assert_eq!(result.resource_type, ResourceType::CPU);
         assert!(!result.projected_values.is_empty());
@@ -583,7 +614,7 @@ mod tests {
     #[test]
     fn test_forecast_with_insufficient_data() {
         let mut forecaster = ResourceForecaster::new();
-        
+
         // Add only one data point
         let data_point = DataPoint {
             timestamp: std::time::Instant::now(),
@@ -591,7 +622,7 @@ mod tests {
             metadata: HashMap::new(),
         };
         forecaster.add_data_point(ResourceType::Memory, data_point);
-        
+
         let forecast = forecaster.forecast_resource(&ResourceType::Memory);
         assert!(forecast.is_err());
     }
@@ -599,7 +630,7 @@ mod tests {
     #[test]
     fn test_autocorrelation_calculation() {
         let forecaster = ResourceForecaster::new();
-        
+
         // Create periodic data
         let mut values = Vec::new();
         for i in 0..48 {
@@ -611,51 +642,59 @@ mod tests {
             };
             values.push(value);
         }
-        
+
         // Check for 24-hour correlation
         let correlation_24h = forecaster.calculate_autocorrelation(&values, 24);
-        assert!(correlation_24h > 0.5, "Expected high correlation for 24h period, got {}", correlation_24h);
-        
+        assert!(
+            correlation_24h > 0.5,
+            "Expected high correlation for 24h period, got {}",
+            correlation_24h
+        );
+
         // Check for 12-hour correlation (should be negative)
         let correlation_12h = forecaster.calculate_autocorrelation(&values, 12);
-        assert!(correlation_12h < -0.3, "Expected negative correlation for 12h period, got {}", correlation_12h);
+        assert!(
+            correlation_12h < -0.3,
+            "Expected negative correlation for 12h period, got {}",
+            correlation_12h
+        );
     }
 
     #[test]
     fn test_forecast_recommendations() {
         let forecaster = ResourceForecaster::new();
-        
+
         // Create projections that will trigger scaling recommendation
-        let projections = vec![
-            ProjectedValue {
-                time_offset: Duration::from_secs(3600),
-                predicted_value: 0.85, // High utilization
-                confidence_lower: 0.8,
-                confidence_upper: 0.9,
-                factors: vec!["Test trend".to_string()],
-            }
-        ];
-        
-        let trends = vec![
-            TrendComponent {
-                trend_type: TrendType::Linear(0.05), // Increasing trend
-                strength: 0.7,
-                duration: Duration::from_secs(3600),
-                factors: vec!["Growth pattern".to_string()],
-            }
-        ];
-        
-        let recommendations = forecaster.generate_forecast_recommendations(
-            &ResourceType::CPU,
-            &projections,
-            &trends
-        ).unwrap();
-        
-        assert!(!recommendations.is_empty());
-        let scaling_rec = recommendations.iter()
-            .find(|r| matches!(r.recommendation_type, ForecastRecommendationType::PreemptiveScaling))
+        let projections = vec![ProjectedValue {
+            time_offset: Duration::from_secs(3600),
+            predicted_value: 0.85, // High utilization
+            confidence_lower: 0.8,
+            confidence_upper: 0.9,
+            factors: vec!["Test trend".to_string()],
+        }];
+
+        let trends = vec![TrendComponent {
+            trend_type: TrendType::Linear(0.05), // Increasing trend
+            strength: 0.7,
+            duration: Duration::from_secs(3600),
+            factors: vec!["Growth pattern".to_string()],
+        }];
+
+        let recommendations = forecaster
+            .generate_forecast_recommendations(&ResourceType::CPU, &projections, &trends)
             .unwrap();
-        
+
+        assert!(!recommendations.is_empty());
+        let scaling_rec = recommendations
+            .iter()
+            .find(|r| {
+                matches!(
+                    r.recommendation_type,
+                    ForecastRecommendationType::PreemptiveScaling
+                )
+            })
+            .unwrap();
+
         assert_eq!(scaling_rec.urgency, RecommendationPriority::High);
         assert!(scaling_rec.description.contains("Scale up"));
     }

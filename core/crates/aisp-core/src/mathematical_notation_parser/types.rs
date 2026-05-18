@@ -11,22 +11,22 @@ use thiserror::Error;
 pub enum MathNotationError {
     #[error("Unknown mathematical symbol: '{symbol}' at position {position}")]
     UnknownSymbol { symbol: String, position: usize },
-    
+
     #[error("Invalid mathematical expression: {expression} - {reason}")]
     InvalidExpression { expression: String, reason: String },
-    
+
     #[error("Unsupported Unicode mathematical block: U+{codepoint:04X}")]
     UnsupportedUnicodeBlock { codepoint: u32 },
-    
+
     #[error("Complex mathematical structure parsing failed: {structure_type}")]
     ComplexStructureFailure { structure_type: String },
-    
+
     #[error("Parsing depth limit exceeded: {depth}")]
     DepthLimitExceeded { depth: usize },
-    
+
     #[error("Invalid category theory construct: {construct}")]
     InvalidCategoryConstruct { construct: String },
-    
+
     #[error("Malformed quantifier expression: {reason}")]
     MalformedQuantifier { reason: String },
 }
@@ -37,36 +37,34 @@ pub enum EnhancedMathExpression {
     /// Basic mathematical symbols
     BasicSymbol(String),
     /// Unicode mathematical operators
-    UnicodeOperator { 
-        symbol: String, 
-        unicode_name: String, 
-        category: String 
+    UnicodeOperator {
+        symbol: String,
+        unicode_name: String,
+        category: String,
     },
     /// Category theory constructs
-    CategoryTheory { 
-        construct: CategoryConstruct 
-    },
+    CategoryTheory { construct: CategoryConstruct },
     /// Complex mathematical structures
-    ComplexStructure { 
-        structure_type: String, 
-        components: Vec<EnhancedMathExpression> 
+    ComplexStructure {
+        structure_type: String,
+        components: Vec<EnhancedMathExpression>,
     },
     /// Lambda calculus expressions
-    Lambda { 
-        parameter: String, 
-        body: Box<EnhancedMathExpression> 
+    Lambda {
+        parameter: String,
+        body: Box<EnhancedMathExpression>,
     },
     /// Quantified expressions
-    Quantified { 
-        quantifier: Quantifier, 
-        variable: String, 
-        domain: String, 
-        body: Box<EnhancedMathExpression> 
+    Quantified {
+        quantifier: Quantifier,
+        variable: String,
+        domain: String,
+        body: Box<EnhancedMathExpression>,
     },
     /// Function application
-    Application { 
-        function: Box<EnhancedMathExpression>, 
-        argument: Box<EnhancedMathExpression> 
+    Application {
+        function: Box<EnhancedMathExpression>,
+        argument: Box<EnhancedMathExpression>,
     },
     /// Mathematical constants and sets
     Constant {
@@ -98,35 +96,35 @@ pub enum EnhancedMathExpression {
 #[derive(Debug, Clone, PartialEq)]
 pub enum CategoryConstruct {
     /// Functor: F: C ⇒ D
-    Functor { 
-        name: String, 
-        source: String, 
-        target: String 
+    Functor {
+        name: String,
+        source: String,
+        target: String,
     },
     /// Natural transformation: η: F ⇒ G
-    NaturalTransformation { 
-        name: String, 
-        source_functor: String, 
-        target_functor: String 
+    NaturalTransformation {
+        name: String,
+        source_functor: String,
+        target_functor: String,
     },
     /// Adjunction: L ⊣ R
-    Adjunction { 
-        left_adjoint: String, 
-        right_adjoint: String 
+    Adjunction {
+        left_adjoint: String,
+        right_adjoint: String,
     },
     /// Category: ⟨Objects, Morphisms, ∘, id⟩
-    Category { 
-        name: String, 
-        objects: String, 
-        morphisms: String, 
-        composition: String, 
-        identity: String 
+    Category {
+        name: String,
+        objects: String,
+        morphisms: String,
+        composition: String,
+        identity: String,
     },
     /// Monad: ⟨T, η, μ⟩
-    Monad { 
-        endofunctor: String, 
-        unit: String, 
-        multiplication: String 
+    Monad {
+        endofunctor: String,
+        unit: String,
+        multiplication: String,
     },
     /// Morphism: f: A → B
     Morphism {
@@ -135,13 +133,9 @@ pub enum CategoryConstruct {
         target: String,
     },
     /// Composition: g ∘ f
-    Composition {
-        functions: Vec<String>,
-    },
+    Composition { functions: Vec<String> },
     /// Identity morphism: id_A
-    Identity {
-        object: String,
-    },
+    Identity { object: String },
 }
 
 /// Quantifier types
@@ -364,31 +358,31 @@ impl MathParsingConfig {
     /// Create default precedence rules
     fn default_precedence_rules() -> HashMap<String, i32> {
         let mut rules = HashMap::new();
-        
+
         // Logical operators
         rules.insert("¬".to_string(), 100); // Negation (highest)
-        rules.insert("∧".to_string(), 90);  // Conjunction
-        rules.insert("∨".to_string(), 80);  // Disjunction
-        rules.insert("→".to_string(), 70);  // Implication
-        rules.insert("↔".to_string(), 60);  // Biconditional
-        
+        rules.insert("∧".to_string(), 90); // Conjunction
+        rules.insert("∨".to_string(), 80); // Disjunction
+        rules.insert("→".to_string(), 70); // Implication
+        rules.insert("↔".to_string(), 60); // Biconditional
+
         // Set operators
-        rules.insert("∩".to_string(), 85);  // Intersection
-        rules.insert("∪".to_string(), 75);  // Union
-        rules.insert("⊆".to_string(), 55);  // Subset
-        rules.insert("∈".to_string(), 50);  // Membership
-        
+        rules.insert("∩".to_string(), 85); // Intersection
+        rules.insert("∪".to_string(), 75); // Union
+        rules.insert("⊆".to_string(), 55); // Subset
+        rules.insert("∈".to_string(), 50); // Membership
+
         // Category theory
-        rules.insert("∘".to_string(), 95);  // Composition
-        rules.insert("⇒".to_string(), 65);  // Natural transformation
-        rules.insert("⊣".to_string(), 45);  // Adjunction
-        
+        rules.insert("∘".to_string(), 95); // Composition
+        rules.insert("⇒".to_string(), 65); // Natural transformation
+        rules.insert("⊣".to_string(), 45); // Adjunction
+
         // Arithmetic (for reference)
         rules.insert("*".to_string(), 120);
         rules.insert("/".to_string(), 120);
         rules.insert("+".to_string(), 110);
         rules.insert("-".to_string(), 110);
-        
+
         rules
     }
 
@@ -433,7 +427,10 @@ impl ParsingContext {
         if let Some(current_scope) = self.scopes.last_mut() {
             current_scope.variables.insert(name.clone(), binding);
         }
-        self.bindings.insert(name, EnhancedMathExpression::BasicSymbol("variable".to_string()));
+        self.bindings.insert(
+            name,
+            EnhancedMathExpression::BasicSymbol("variable".to_string()),
+        );
     }
 
     /// Look up variable binding
@@ -590,9 +587,15 @@ mod tests {
     #[test]
     fn test_precedence_rules() {
         let config = MathParsingConfig::default();
-        assert!(config.precedence_rules.get("¬").unwrap() > config.precedence_rules.get("∧").unwrap());
-        assert!(config.precedence_rules.get("∧").unwrap() > config.precedence_rules.get("∨").unwrap());
-        assert!(config.precedence_rules.get("∘").unwrap() > config.precedence_rules.get("∧").unwrap());
+        assert!(
+            config.precedence_rules.get("¬").unwrap() > config.precedence_rules.get("∧").unwrap()
+        );
+        assert!(
+            config.precedence_rules.get("∧").unwrap() > config.precedence_rules.get("∨").unwrap()
+        );
+        assert!(
+            config.precedence_rules.get("∘").unwrap() > config.precedence_rules.get("∧").unwrap()
+        );
     }
 
     #[test]
@@ -619,7 +622,7 @@ mod tests {
             "lambda".to_string(),
             10,
         );
-        
+
         context.bind_variable("x".to_string(), binding);
         let found_binding = context.lookup_variable("x");
         assert!(found_binding.is_some());
@@ -660,7 +663,7 @@ mod tests {
     fn test_quantifier_types() {
         assert_eq!(Quantifier::Forall, Quantifier::Forall);
         assert_ne!(Quantifier::Forall, Quantifier::Exists);
-        
+
         let counting = Quantifier::Counting(5);
         assert!(matches!(counting, Quantifier::Counting(5)));
     }

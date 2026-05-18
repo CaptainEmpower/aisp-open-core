@@ -4,8 +4,8 @@
 
 use super::types::*;
 use crate::error::{AispError, AispResult};
-use std::str::Chars;
 use std::iter::Peekable;
+use std::str::Chars;
 
 /// Category theory expression parser
 pub struct CategoryTheoryParser {
@@ -258,7 +258,9 @@ impl CategoryTheoryParser {
             context.position += 1;
         }
 
-        Ok(EnhancedMathExpression::BasicSymbol(component.trim().to_string()))
+        Ok(EnhancedMathExpression::BasicSymbol(
+            component.trim().to_string(),
+        ))
     }
 
     /// Convert component to string representation
@@ -323,7 +325,9 @@ impl CategoryTheoryParser {
                 "Morphism composition".to_string(),
                 "Category theory".to_string(),
             )
-            .with_definition("Composition of morphisms f: A → B and g: B → C gives g ∘ f: A → C".to_string())
+            .with_definition(
+                "Composition of morphisms f: A → B and g: B → C gives g ∘ f: A → C".to_string(),
+            )
             .with_related_concept("Morphism".to_string())
             .with_related_concept("Category".to_string()),
         );
@@ -336,7 +340,9 @@ impl CategoryTheoryParser {
                 "Natural transformation".to_string(),
                 "Functor category".to_string(),
             )
-            .with_definition("Natural transformation η: F ⇒ G between functors F, G: C → D".to_string())
+            .with_definition(
+                "Natural transformation η: F ⇒ G between functors F, G: C → D".to_string(),
+            )
             .with_related_concept("Functor".to_string())
             .with_related_concept("Natural isomorphism".to_string()),
         );
@@ -401,7 +407,10 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::UnicodeOperator { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::UnicodeOperator { .. }
+        ));
     }
 
     #[test]
@@ -414,7 +423,10 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::CategoryTheory { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::CategoryTheory { .. }
+        ));
     }
 
     #[test]
@@ -427,7 +439,10 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::CategoryTheory { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::CategoryTheory { .. }
+        ));
     }
 
     #[test]
@@ -440,7 +455,10 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::UnicodeOperator { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::UnicodeOperator { .. }
+        ));
     }
 
     #[test]
@@ -453,7 +471,10 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::UnicodeOperator { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::UnicodeOperator { .. }
+        ));
     }
 
     #[test]
@@ -470,7 +491,7 @@ mod tests {
     #[test]
     fn test_mathematical_letter_detection() {
         let parser = CategoryTheoryParser::new();
-        
+
         assert!(parser.is_mathematical_letter('𝔸')); // Mathematical bold A
         assert!(parser.is_mathematical_letter('ℂ')); // Complex numbers
         assert!(!parser.is_mathematical_letter('a')); // Regular letter
@@ -479,7 +500,7 @@ mod tests {
     #[test]
     fn test_category_registry_lookup() {
         let parser = CategoryTheoryParser::new();
-        
+
         let composition_info = parser.category_registry.get("∘");
         assert!(composition_info.is_some());
         assert_eq!(composition_info.unwrap().meaning, "Morphism composition");

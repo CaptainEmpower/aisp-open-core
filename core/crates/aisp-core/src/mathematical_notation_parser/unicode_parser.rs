@@ -5,8 +5,8 @@
 use super::types::*;
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
-use std::str::Chars;
 use std::iter::Peekable;
+use std::str::Chars;
 
 /// Unicode mathematical symbol parser
 pub struct UnicodeParser {
@@ -100,9 +100,9 @@ impl UnicodeParser {
         chars: &mut Peekable<Chars>,
         context: &mut ParsingContext,
     ) -> AispResult<EnhancedMathExpression> {
-        let ch = chars.next().ok_or_else(|| {
-            AispError::validation_error("Unexpected end of input".to_string())
-        })?;
+        let ch = chars
+            .next()
+            .ok_or_else(|| AispError::validation_error("Unexpected end of input".to_string()))?;
 
         let symbol = ch.to_string();
         context.position += 1;
@@ -165,7 +165,9 @@ impl UnicodeParser {
                     symbol: constant_char.to_string(),
                     position: context.position,
                 });
-                return Ok(EnhancedMathExpression::BasicSymbol(constant_char.to_string()));
+                return Ok(EnhancedMathExpression::BasicSymbol(
+                    constant_char.to_string(),
+                ));
             }
         };
 
@@ -251,7 +253,10 @@ impl UnicodeParser {
                 position: context.position,
             });
         } else {
-            context.add_warning(format!("Unknown Unicode symbol: {} (U+{:04X})", ch, codepoint));
+            context.add_warning(format!(
+                "Unknown Unicode symbol: {} (U+{:04X})",
+                ch, codepoint
+            ));
         }
 
         Ok(EnhancedMathExpression::UnicodeOperator {
@@ -342,7 +347,7 @@ impl UnicodeParser {
             '₇' => Ok((ScriptType::Subscript, "7".to_string())),
             '₈' => Ok((ScriptType::Subscript, "8".to_string())),
             '₉' => Ok((ScriptType::Subscript, "9".to_string())),
-            
+
             // Superscripts
             '⁰' => Ok((ScriptType::Superscript, "0".to_string())),
             '¹' => Ok((ScriptType::Superscript, "1".to_string())),
@@ -356,10 +361,11 @@ impl UnicodeParser {
             '⁹' => Ok((ScriptType::Superscript, "9".to_string())),
             '⁺' => Ok((ScriptType::Superscript, "+".to_string())),
             '⁻' => Ok((ScriptType::Superscript, "-".to_string())),
-            
-            _ => Err(AispError::validation_error(
-                format!("Unknown script character: {}", ch)
-            )),
+
+            _ => Err(AispError::validation_error(format!(
+                "Unknown script character: {}",
+                ch
+            ))),
         }
     }
 
@@ -367,7 +373,7 @@ impl UnicodeParser {
     fn get_greek_letter_name(&self, ch: char) -> String {
         match ch {
             'α' => "alpha",
-            'β' => "beta", 
+            'β' => "beta",
             'γ' => "gamma",
             'δ' => "delta",
             'ε' => "epsilon",
@@ -416,7 +422,8 @@ impl UnicodeParser {
             'Ψ' => "Psi",
             'Ω' => "Omega",
             _ => "unknown_greek",
-        }.to_string()
+        }
+        .to_string()
     }
 
     /// Determine symbol category by Unicode codepoint
@@ -443,77 +450,202 @@ impl UnicodeParser {
         let mut registry = HashMap::new();
 
         // Logical operators
-        registry.insert("∀".to_string(), UnicodeSymbolInfo::operator(
-            "∀".to_string(), "FOR ALL".to_string(), 100, Associativity::None
-        ));
-        registry.insert("∃".to_string(), UnicodeSymbolInfo::operator(
-            "∃".to_string(), "THERE EXISTS".to_string(), 100, Associativity::None
-        ));
-        registry.insert("∧".to_string(), UnicodeSymbolInfo::operator(
-            "∧".to_string(), "LOGICAL AND".to_string(), 90, Associativity::Left
-        ));
-        registry.insert("∨".to_string(), UnicodeSymbolInfo::operator(
-            "∨".to_string(), "LOGICAL OR".to_string(), 80, Associativity::Left
-        ));
-        registry.insert("¬".to_string(), UnicodeSymbolInfo::operator(
-            "¬".to_string(), "NOT SIGN".to_string(), 100, Associativity::Right
-        ));
+        registry.insert(
+            "∀".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∀".to_string(),
+                "FOR ALL".to_string(),
+                100,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "∃".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∃".to_string(),
+                "THERE EXISTS".to_string(),
+                100,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "∧".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∧".to_string(),
+                "LOGICAL AND".to_string(),
+                90,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "∨".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∨".to_string(),
+                "LOGICAL OR".to_string(),
+                80,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "¬".to_string(),
+            UnicodeSymbolInfo::operator(
+                "¬".to_string(),
+                "NOT SIGN".to_string(),
+                100,
+                Associativity::Right,
+            ),
+        );
 
         // Set theory operators
-        registry.insert("∈".to_string(), UnicodeSymbolInfo::operator(
-            "∈".to_string(), "ELEMENT OF".to_string(), 50, Associativity::None
-        ));
-        registry.insert("∉".to_string(), UnicodeSymbolInfo::operator(
-            "∉".to_string(), "NOT AN ELEMENT OF".to_string(), 50, Associativity::None
-        ));
-        registry.insert("⊆".to_string(), UnicodeSymbolInfo::operator(
-            "⊆".to_string(), "SUBSET OF OR EQUAL TO".to_string(), 55, Associativity::None
-        ));
-        registry.insert("⊊".to_string(), UnicodeSymbolInfo::operator(
-            "⊊".to_string(), "SUBSET OF".to_string(), 55, Associativity::None
-        ));
-        registry.insert("∪".to_string(), UnicodeSymbolInfo::operator(
-            "∪".to_string(), "UNION".to_string(), 75, Associativity::Left
-        ));
-        registry.insert("∩".to_string(), UnicodeSymbolInfo::operator(
-            "∩".to_string(), "INTERSECTION".to_string(), 85, Associativity::Left
-        ));
-        registry.insert("∅".to_string(), UnicodeSymbolInfo::basic(
-            "∅".to_string(), "EMPTY SET".to_string(), "Set Theory".to_string()
-        ));
+        registry.insert(
+            "∈".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∈".to_string(),
+                "ELEMENT OF".to_string(),
+                50,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "∉".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∉".to_string(),
+                "NOT AN ELEMENT OF".to_string(),
+                50,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "⊆".to_string(),
+            UnicodeSymbolInfo::operator(
+                "⊆".to_string(),
+                "SUBSET OF OR EQUAL TO".to_string(),
+                55,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "⊊".to_string(),
+            UnicodeSymbolInfo::operator(
+                "⊊".to_string(),
+                "SUBSET OF".to_string(),
+                55,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "∪".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∪".to_string(),
+                "UNION".to_string(),
+                75,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "∩".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∩".to_string(),
+                "INTERSECTION".to_string(),
+                85,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "∅".to_string(),
+            UnicodeSymbolInfo::basic(
+                "∅".to_string(),
+                "EMPTY SET".to_string(),
+                "Set Theory".to_string(),
+            ),
+        );
 
         // Arrows
-        registry.insert("→".to_string(), UnicodeSymbolInfo::operator(
-            "→".to_string(), "RIGHTWARDS ARROW".to_string(), 70, Associativity::Right
-        ));
-        registry.insert("←".to_string(), UnicodeSymbolInfo::operator(
-            "←".to_string(), "LEFTWARDS ARROW".to_string(), 70, Associativity::Left
-        ));
-        registry.insert("⇒".to_string(), UnicodeSymbolInfo::operator(
-            "⇒".to_string(), "RIGHTWARDS DOUBLE ARROW".to_string(), 65, Associativity::Right
-        ));
-        registry.insert("⇐".to_string(), UnicodeSymbolInfo::operator(
-            "⇐".to_string(), "LEFTWARDS DOUBLE ARROW".to_string(), 65, Associativity::Left
-        ));
+        registry.insert(
+            "→".to_string(),
+            UnicodeSymbolInfo::operator(
+                "→".to_string(),
+                "RIGHTWARDS ARROW".to_string(),
+                70,
+                Associativity::Right,
+            ),
+        );
+        registry.insert(
+            "←".to_string(),
+            UnicodeSymbolInfo::operator(
+                "←".to_string(),
+                "LEFTWARDS ARROW".to_string(),
+                70,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "⇒".to_string(),
+            UnicodeSymbolInfo::operator(
+                "⇒".to_string(),
+                "RIGHTWARDS DOUBLE ARROW".to_string(),
+                65,
+                Associativity::Right,
+            ),
+        );
+        registry.insert(
+            "⇐".to_string(),
+            UnicodeSymbolInfo::operator(
+                "⇐".to_string(),
+                "LEFTWARDS DOUBLE ARROW".to_string(),
+                65,
+                Associativity::Left,
+            ),
+        );
 
         // Mathematical operators
-        registry.insert("≤".to_string(), UnicodeSymbolInfo::operator(
-            "≤".to_string(), "LESS-THAN OR EQUAL TO".to_string(), 60, Associativity::None
-        ));
-        registry.insert("≥".to_string(), UnicodeSymbolInfo::operator(
-            "≥".to_string(), "GREATER-THAN OR EQUAL TO".to_string(), 60, Associativity::None
-        ));
-        registry.insert("≠".to_string(), UnicodeSymbolInfo::operator(
-            "≠".to_string(), "NOT EQUAL TO".to_string(), 60, Associativity::None
-        ));
+        registry.insert(
+            "≤".to_string(),
+            UnicodeSymbolInfo::operator(
+                "≤".to_string(),
+                "LESS-THAN OR EQUAL TO".to_string(),
+                60,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "≥".to_string(),
+            UnicodeSymbolInfo::operator(
+                "≥".to_string(),
+                "GREATER-THAN OR EQUAL TO".to_string(),
+                60,
+                Associativity::None,
+            ),
+        );
+        registry.insert(
+            "≠".to_string(),
+            UnicodeSymbolInfo::operator(
+                "≠".to_string(),
+                "NOT EQUAL TO".to_string(),
+                60,
+                Associativity::None,
+            ),
+        );
 
         // Category theory
-        registry.insert("∘".to_string(), UnicodeSymbolInfo::operator(
-            "∘".to_string(), "RING OPERATOR".to_string(), 95, Associativity::Left
-        ));
-        registry.insert("⊣".to_string(), UnicodeSymbolInfo::operator(
-            "⊣".to_string(), "LEFT TACK".to_string(), 45, Associativity::None
-        ));
+        registry.insert(
+            "∘".to_string(),
+            UnicodeSymbolInfo::operator(
+                "∘".to_string(),
+                "RING OPERATOR".to_string(),
+                95,
+                Associativity::Left,
+            ),
+        );
+        registry.insert(
+            "⊣".to_string(),
+            UnicodeSymbolInfo::operator(
+                "⊣".to_string(),
+                "LEFT TACK".to_string(),
+                45,
+                Associativity::None,
+            ),
+        );
 
         registry
     }
@@ -522,29 +654,53 @@ impl UnicodeParser {
     fn create_unicode_blocks() -> HashMap<String, UnicodeBlock> {
         let mut blocks = HashMap::new();
 
-        blocks.insert("Mathematical Operators".to_string(), UnicodeBlock {
-            name: "Mathematical Operators".to_string(),
-            start: 0x2200,
-            end: 0x22FF,
-            description: "Mathematical operators and symbols".to_string(),
-            common_symbols: vec!["∀".to_string(), "∃".to_string(), "∈".to_string(), "∉".to_string()],
-        });
+        blocks.insert(
+            "Mathematical Operators".to_string(),
+            UnicodeBlock {
+                name: "Mathematical Operators".to_string(),
+                start: 0x2200,
+                end: 0x22FF,
+                description: "Mathematical operators and symbols".to_string(),
+                common_symbols: vec![
+                    "∀".to_string(),
+                    "∃".to_string(),
+                    "∈".to_string(),
+                    "∉".to_string(),
+                ],
+            },
+        );
 
-        blocks.insert("Arrows".to_string(), UnicodeBlock {
-            name: "Arrows".to_string(),
-            start: 0x2190,
-            end: 0x21FF,
-            description: "Arrow symbols".to_string(),
-            common_symbols: vec!["←".to_string(), "→".to_string(), "⇐".to_string(), "⇒".to_string()],
-        });
+        blocks.insert(
+            "Arrows".to_string(),
+            UnicodeBlock {
+                name: "Arrows".to_string(),
+                start: 0x2190,
+                end: 0x21FF,
+                description: "Arrow symbols".to_string(),
+                common_symbols: vec![
+                    "←".to_string(),
+                    "→".to_string(),
+                    "⇐".to_string(),
+                    "⇒".to_string(),
+                ],
+            },
+        );
 
-        blocks.insert("Greek and Coptic".to_string(), UnicodeBlock {
-            name: "Greek and Coptic".to_string(),
-            start: 0x0370,
-            end: 0x03FF,
-            description: "Greek letters used in mathematics".to_string(),
-            common_symbols: vec!["α".to_string(), "β".to_string(), "γ".to_string(), "π".to_string()],
-        });
+        blocks.insert(
+            "Greek and Coptic".to_string(),
+            UnicodeBlock {
+                name: "Greek and Coptic".to_string(),
+                start: 0x0370,
+                end: 0x03FF,
+                description: "Greek letters used in mathematics".to_string(),
+                common_symbols: vec![
+                    "α".to_string(),
+                    "β".to_string(),
+                    "γ".to_string(),
+                    "π".to_string(),
+                ],
+            },
+        );
 
         blocks
     }
@@ -552,7 +708,7 @@ impl UnicodeParser {
     /// Check if character is in mathematical block
     pub fn is_mathematical_symbol(&self, ch: char) -> bool {
         let codepoint = ch as u32;
-        
+
         // Check common mathematical Unicode blocks
         matches!(codepoint,
             0x2190..=0x21FF | // Arrows
@@ -628,10 +784,10 @@ mod tests {
         let parser = UnicodeParser::new();
         let mut context = create_test_context();
         let mut chars = "ℝ".chars().peekable();
-        
+
         let result = parser.parse_mathematical_constant(&mut chars, &mut context);
         assert!(result.is_ok());
-        
+
         let expr = result.unwrap();
         assert!(matches!(expr, EnhancedMathExpression::Constant { .. }));
     }
@@ -641,12 +797,15 @@ mod tests {
         let parser = UnicodeParser::new();
         let mut context = create_test_context();
         let mut chars = "₁".chars().peekable();
-        
+
         let result = parser.parse_script_symbol(&mut chars, &mut context);
         assert!(result.is_ok());
-        
+
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::ScriptNotation { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::ScriptNotation { .. }
+        ));
     }
 
     #[test]
@@ -654,7 +813,7 @@ mod tests {
         let parser = UnicodeParser::new();
         let mut context = create_test_context();
         let mut chars = "α".chars().peekable();
-        
+
         let result = parser.parse_greek_letter(&mut chars, &mut context);
         assert!(result.is_ok());
     }
@@ -662,7 +821,7 @@ mod tests {
     #[test]
     fn test_mathematical_symbol_detection() {
         let parser = UnicodeParser::new();
-        
+
         assert!(parser.is_mathematical_symbol('∀'));
         assert!(parser.is_mathematical_symbol('→'));
         assert!(parser.is_mathematical_symbol('∈'));
@@ -675,7 +834,7 @@ mod tests {
         let parser = UnicodeParser::new();
         let mut context = create_test_context();
         let mut chars = "=".chars().peekable();
-        
+
         let result = parser.try_parse_multi_char_operator(":", &mut chars, &mut context);
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), ":");
@@ -684,7 +843,7 @@ mod tests {
     #[test]
     fn test_script_normalization() {
         let parser = UnicodeParser::new();
-        
+
         let result = parser.normalize_script_character('₁');
         assert!(result.is_ok());
         let (script_type, normalized) = result.unwrap();
@@ -701,16 +860,25 @@ mod tests {
     #[test]
     fn test_symbol_category_determination() {
         let parser = UnicodeParser::new();
-        
-        assert_eq!(parser.determine_symbol_category(0x2200), MathSymbolCategory::Operator); // ∀
-        assert_eq!(parser.determine_symbol_category(0x2190), MathSymbolCategory::Arrow);    // ←
-        assert_eq!(parser.determine_symbol_category(0x03B1), MathSymbolCategory::GreekLetter); // α
+
+        assert_eq!(
+            parser.determine_symbol_category(0x2200),
+            MathSymbolCategory::Operator
+        ); // ∀
+        assert_eq!(
+            parser.determine_symbol_category(0x2190),
+            MathSymbolCategory::Arrow
+        ); // ←
+        assert_eq!(
+            parser.determine_symbol_category(0x03B1),
+            MathSymbolCategory::GreekLetter
+        ); // α
     }
 
     #[test]
     fn test_symbol_registry_lookup() {
         let parser = UnicodeParser::new();
-        
+
         let symbol_info = parser.get_symbol_info("∀");
         assert!(symbol_info.is_some());
         assert_eq!(symbol_info.unwrap().unicode_name, "FOR ALL");
@@ -722,15 +890,15 @@ mod tests {
     #[test]
     fn test_custom_symbol_addition() {
         let mut parser = UnicodeParser::new();
-        
+
         let custom_symbol = UnicodeSymbolInfo::basic(
             "⊕".to_string(),
             "CIRCLED PLUS".to_string(),
             "Custom".to_string(),
         );
-        
+
         parser.add_symbol("⊕".to_string(), custom_symbol);
-        
+
         let symbol_info = parser.get_symbol_info("⊕");
         assert!(symbol_info.is_some());
         assert_eq!(symbol_info.unwrap().category, "Custom");

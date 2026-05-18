@@ -3,20 +3,16 @@
 //! Main verifier implementation for performance constraint verification.
 //! Focused module under 300 LOC with comprehensive inline tests.
 
+use super::{
+    degradation::PerformanceDegradationAnalysis, qos::QoSAnalysis,
+    resources::ResourceBoundAnalysis, sla::SLACompliance, throughput::ThroughputAnalysis,
+    timing::TimingConstraintAnalysis, types::*,
+};
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
 };
 use std::time::Instant;
-use super::{
-    types::*,
-    timing::TimingConstraintAnalysis,
-    throughput::ThroughputAnalysis,
-    resources::ResourceBoundAnalysis,
-    qos::QoSAnalysis,
-    sla::SLACompliance,
-    degradation::PerformanceDegradationAnalysis,
-};
 
 /// Performance constraint verifier
 #[derive(Debug)]
@@ -60,19 +56,22 @@ impl PerformanceConstraintVerifier {
     }
 
     /// Verify performance constraints for AISP document
-    pub fn verify_document(&mut self, document: &AispDocument) -> AispResult<PerformanceConstraintAnalysis> {
+    pub fn verify_document(
+        &mut self,
+        document: &AispDocument,
+    ) -> AispResult<PerformanceConstraintAnalysis> {
         let start_time = Instant::now();
-        
+
         // Update verification stats
         self.stats.total_verifications += 1;
         self.stats.last_verification = Some(std::time::SystemTime::now());
 
         let result = self.perform_verification(document);
-        
+
         // Update timing stats
         let verification_duration = start_time.elapsed();
         self.update_timing_stats(verification_duration);
-        
+
         // Update success/failure stats
         match &result {
             Ok(_) => self.stats.successful_verifications += 1,
@@ -83,7 +82,10 @@ impl PerformanceConstraintVerifier {
     }
 
     /// Perform the actual verification
-    fn perform_verification(&self, _document: &AispDocument) -> AispResult<PerformanceConstraintAnalysis> {
+    fn perform_verification(
+        &self,
+        _document: &AispDocument,
+    ) -> AispResult<PerformanceConstraintAnalysis> {
         // Create analysis components based on configuration
         let timing_analysis = if self.config.enable_timing_analysis {
             self.create_timing_analysis()?
@@ -225,7 +227,10 @@ impl PerformanceConstraintVerifier {
                     standard_deviation: std::time::Duration::ZERO,
                     distribution_type: super::timing::DistributionType::Unknown,
                     moments: super::timing::StatisticalMoments {
-                        moment_1: 0.0, moment_2: 0.0, moment_3: 0.0, moment_4: 0.0,
+                        moment_1: 0.0,
+                        moment_2: 0.0,
+                        moment_3: 0.0,
+                        moment_4: 0.0,
                     },
                 },
             },
@@ -303,9 +308,12 @@ impl PerformanceConstraintVerifier {
             self.stats.average_verification_time = duration;
         } else {
             // Calculate rolling average
-            let total_time = self.stats.average_verification_time.as_nanos() * (self.stats.total_verifications - 1) as u128;
+            let total_time = self.stats.average_verification_time.as_nanos()
+                * (self.stats.total_verifications - 1) as u128;
             let new_total = total_time + duration.as_nanos();
-            self.stats.average_verification_time = std::time::Duration::from_nanos((new_total / self.stats.total_verifications as u128) as u64);
+            self.stats.average_verification_time = std::time::Duration::from_nanos(
+                (new_total / self.stats.total_verifications as u128) as u64,
+            );
         }
     }
 
@@ -382,9 +390,12 @@ mod tests {
         assert!(result.is_ok());
 
         let analysis = result.unwrap();
-        assert_eq!(analysis.constraint_verification.status, VerificationStatus::Passed);
+        assert_eq!(
+            analysis.constraint_verification.status,
+            VerificationStatus::Passed
+        );
         assert_eq!(analysis.constraint_verification.total_constraints, 5);
-        
+
         // Check stats were updated
         assert_eq!(verifier.stats.total_verifications, 1);
         assert_eq!(verifier.stats.successful_verifications, 1);
@@ -408,7 +419,7 @@ mod tests {
     #[test]
     fn test_config_update() {
         let mut verifier = PerformanceConstraintVerifier::new();
-        
+
         let new_config = PerformanceVerificationConfig {
             enable_timing_analysis: false,
             ..PerformanceVerificationConfig::default()

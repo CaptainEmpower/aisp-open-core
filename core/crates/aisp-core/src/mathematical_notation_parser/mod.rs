@@ -22,15 +22,15 @@
 //! let result = parser.parse_mathematical_expression("∀x ∈ ℝ: P(x)");
 //! ```
 
-pub mod types;
-pub mod unicode_parser;
 pub mod category_parser;
 pub mod expression_parser;
+pub mod types;
+pub mod unicode_parser;
 
-pub use types::*;
-pub use unicode_parser::UnicodeParser;
 pub use category_parser::CategoryTheoryParser;
 pub use expression_parser::ExpressionParser;
+pub use types::*;
+pub use unicode_parser::UnicodeParser;
 
 use crate::error::AispResult;
 
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn test_mathematical_constants() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = ["ℕ", "ℤ", "ℚ", "ℝ", "ℂ"];
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
@@ -127,14 +127,9 @@ mod tests {
     #[test]
     fn test_quantified_expressions() {
         let parser = MathematicalNotationParser::new();
-        
-        let expressions = [
-            "∀x: P(x)",
-            "∃y: Q(y)",
-            "∃!z: R(z)",
-            "λx.x"
-        ];
-        
+
+        let expressions = ["∀x: P(x)", "∃y: Q(y)", "∃!z: R(z)", "λx.x"];
+
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
             assert!(result.is_ok(), "Failed to parse: {}", expr);
@@ -144,14 +139,9 @@ mod tests {
     #[test]
     fn test_category_theory_expressions() {
         let parser = MathematicalNotationParser::new();
-        
-        let expressions = [
-            "∘",
-            "⇒", 
-            "⊣",
-            "⟨T,η,μ⟩"
-        ];
-        
+
+        let expressions = ["∘", "⇒", "⊣", "⟨T,η,μ⟩"];
+
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
             assert!(result.is_ok(), "Failed to parse: {}", expr);
@@ -161,14 +151,11 @@ mod tests {
     #[test]
     fn test_unicode_mathematical_operators() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = [
-            "∧", "∨", "¬",
-            "∈", "∉", "⊆", "∪", "∩",
-            "≤", "≥", "≠", "≡",
-            "→", "↦", "⇒", "↔"
+            "∧", "∨", "¬", "∈", "∉", "⊆", "∪", "∩", "≤", "≥", "≠", "≡", "→", "↦", "⇒", "↔",
         ];
-        
+
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
             assert!(result.is_ok(), "Failed to parse: {}", expr);
@@ -178,7 +165,7 @@ mod tests {
     #[test]
     fn test_greek_letters() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = ["α", "β", "γ", "π", "Ω"];
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
@@ -189,7 +176,7 @@ mod tests {
     #[test]
     fn test_script_notation() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = ["₁", "₂", "²", "³", "⁺", "⁻"];
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
@@ -200,10 +187,10 @@ mod tests {
     #[test]
     fn test_parse_multiple_expressions() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = vec!["x", "∀y: P(y)", "ℝ", "∘"];
         let results = parser.parse_expressions(&expressions);
-        
+
         assert_eq!(results.len(), 4);
         for result in results {
             assert!(result.is_ok());
@@ -213,11 +200,11 @@ mod tests {
     #[test]
     fn test_expression_validation() {
         let parser = MathematicalNotationParser::new();
-        
+
         // Valid expressions
         assert!(parser.validate_expression("∀x: P(x)").is_ok());
         assert!(parser.validate_expression("ℝ").is_ok());
-        
+
         // Test with empty string (should fail)
         assert!(parser.validate_expression("").is_err());
     }
@@ -225,10 +212,10 @@ mod tests {
     #[test]
     fn test_config_update() {
         let mut parser = MathematicalNotationParser::new();
-        
+
         let mut new_config = MathParsingConfig::default();
         new_config.enable_lambda_calculus = false;
-        
+
         parser.set_config(new_config);
         assert!(!parser.config().enable_lambda_calculus);
     }
@@ -236,27 +223,35 @@ mod tests {
     #[test]
     fn test_complex_expressions() {
         let parser = MathematicalNotationParser::new();
-        
+
         let complex_expressions = [
             "∀x ∈ ℝ: ∃y ∈ ℝ: x + y = 0",
             "λf. λx. f(x)",
-            "⟨Objects, Morphisms, ∘, id⟩"
+            "⟨Objects, Morphisms, ∘, id⟩",
         ];
-        
+
         for expr in &complex_expressions {
             let result = parser.parse_mathematical_expression(expr);
-            assert!(result.is_ok(), "Failed to parse complex expression: {}", expr);
+            assert!(
+                result.is_ok(),
+                "Failed to parse complex expression: {}",
+                expr
+            );
         }
     }
 
     #[test]
     fn test_bracketed_expressions() {
         let parser = MathematicalNotationParser::new();
-        
+
         let expressions = ["(x)", "[y]", "{z}", "()"];
         for expr in &expressions {
             let result = parser.parse_mathematical_expression(expr);
-            assert!(result.is_ok(), "Failed to parse bracketed expression: {}", expr);
+            assert!(
+                result.is_ok(),
+                "Failed to parse bracketed expression: {}",
+                expr
+            );
         }
     }
 }

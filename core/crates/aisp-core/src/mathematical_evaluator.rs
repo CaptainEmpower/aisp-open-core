@@ -49,22 +49,22 @@ pub enum UndefinedReason {
 pub enum MathError {
     #[error("Division by zero: {expression}")]
     DivisionByZero { expression: String },
-    
+
     #[error("Indeterminate form: {expression}")]
     IndeterminateForm { expression: String },
-    
+
     #[error("Self-referential definition: {name}")]
     SelfReference { name: String },
-    
+
     #[error("Circular definition detected: {cycle}")]
     CircularDefinition { cycle: String },
-    
+
     #[error("Domain error in {operation}: {message}")]
     DomainError { operation: String, message: String },
-    
+
     #[error("Undefined variable: {name}")]
     UndefinedVariable { name: String },
-    
+
     #[error("Type error: {message}")]
     TypeError { message: String },
 }
@@ -85,12 +85,12 @@ impl MathEvaluator {
             evaluation_stack: Vec::new(),
         }
     }
-    
+
     /// Define a variable with dependency tracking
     pub fn define_variable(&mut self, name: String, value: MathValue, dependencies: Vec<String>) {
         self.variables.insert(name, (value, dependencies));
     }
-    
+
     /// Evaluate mathematical division with formal error handling
     pub fn divide(&self, a: MathValue, b: MathValue) -> MathValue {
         match (a, b) {
@@ -107,8 +107,8 @@ impl MathEvaluator {
                 } else {
                     MathValue::Real(x / y)
                 }
-            },
-            
+            }
+
             // Infinity cases
             (MathValue::Real(x), MathValue::Infinity(_)) => {
                 if x == 0.0 {
@@ -116,8 +116,8 @@ impl MathEvaluator {
                 } else {
                     MathValue::Real(0.0)
                 }
-            },
-            
+            }
+
             (MathValue::Infinity(inf_type), MathValue::Real(y)) => {
                 if y == 0.0 {
                     MathValue::Undefined(UndefinedReason::DivisionByZero)
@@ -129,23 +129,27 @@ impl MathEvaluator {
                         InfinityType::Negative => InfinityType::Positive,
                     })
                 }
-            },
-            
+            }
+
             (MathValue::Infinity(_), MathValue::Infinity(_)) => {
                 MathValue::Undefined(UndefinedReason::IndeterminateForm)
-            },
-            
+            }
+
             // Error propagation
             (MathValue::NaN, _) | (_, MathValue::NaN) => MathValue::NaN,
             (MathValue::Bottom, _) | (_, MathValue::Bottom) => MathValue::Bottom,
             (MathValue::Undefined(reason), _) | (_, MathValue::Undefined(reason)) => {
                 MathValue::Undefined(reason)
-            },
+            }
         }
     }
-    
+
     /// Calculate ambiguity with proper error handling
-    pub fn calculate_ambiguity(&self, parse_unique: i32, parse_total: i32) -> Result<MathValue, MathError> {
+    pub fn calculate_ambiguity(
+        &self,
+        parse_unique: i32,
+        parse_total: i32,
+    ) -> Result<MathValue, MathError> {
         if parse_total == 0 {
             if parse_unique == 0 {
                 // This is the critical 0/0 case from the reference.md
@@ -157,49 +161,54 @@ impl MathEvaluator {
                 });
             }
         }
-        
+
         if parse_unique > parse_total {
             return Err(MathError::DomainError {
                 operation: "ambiguity_calculation".to_string(),
                 message: "parse_unique cannot exceed parse_total".to_string(),
             });
         }
-        
+
         let ratio = parse_unique as f64 / parse_total as f64;
         let ambiguity = 1.0 - ratio;
-        
+
         Ok(MathValue::Real(ambiguity))
     }
-    
+
     /// Check for circular dependencies in variable definitions
     pub fn check_circular_dependency(&mut self, name: &str) -> Result<(), MathError> {
         if self.evaluation_stack.contains(&name.to_string()) {
-            let cycle_start = self.evaluation_stack.iter()
+            let cycle_start = self
+                .evaluation_stack
+                .iter()
                 .position(|x| x == name)
                 .unwrap();
             let mut cycle: Vec<String> = self.evaluation_stack[cycle_start..].to_vec();
             cycle.push(name.to_string());
-            
+
             return Err(MathError::CircularDefinition {
-                cycle: cycle.join(" → ")
+                cycle: cycle.join(" → "),
             });
         }
-        
+
         Ok(())
     }
-    
+
     /// Evaluate variable with dependency checking
     pub fn evaluate_variable(&mut self, name: &str) -> Result<MathValue, MathError> {
         self.check_circular_dependency(name)?;
-        
-        let (value, dependencies) = self.variables.get(name)
-            .ok_or_else(|| MathError::UndefinedVariable { 
-                name: name.to_string() 
-            })?.clone();
-        
+
+        let (value, dependencies) = self
+            .variables
+            .get(name)
+            .ok_or_else(|| MathError::UndefinedVariable {
+                name: name.to_string(),
+            })?
+            .clone();
+
         // Add current variable to evaluation stack to track circular dependencies
         self.evaluation_stack.push(name.to_string());
-        
+
         // Recursively evaluate all dependencies to detect circular dependencies
         for dep in &dependencies {
             if let Err(e) = self.evaluate_variable(dep) {
@@ -207,40 +216,40 @@ impl MathEvaluator {
                 return Err(e);
             }
         }
-        
+
         self.evaluation_stack.pop();
         Ok(value)
     }
-    
+
     /// Create a self-referential paradox detector
     pub fn detect_self_reference(&self, statement: &str) -> bool {
         // Simple heuristic: check if statement refers to itself
-        statement.to_lowercase().contains("this statement") ||
-        statement.to_lowercase().contains("this document") ||
-        statement.to_lowercase().contains("itself")
+        statement.to_lowercase().contains("this statement")
+            || statement.to_lowercase().contains("this document")
+            || statement.to_lowercase().contains("itself")
     }
-    
+
     /// Verify mathematical consistency
     pub fn verify_consistency(&self) -> Result<bool, Vec<MathError>> {
         let mut errors = Vec::new();
-        
+
         // Check for undefined values that indicate inconsistency
         for (name, (value, _)) in &self.variables {
             match value {
                 MathValue::Bottom => {
                     errors.push(MathError::TypeError {
-                        message: format!("Variable '{}' contains logical contradiction (⊥)", name)
+                        message: format!("Variable '{}' contains logical contradiction (⊥)", name),
                     });
-                },
+                }
                 MathValue::Undefined(UndefinedReason::CircularDefinition(cycle)) => {
                     errors.push(MathError::CircularDefinition {
-                        cycle: cycle.clone()
+                        cycle: cycle.clone(),
                     });
-                },
+                }
                 _ => {}
             }
         }
-        
+
         if errors.is_empty() {
             Ok(true)
         } else {
@@ -252,7 +261,7 @@ impl MathEvaluator {
 impl PartialEq for MathValue {
     fn eq(&self, other: &Self) -> bool {
         const EPSILON: f64 = 1e-10;
-        
+
         match (self, other) {
             (MathValue::Real(a), MathValue::Real(b)) => {
                 // Use relative epsilon comparison for floating-point values
@@ -262,7 +271,7 @@ impl PartialEq for MathValue {
                 } else {
                     (a - b).abs() / a.abs().max(b.abs()) < EPSILON
                 }
-            },
+            }
             (MathValue::Infinity(a), MathValue::Infinity(b)) => a == b,
             (MathValue::NaN, MathValue::NaN) => true,
             (MathValue::Bottom, MathValue::Bottom) => true,
@@ -300,62 +309,71 @@ impl fmt::Display for UndefinedReason {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_division_by_zero() {
         let evaluator = MathEvaluator::new();
-        
+
         // Test x/0 where x ≠ 0 (should be undefined)
         let result = evaluator.divide(MathValue::Real(5.0), MathValue::Real(0.0));
-        assert_eq!(result, MathValue::Undefined(UndefinedReason::DivisionByZero));
+        assert_eq!(
+            result,
+            MathValue::Undefined(UndefinedReason::DivisionByZero)
+        );
     }
-    
+
     #[test]
     fn test_indeterminate_form() {
         let evaluator = MathEvaluator::new();
-        
+
         // Test 0/0 (should be indeterminate)
         let result = evaluator.divide(MathValue::Real(0.0), MathValue::Real(0.0));
-        assert_eq!(result, MathValue::Undefined(UndefinedReason::IndeterminateForm));
+        assert_eq!(
+            result,
+            MathValue::Undefined(UndefinedReason::IndeterminateForm)
+        );
     }
-    
+
     #[test]
     fn test_ambiguity_calculation() {
         let evaluator = MathEvaluator::new();
-        
+
         // Normal case
         let result = evaluator.calculate_ambiguity(98, 100).unwrap();
         assert_eq!(result, MathValue::Real(0.02));
-        
+
         // Zero division case
         let result = evaluator.calculate_ambiguity(0, 0).unwrap();
-        assert_eq!(result, MathValue::Undefined(UndefinedReason::IndeterminateForm));
-        
+        assert_eq!(
+            result,
+            MathValue::Undefined(UndefinedReason::IndeterminateForm)
+        );
+
         // Impossible case
         let result = evaluator.calculate_ambiguity(50, 0);
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_circular_dependency_detection() {
         let mut evaluator = MathEvaluator::new();
-        
+
         // Create circular dependency: A depends on B, B depends on A
         evaluator.define_variable("A".to_string(), MathValue::Real(1.0), vec!["B".to_string()]);
         evaluator.define_variable("B".to_string(), MathValue::Real(2.0), vec!["A".to_string()]);
-        
+
         // This should detect the circular dependency
         let result = evaluator.evaluate_variable("A");
         assert!(result.is_err());
     }
-    
+
     #[test]
     fn test_self_reference_detection() {
         let evaluator = MathEvaluator::new();
-        
+
         let self_ref = "This statement is false";
         assert!(evaluator.detect_self_reference(self_ref));
-        
+
         let normal = "The sky is blue";
         assert!(!evaluator.detect_self_reference(normal));
     }

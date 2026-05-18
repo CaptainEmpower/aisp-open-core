@@ -353,8 +353,14 @@ mod tests {
 
     #[test]
     fn test_compliance_status() {
-        assert_eq!(ComplianceStatus::FullCompliance, ComplianceStatus::FullCompliance);
-        assert_ne!(ComplianceStatus::FullCompliance, ComplianceStatus::NonCompliant);
+        assert_eq!(
+            ComplianceStatus::FullCompliance,
+            ComplianceStatus::FullCompliance
+        );
+        assert_ne!(
+            ComplianceStatus::FullCompliance,
+            ComplianceStatus::NonCompliant
+        );
     }
 
     #[test]

@@ -242,8 +242,14 @@ mod tests {
 
     #[test]
     fn test_constraint_type_display() {
-        assert_eq!(PerformanceConstraintType::ResponseTime.to_string(), "response-time");
-        assert_eq!(PerformanceConstraintType::Custom("api".to_string()).to_string(), "custom-api");
+        assert_eq!(
+            PerformanceConstraintType::ResponseTime.to_string(),
+            "response-time"
+        );
+        assert_eq!(
+            PerformanceConstraintType::Custom("api".to_string()).to_string(),
+            "custom-api"
+        );
     }
 
     #[test]

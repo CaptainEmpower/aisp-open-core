@@ -271,7 +271,7 @@ mod tests {
             ResourceType::DiskIO,
             ResourceType::Custom("TestResource".to_string()),
         ];
-        
+
         assert_eq!(resources.len(), 5);
         assert_eq!(resources[0], ResourceType::Memory);
         assert!(matches!(resources[4], ResourceType::Custom(_)));
@@ -288,11 +288,11 @@ mod tests {
         let summary = ResourceUtilizationSummary::default();
         assert_eq!(summary.efficiency_score, 0.0);
         assert_eq!(summary.total_resources, 0);
-        
+
         let forecasting = ResourceForecasting::default();
         assert_eq!(forecasting.forecast_confidence, 0.0);
         assert_eq!(forecasting.time_horizon, Duration::from_secs(0));
-        
+
         let performance = ResourcePerformanceImpact::default();
         assert_eq!(performance.overall_performance_score, 0.0);
         assert_eq!(performance.optimization_potential, 0.0);
@@ -307,7 +307,7 @@ mod tests {
             UtilizationTrend::Volatile(0.5),
             UtilizationTrend::Cyclical(Duration::from_secs(3600)),
         ];
-        
+
         assert_eq!(trends.len(), 5);
         assert!(matches!(trends[0], UtilizationTrend::Increasing(_)));
         assert!(matches!(trends[4], UtilizationTrend::Cyclical(_)));

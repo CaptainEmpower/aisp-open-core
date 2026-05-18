@@ -8,15 +8,15 @@
 //! - Resource Complexity: Bounded memory and time guarantees
 
 use crate::{
-    error::{AispError, AispResult},
-    compositional_proof_chain::{CompositionalVerificationResult, SystemGuarantees},
-    mathematical_evaluator::{MathEvaluator, MathValue},
-    incompleteness_handler::{IncompletenessHandler, TruthValue},
     ast::canonical::CanonicalAispDocument as AispDocument,
+    compositional_proof_chain::{CompositionalVerificationResult, SystemGuarantees},
+    error::{AispError, AispResult},
+    incompleteness_handler::{IncompletenessHandler, TruthValue},
+    mathematical_evaluator::{MathEvaluator, MathValue},
 };
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
-use serde::{Deserialize, Serialize};
 
 /// Performance guarantee verification system
 /// Verifies mathematical claims about AISP system performance
@@ -184,10 +184,10 @@ pub struct PipelineImprovementVerification {
     pub measured_improvement_factor: f64,
     pub statistical_significance: f64,
     pub confidence_interval: (f64, f64),
-    
+
     /// Individual pipeline length verifications
     pub pipeline_verifications: Vec<PipelineLengthVerification>,
-    
+
     /// Mathematical model validation
     pub model_validity: ModelValidityResult,
 }
@@ -210,10 +210,10 @@ pub struct AmbiguityComplianceVerification {
     pub threshold_compliance: bool,
     pub measured_ambiguity: f64,
     pub ambiguity_confidence: f64,
-    
+
     /// Document-level ambiguity analysis
     pub document_analyses: Vec<DocumentAmbiguityAnalysis>,
-    
+
     /// Parsing consistency verification
     pub parsing_consistency: ParsingConsistencyResult,
 }
@@ -233,14 +233,14 @@ pub struct ResourceBoundsVerification {
     /// Time complexity verification
     pub time_bounds_verified: bool,
     pub measured_time_complexity: ComplexityFunction,
-    
+
     /// Space complexity verification
     pub space_bounds_verified: bool,
     pub measured_space_complexity: ComplexityFunction,
-    
+
     /// Resource usage profiles
     pub resource_profiles: Vec<ResourceUsageProfile>,
-    
+
     /// Scalability analysis
     pub scalability_analysis: ScalabilityAnalysis,
 }
@@ -259,13 +259,13 @@ pub struct ResourceUsageProfile {
 pub struct TerminationGuaranteeVerification {
     /// Formal termination proofs verified
     pub termination_proofs_valid: bool,
-    
+
     /// Bounded search verification
     pub bounded_search_verified: bool,
-    
+
     /// Convergence analysis
     pub convergence_analysis: ConvergenceAnalysisResult,
-    
+
     /// Timeout analysis
     pub timeout_analysis: TimeoutAnalysisResult,
 }
@@ -428,19 +428,19 @@ impl PerformanceGuaranteeVerifier {
         compositional_result: &CompositionalVerificationResult,
     ) -> AispResult<PerformanceVerificationResult> {
         let start_time = Instant::now();
-        
+
         // Verify pipeline improvement claims
         let pipeline_improvement = self.verify_pipeline_improvement()?;
-        
+
         // Verify ambiguity compliance
         let ambiguity_compliance = self.verify_ambiguity_compliance()?;
-        
+
         // Verify resource bounds
         let resource_bounds = self.verify_resource_bounds()?;
-        
+
         // Verify termination guarantees
         let termination_guarantees = self.verify_termination_guarantees(compositional_result)?;
-        
+
         // Calculate overall confidence
         let overall_confidence = self.calculate_overall_confidence(
             &pipeline_improvement,
@@ -448,10 +448,10 @@ impl PerformanceGuaranteeVerifier {
             &resource_bounds,
             &termination_guarantees,
         );
-        
+
         let verification_duration = start_time.elapsed();
         self.verification_stats.total_verification_time = verification_duration;
-        
+
         Ok(PerformanceVerificationResult {
             pipeline_improvement,
             ambiguity_compliance,
@@ -467,37 +467,40 @@ impl PerformanceGuaranteeVerifier {
         // Test pipeline lengths from specification
         let test_lengths = vec![1, 5, 10, 20];
         let mut pipeline_verifications = Vec::new();
-        
+
         for &length in &test_lengths {
             let verification = self.verify_pipeline_length(length)?;
             pipeline_verifications.push(verification);
         }
-        
+
         // Verify specific 97× improvement claim at length 10
-        let length_10_result = pipeline_verifications.iter()
+        let length_10_result = pipeline_verifications
+            .iter()
             .find(|v| v.length == 10)
-            .ok_or_else(|| AispError::VerificationFailed("Length 10 verification missing".to_string()))?;
-        
+            .ok_or_else(|| {
+                AispError::VerificationFailed("Length 10 verification missing".to_string())
+            })?;
+
         let claimed_improvement = 97.0;
         let measured_improvement = if length_10_result.measured_prose_success > 0.0 {
             length_10_result.measured_aisp_success / length_10_result.measured_prose_success
         } else {
             0.0
         };
-        
+
         // Statistical significance test
         let significance = self.statistical_analyzer.test_improvement_significance(
             length_10_result.measured_prose_success,
             length_10_result.measured_aisp_success,
             100, // sample size
         )?;
-        
+
         // Model validation
         let model_validity = self.validate_exponential_model(&pipeline_verifications)?;
-        
-        let improvement_factor_verified = 
+
+        let improvement_factor_verified =
             (measured_improvement / claimed_improvement - 1.0).abs() < 0.2; // 20% tolerance
-        
+
         Ok(PipelineImprovementVerification {
             improvement_factor_verified,
             measured_improvement_factor: measured_improvement,
@@ -513,17 +516,17 @@ impl PerformanceGuaranteeVerifier {
         // Specification claims
         let claimed_prose_success = 0.62_f64.powi(length as i32);
         let claimed_aisp_success = 0.98_f64.powi(length as i32);
-        
+
         // Simulate measurements (in real implementation, would use actual benchmarks)
         let measured_prose_success = self.simulate_prose_pipeline_success(length);
         let measured_aisp_success = self.simulate_aisp_pipeline_success(length);
-        
+
         let error_margin = 0.05; // 5% tolerance
         let prose_error = (measured_prose_success - claimed_prose_success).abs();
         let aisp_error = (measured_aisp_success - claimed_aisp_success).abs();
-        
+
         let verification_passed = prose_error < error_margin && aisp_error < error_margin;
-        
+
         Ok(PipelineLengthVerification {
             length,
             claimed_prose_success,
@@ -539,29 +542,25 @@ impl PerformanceGuaranteeVerifier {
     fn verify_ambiguity_compliance(&mut self) -> AispResult<AmbiguityComplianceVerification> {
         let threshold = 0.02;
         let mut document_analyses = Vec::new();
-        
+
         // Test representative documents
         let test_documents = self.generate_test_documents()?;
-        
+
         for (doc_id, document) in test_documents.iter().enumerate() {
-            let analysis = self.analyze_document_ambiguity(
-                &format!("test_doc_{}", doc_id),
-                document,
-            )?;
+            let analysis =
+                self.analyze_document_ambiguity(&format!("test_doc_{}", doc_id), document)?;
             document_analyses.push(analysis);
         }
-        
+
         // Calculate overall ambiguity
-        let total_ambiguity: f64 = document_analyses.iter()
-            .map(|d| d.measured_ambiguity)
-            .sum();
+        let total_ambiguity: f64 = document_analyses.iter().map(|d| d.measured_ambiguity).sum();
         let average_ambiguity = total_ambiguity / document_analyses.len() as f64;
-        
+
         let threshold_compliance = average_ambiguity < threshold;
-        
+
         // Verify parsing consistency
         let parsing_consistency = self.verify_parsing_consistency(&document_analyses)?;
-        
+
         Ok(AmbiguityComplianceVerification {
             threshold_compliance,
             measured_ambiguity: average_ambiguity,
@@ -576,31 +575,32 @@ impl PerformanceGuaranteeVerifier {
         // Generate resource usage profiles for different input sizes
         let input_sizes = vec![10, 100, 1000, 10000];
         let mut resource_profiles = Vec::new();
-        
+
         for &size in &input_sizes {
             let profile = self.measure_resource_usage(size)?;
             resource_profiles.push(profile);
         }
-        
+
         // Analyze time complexity
         let measured_time_complexity = self.analyze_time_complexity(&resource_profiles)?;
-        let time_bounds_verified = matches!(measured_time_complexity, 
-            ComplexityFunction::Constant | 
-            ComplexityFunction::Logarithmic | 
-            ComplexityFunction::Linear |
-            ComplexityFunction::Linearithmic
+        let time_bounds_verified = matches!(
+            measured_time_complexity,
+            ComplexityFunction::Constant
+                | ComplexityFunction::Logarithmic
+                | ComplexityFunction::Linear
+                | ComplexityFunction::Linearithmic
         );
-        
+
         // Analyze space complexity
         let measured_space_complexity = self.analyze_space_complexity(&resource_profiles)?;
-        let space_bounds_verified = matches!(measured_space_complexity,
-            ComplexityFunction::Constant |
-            ComplexityFunction::Linear
+        let space_bounds_verified = matches!(
+            measured_space_complexity,
+            ComplexityFunction::Constant | ComplexityFunction::Linear
         );
-        
+
         // Scalability analysis
         let scalability_analysis = self.analyze_scalability(&resource_profiles)?;
-        
+
         Ok(ResourceBoundsVerification {
             time_bounds_verified,
             measured_time_complexity,
@@ -617,17 +617,19 @@ impl PerformanceGuaranteeVerifier {
         compositional_result: &CompositionalVerificationResult,
     ) -> AispResult<TerminationGuaranteeVerification> {
         // Check if compositional proofs guarantee termination
-        let termination_proofs_valid = compositional_result.system_guarantees.termination_guaranteed;
-        
+        let termination_proofs_valid = compositional_result
+            .system_guarantees
+            .termination_guaranteed;
+
         // Verify bounded search property
         let bounded_search_verified = compositional_result.system_guarantees.safety_guaranteed;
-        
+
         // Analyze convergence properties
         let convergence_analysis = self.analyze_convergence_guarantees()?;
-        
+
         // Analyze timeout characteristics
         let timeout_analysis = self.analyze_timeout_bounds()?;
-        
+
         Ok(TerminationGuaranteeVerification {
             termination_proofs_valid,
             bounded_search_verified,
@@ -671,7 +673,7 @@ impl PerformanceGuaranteeVerifier {
         let unique_interpretations = 1; // AISP should have unique interpretation
         let total_attempts = 100;
         let ambiguity = 1.0 - (unique_interpretations as f64 / total_attempts as f64);
-        
+
         Ok(DocumentAmbiguityAnalysis {
             document_id: doc_id.to_string(),
             measured_ambiguity: ambiguity.min(0.015), // Should be well below 2%
@@ -697,7 +699,7 @@ impl PerformanceGuaranteeVerifier {
         // Simulate resource measurement
         let time_used = Duration::from_millis((input_size as f64 * 0.1) as u64);
         let memory_used = input_size * 1024; // Linear memory usage
-        
+
         Ok(ResourceUsageProfile {
             input_size,
             time_used,
@@ -707,23 +709,28 @@ impl PerformanceGuaranteeVerifier {
         })
     }
 
-    fn analyze_time_complexity(&self, profiles: &[ResourceUsageProfile]) -> AispResult<ComplexityFunction> {
+    fn analyze_time_complexity(
+        &self,
+        profiles: &[ResourceUsageProfile],
+    ) -> AispResult<ComplexityFunction> {
         // Analyze time complexity from profiles
         if profiles.len() < 2 {
             return Ok(ComplexityFunction::Constant);
         }
-        
+
         // Simple linear regression to determine complexity
-        let ratios: Vec<f64> = profiles.windows(2)
+        let ratios: Vec<f64> = profiles
+            .windows(2)
             .map(|w| {
                 let size_ratio = w[1].input_size as f64 / w[0].input_size as f64;
-                let time_ratio = w[1].time_used.as_millis() as f64 / w[0].time_used.as_millis() as f64;
+                let time_ratio =
+                    w[1].time_used.as_millis() as f64 / w[0].time_used.as_millis() as f64;
                 time_ratio / size_ratio
             })
             .collect();
-        
+
         let avg_ratio = ratios.iter().sum::<f64>() / ratios.len() as f64;
-        
+
         if avg_ratio < 1.2 {
             Ok(ComplexityFunction::Linear)
         } else if avg_ratio < 2.0 {
@@ -733,7 +740,10 @@ impl PerformanceGuaranteeVerifier {
         }
     }
 
-    fn analyze_space_complexity(&self, profiles: &[ResourceUsageProfile]) -> AispResult<ComplexityFunction> {
+    fn analyze_space_complexity(
+        &self,
+        profiles: &[ResourceUsageProfile],
+    ) -> AispResult<ComplexityFunction> {
         // Analyze space complexity - should be linear for AISP
         if profiles.windows(2).all(|w| {
             let size_ratio = w[1].input_size as f64 / w[0].input_size as f64;
@@ -746,7 +756,10 @@ impl PerformanceGuaranteeVerifier {
         }
     }
 
-    fn analyze_scalability(&self, _profiles: &[ResourceUsageProfile]) -> AispResult<ScalabilityAnalysis> {
+    fn analyze_scalability(
+        &self,
+        _profiles: &[ResourceUsageProfile],
+    ) -> AispResult<ScalabilityAnalysis> {
         Ok(ScalabilityAnalysis {
             scales_linearly: true,
             scalability_factor: 1.0,
@@ -757,7 +770,7 @@ impl PerformanceGuaranteeVerifier {
     fn analyze_convergence_guarantees(&self) -> AispResult<ConvergenceAnalysisResult> {
         Ok(ConvergenceAnalysisResult {
             converges: true,
-            convergence_rate: 0.95, // High convergence rate
+            convergence_rate: 0.95,          // High convergence rate
             convergence_bound: Some(1000.0), // Bounded convergence
         })
     }
@@ -770,7 +783,10 @@ impl PerformanceGuaranteeVerifier {
         })
     }
 
-    fn validate_exponential_model(&self, _verifications: &[PipelineLengthVerification]) -> AispResult<ModelValidityResult> {
+    fn validate_exponential_model(
+        &self,
+        _verifications: &[PipelineLengthVerification],
+    ) -> AispResult<ModelValidityResult> {
         // Validate that the exponential model P(n) = r^n fits the data
         Ok(ModelValidityResult {
             model_fits_data: true,
@@ -788,14 +804,30 @@ impl PerformanceGuaranteeVerifier {
         termination: &TerminationGuaranteeVerification,
     ) -> f64 {
         let weights = [0.3, 0.2, 0.3, 0.2]; // Weight importance of each category
-        
+
         let scores = [
-            if pipeline.improvement_factor_verified { 1.0 } else { 0.0 },
-            if ambiguity.threshold_compliance { 1.0 } else { 0.0 },
-            if resources.time_bounds_verified && resources.space_bounds_verified { 1.0 } else { 0.5 },
-            if termination.termination_proofs_valid { 1.0 } else { 0.0 },
+            if pipeline.improvement_factor_verified {
+                1.0
+            } else {
+                0.0
+            },
+            if ambiguity.threshold_compliance {
+                1.0
+            } else {
+                0.0
+            },
+            if resources.time_bounds_verified && resources.space_bounds_verified {
+                1.0
+            } else {
+                0.5
+            },
+            if termination.termination_proofs_valid {
+                1.0
+            } else {
+                0.0
+            },
         ];
-        
+
         weights.iter().zip(scores.iter()).map(|(w, s)| w * s).sum()
     }
 }
@@ -906,14 +938,14 @@ mod tests {
         let model = PipelineSuccessModel::new();
         assert_eq!(model.prose_base_rate, 0.62);
         assert_eq!(model.aisp_base_rate, 0.98);
-        
+
         // Test 10-step pipeline calculation
         let prose_10_step = model.prose_base_rate.powi(10);
         let aisp_10_step = model.aisp_base_rate.powi(10);
-        
+
         assert!(prose_10_step < 0.01); // Should be very low
-        assert!(aisp_10_step > 0.8);   // Should be high
-        
+        assert!(aisp_10_step > 0.8); // Should be high
+
         let improvement = aisp_10_step / prose_10_step;
         assert!(improvement > 90.0); // Should show significant improvement
     }
@@ -932,7 +964,7 @@ mod tests {
             ComplexityFunction::Linear,
             ComplexityFunction::Quadratic,
         ];
-        
+
         assert_eq!(functions.len(), 3);
         assert!(matches!(functions[0], ComplexityFunction::Constant));
     }
@@ -946,12 +978,14 @@ mod tests {
     #[test]
     fn test_pipeline_length_verification() {
         let verifier = PerformanceGuaranteeVerifier::new();
-        
+
         // Test length 1 verification
         let result = verifier.verify_pipeline_length(1).unwrap();
         assert_eq!(result.length, 1);
-        assert!(result.claimed_prose_success > result.claimed_aisp_success || 
-               result.claimed_aisp_success > result.claimed_prose_success);
+        assert!(
+            result.claimed_prose_success > result.claimed_aisp_success
+                || result.claimed_aisp_success > result.claimed_prose_success
+        );
     }
 
     #[test]
@@ -963,7 +997,7 @@ mod tests {
             cpu_utilization: 0.1,
             io_operations: 100,
         };
-        
+
         assert_eq!(profile.input_size, 1000);
         assert!(profile.cpu_utilization < 1.0);
     }
@@ -971,9 +1005,9 @@ mod tests {
 
 /// Random number generation for testing
 mod rand {
-    pub fn random<T>() -> T 
-    where 
-        T: From<f64>
+    pub fn random<T>() -> T
+    where
+        T: From<f64>,
     {
         // Simple pseudo-random for testing
         T::from(0.5) // Fixed value for deterministic tests

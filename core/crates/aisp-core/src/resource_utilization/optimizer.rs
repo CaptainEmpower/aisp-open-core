@@ -74,20 +74,25 @@ impl ResourceOptimizer {
             let recommendations = self.generate_resource_recommendations(
                 resource_type,
                 resource_analysis,
-                &analysis.bottlenecks
+                &analysis.bottlenecks,
             )?;
-            
+
             if !recommendations.is_empty() {
-                plan.resource_optimizations.insert(resource_type.clone(), recommendations);
+                plan.resource_optimizations
+                    .insert(resource_type.clone(), recommendations);
             }
         }
 
         // Calculate total metrics
-        plan.total_recommendations = plan.resource_optimizations.values()
+        plan.total_recommendations = plan
+            .resource_optimizations
+            .values()
             .map(|recs| recs.len())
             .sum();
 
-        plan.estimated_total_improvement = plan.resource_optimizations.values()
+        plan.estimated_total_improvement = plan
+            .resource_optimizations
+            .values()
             .flatten()
             .map(|rec| rec.estimated_improvement)
             .sum();
@@ -106,12 +111,13 @@ impl ResourceOptimizer {
         &self,
         resource_type: &ResourceType,
         analysis: &ResourceTypeAnalysis,
-        bottlenecks: &[ResourceBottleneck]
+        bottlenecks: &[ResourceBottleneck],
     ) -> AispResult<Vec<OptimizationRecommendation>> {
         let mut recommendations = Vec::new();
 
         // Check if this resource has bottlenecks
-        let has_bottleneck = bottlenecks.iter()
+        let has_bottleneck = bottlenecks
+            .iter()
             .any(|b| &b.resource_type == resource_type);
 
         // Find applicable strategies
@@ -123,7 +129,7 @@ impl ResourceOptimizer {
                         strategy,
                         resource_type,
                         analysis,
-                        has_bottleneck
+                        has_bottleneck,
                     )?;
                     recommendations.push(recommendation);
                 }
@@ -131,7 +137,11 @@ impl ResourceOptimizer {
         }
 
         // Sort by estimated improvement and limit count
-        recommendations.sort_by(|a, b| b.estimated_improvement.partial_cmp(&a.estimated_improvement).unwrap());
+        recommendations.sort_by(|a, b| {
+            b.estimated_improvement
+                .partial_cmp(&a.estimated_improvement)
+                .unwrap()
+        });
         recommendations.truncate(self.config.max_recommendations_per_resource);
 
         Ok(recommendations)
@@ -142,29 +152,26 @@ impl ResourceOptimizer {
         &self,
         strategy: &OptimizationStrategy,
         analysis: &ResourceTypeAnalysis,
-        has_bottleneck: bool
+        has_bottleneck: bool,
     ) -> bool {
         match strategy.approach {
-            OptimizationType::ScaleUp => {
-                has_bottleneck && analysis.current_utilization > 0.8
-            },
-            OptimizationType::ScaleDown => {
-                !has_bottleneck && analysis.current_utilization < 0.3
-            },
+            OptimizationType::ScaleUp => has_bottleneck && analysis.current_utilization > 0.8,
+            OptimizationType::ScaleDown => !has_bottleneck && analysis.current_utilization < 0.3,
             OptimizationType::LoadBalance => {
-                analysis.current_utilization > 0.7 && 
-                matches!(analysis.trend, UtilizationTrend::Volatile(_))
-            },
-            OptimizationType::Caching => {
-                analysis.current_utilization > 0.6
-            },
-            OptimizationType::Compression => {
-                matches!(analysis.resource_type, ResourceType::Memory | ResourceType::NetworkBandwidth)
-            },
-            OptimizationType::Parallelization => {
-                matches!(analysis.resource_type, ResourceType::CPU) && 
                 analysis.current_utilization > 0.7
-            },
+                    && matches!(analysis.trend, UtilizationTrend::Volatile(_))
+            }
+            OptimizationType::Caching => analysis.current_utilization > 0.6,
+            OptimizationType::Compression => {
+                matches!(
+                    analysis.resource_type,
+                    ResourceType::Memory | ResourceType::NetworkBandwidth
+                )
+            }
+            OptimizationType::Parallelization => {
+                matches!(analysis.resource_type, ResourceType::CPU)
+                    && analysis.current_utilization > 0.7
+            }
             _ => true, // Other optimizations are generally applicable
         }
     }
@@ -175,7 +182,7 @@ impl ResourceOptimizer {
         strategy: &OptimizationStrategy,
         resource_type: &ResourceType,
         analysis: &ResourceTypeAnalysis,
-        has_bottleneck: bool
+        has_bottleneck: bool,
     ) -> AispResult<OptimizationRecommendation> {
         let priority = if has_bottleneck {
             match analysis.current_utilization {
@@ -190,7 +197,8 @@ impl ResourceOptimizer {
         let improvement_factor = if has_bottleneck {
             strategy.expected_improvement.1 // Use upper bound for bottlenecks
         } else {
-            (strategy.expected_improvement.0 + strategy.expected_improvement.1) / 2.0 // Use average
+            (strategy.expected_improvement.0 + strategy.expected_improvement.1) / 2.0
+            // Use average
         };
 
         Ok(OptimizationRecommendation {
@@ -209,34 +217,59 @@ impl ResourceOptimizer {
     }
 
     /// Get description for optimization strategy
-    fn get_strategy_description(&self, optimization_type: &OptimizationType, resource_type: &ResourceType) -> String {
+    fn get_strategy_description(
+        &self,
+        optimization_type: &OptimizationType,
+        resource_type: &ResourceType,
+    ) -> String {
         match optimization_type {
-            OptimizationType::ScaleUp => format!("Increase {:?} capacity to handle higher load", resource_type),
-            OptimizationType::ScaleDown => format!("Reduce {:?} allocation to optimize costs", resource_type),
-            OptimizationType::LoadBalance => format!("Distribute {:?} load more evenly", resource_type),
-            OptimizationType::Caching => format!("Implement caching to reduce {:?} pressure", resource_type),
-            OptimizationType::Compression => format!("Apply compression to optimize {:?} usage", resource_type),
-            OptimizationType::Parallelization => format!("Use parallel processing to utilize {:?} more efficiently", resource_type),
-            OptimizationType::Algorithm => format!("Optimize algorithms to reduce {:?} usage", resource_type),
-            OptimizationType::DataStructure => format!("Optimize data structures for better {:?} utilization", resource_type),
+            OptimizationType::ScaleUp => format!(
+                "Increase {:?} capacity to handle higher load",
+                resource_type
+            ),
+            OptimizationType::ScaleDown => {
+                format!("Reduce {:?} allocation to optimize costs", resource_type)
+            }
+            OptimizationType::LoadBalance => {
+                format!("Distribute {:?} load more evenly", resource_type)
+            }
+            OptimizationType::Caching => {
+                format!("Implement caching to reduce {:?} pressure", resource_type)
+            }
+            OptimizationType::Compression => {
+                format!("Apply compression to optimize {:?} usage", resource_type)
+            }
+            OptimizationType::Parallelization => format!(
+                "Use parallel processing to utilize {:?} more efficiently",
+                resource_type
+            ),
+            OptimizationType::Algorithm => {
+                format!("Optimize algorithms to reduce {:?} usage", resource_type)
+            }
+            OptimizationType::DataStructure => format!(
+                "Optimize data structures for better {:?} utilization",
+                resource_type
+            ),
             OptimizationType::Custom(desc) => desc.clone(),
         }
     }
 
     /// Generate implementation timeline
-    fn generate_implementation_timeline(&self, plan: &OptimizationPlan) -> AispResult<Vec<TimelineItem>> {
+    fn generate_implementation_timeline(
+        &self,
+        plan: &OptimizationPlan,
+    ) -> AispResult<Vec<TimelineItem>> {
         let mut timeline = Vec::new();
         let mut current_week = 1;
 
         // Group recommendations by difficulty and priority
-        let mut all_recommendations: Vec<&OptimizationRecommendation> = plan.resource_optimizations
-            .values()
-            .flatten()
-            .collect();
+        let mut all_recommendations: Vec<&OptimizationRecommendation> =
+            plan.resource_optimizations.values().flatten().collect();
 
         // Sort by priority first, then by difficulty
         all_recommendations.sort_by(|a, b| {
-            b.priority.cmp(&a.priority)
+            b.priority
+                .cmp(&a.priority)
                 .then(a.difficulty.cmp(&b.difficulty))
         });
 
@@ -292,8 +325,18 @@ impl ResourceOptimizer {
             total_implementation_cost: total_cost,
             expected_annual_savings: total_benefit * 30000.0, // Assume $30k savings per improvement point
             return_on_investment: roi,
-            payback_period_months: if total_benefit > 0.0 { total_cost / (total_benefit * 2500.0) } else { f64::INFINITY },
-            risk_level: if total_cost > 100000.0 { RiskLevel::High } else if total_cost > 25000.0 { RiskLevel::Medium } else { RiskLevel::Low },
+            payback_period_months: if total_benefit > 0.0 {
+                total_cost / (total_benefit * 2500.0)
+            } else {
+                f64::INFINITY
+            },
+            risk_level: if total_cost > 100000.0 {
+                RiskLevel::High
+            } else if total_cost > 25000.0 {
+                RiskLevel::Medium
+            } else {
+                RiskLevel::Low
+            },
         })
     }
 
@@ -314,11 +357,18 @@ impl ResourceOptimizer {
                 approach: OptimizationType::Parallelization,
                 expected_improvement: (0.25, 0.50),
                 complexity: ImplementationDifficulty::Hard,
-                prerequisites: vec!["Parallelizable workload".to_string(), "Multi-core availability".to_string()],
+                prerequisites: vec![
+                    "Parallelizable workload".to_string(),
+                    "Multi-core availability".to_string(),
+                ],
             },
             OptimizationStrategy {
                 name: "Resource Scaling".to_string(),
-                applicable_resources: vec![ResourceType::Memory, ResourceType::CPU, ResourceType::NetworkBandwidth],
+                applicable_resources: vec![
+                    ResourceType::Memory,
+                    ResourceType::CPU,
+                    ResourceType::NetworkBandwidth,
+                ],
                 approach: OptimizationType::ScaleUp,
                 expected_improvement: (0.20, 0.40),
                 complexity: ImplementationDifficulty::Easy,
@@ -334,7 +384,11 @@ impl ResourceOptimizer {
             },
             OptimizationStrategy {
                 name: "Data Compression".to_string(),
-                applicable_resources: vec![ResourceType::Memory, ResourceType::NetworkBandwidth, ResourceType::DiskIO],
+                applicable_resources: vec![
+                    ResourceType::Memory,
+                    ResourceType::NetworkBandwidth,
+                    ResourceType::DiskIO,
+                ],
                 approach: OptimizationType::Compression,
                 expected_improvement: (0.10, 0.25),
                 complexity: ImplementationDifficulty::Easy,
@@ -437,21 +491,30 @@ mod tests {
     fn test_default_strategies() {
         let strategies = ResourceOptimizer::default_strategies();
         assert_eq!(strategies.len(), 5);
-        
-        let caching_strategy = strategies.iter()
+
+        let caching_strategy = strategies
+            .iter()
             .find(|s| s.name == "Memory Caching")
             .unwrap();
-        
-        assert!(matches!(caching_strategy.approach, OptimizationType::Caching));
-        assert_eq!(caching_strategy.complexity, ImplementationDifficulty::Moderate);
-        assert!(caching_strategy.applicable_resources.contains(&ResourceType::Memory));
+
+        assert!(matches!(
+            caching_strategy.approach,
+            OptimizationType::Caching
+        ));
+        assert_eq!(
+            caching_strategy.complexity,
+            ImplementationDifficulty::Moderate
+        );
+        assert!(caching_strategy
+            .applicable_resources
+            .contains(&ResourceType::Memory));
     }
 
     #[test]
     fn test_strategy_applicability() {
         let optimizer = ResourceOptimizer::new();
         let strategy = &optimizer.strategies[0]; // Memory Caching strategy
-        
+
         // High utilization memory should be applicable for caching
         let high_utilization_analysis = ResourceTypeAnalysis {
             resource_type: ResourceType::Memory,
@@ -463,9 +526,9 @@ mod tests {
             trend: UtilizationTrend::Increasing(0.05),
             metrics: HashMap::new(),
         };
-        
+
         assert!(optimizer.is_strategy_applicable(strategy, &high_utilization_analysis, true));
-        
+
         // Low utilization should not be applicable for scale-up strategies
         let low_utilization_analysis = ResourceTypeAnalysis {
             resource_type: ResourceType::Memory,
@@ -477,7 +540,7 @@ mod tests {
             trend: UtilizationTrend::Stable(0.02),
             metrics: HashMap::new(),
         };
-        
+
         let scale_up_strategy = OptimizationStrategy {
             name: "Scale Up".to_string(),
             applicable_resources: vec![ResourceType::Memory],
@@ -486,14 +549,18 @@ mod tests {
             complexity: ImplementationDifficulty::Easy,
             prerequisites: vec![],
         };
-        
-        assert!(!optimizer.is_strategy_applicable(&scale_up_strategy, &low_utilization_analysis, false));
+
+        assert!(!optimizer.is_strategy_applicable(
+            &scale_up_strategy,
+            &low_utilization_analysis,
+            false
+        ));
     }
 
     #[test]
     fn test_cost_benefit_analysis() {
         let optimizer = ResourceOptimizer::new();
-        
+
         let mut plan = OptimizationPlan {
             total_recommendations: 3,
             estimated_total_improvement: 0.6,
@@ -501,7 +568,7 @@ mod tests {
             implementation_timeline: Vec::new(),
             cost_benefit_analysis: CostBenefitAnalysis::default(),
         };
-        
+
         // Add some test recommendations
         let recommendations = vec![
             OptimizationRecommendation {
@@ -521,12 +588,14 @@ mod tests {
                 priority: RecommendationPriority::Medium,
             },
         ];
-        
-        plan.resource_optimizations.insert(ResourceType::Memory, vec![recommendations[0].clone()]);
-        plan.resource_optimizations.insert(ResourceType::CPU, vec![recommendations[1].clone()]);
-        
+
+        plan.resource_optimizations
+            .insert(ResourceType::Memory, vec![recommendations[0].clone()]);
+        plan.resource_optimizations
+            .insert(ResourceType::CPU, vec![recommendations[1].clone()]);
+
         let cost_benefit = optimizer.analyze_cost_benefit(&plan).unwrap();
-        
+
         assert!(cost_benefit.total_implementation_cost > 0.0);
         assert!(cost_benefit.expected_annual_savings > 0.0);
         assert_ne!(cost_benefit.payback_period_months, f64::INFINITY);
@@ -535,7 +604,7 @@ mod tests {
     #[test]
     fn test_timeline_generation() {
         let optimizer = ResourceOptimizer::new();
-        
+
         let mut plan = OptimizationPlan {
             total_recommendations: 2,
             estimated_total_improvement: 0.4,
@@ -543,7 +612,7 @@ mod tests {
             implementation_timeline: Vec::new(),
             cost_benefit_analysis: CostBenefitAnalysis::default(),
         };
-        
+
         let recommendations = vec![
             OptimizationRecommendation {
                 resource_type: ResourceType::Memory,
@@ -562,12 +631,14 @@ mod tests {
                 priority: RecommendationPriority::Medium,
             },
         ];
-        
-        plan.resource_optimizations.insert(ResourceType::Memory, vec![recommendations[0].clone()]);
-        plan.resource_optimizations.insert(ResourceType::CPU, vec![recommendations[1].clone()]);
-        
+
+        plan.resource_optimizations
+            .insert(ResourceType::Memory, vec![recommendations[0].clone()]);
+        plan.resource_optimizations
+            .insert(ResourceType::CPU, vec![recommendations[1].clone()]);
+
         let timeline = optimizer.generate_implementation_timeline(&plan).unwrap();
-        
+
         assert_eq!(timeline.len(), 2);
         // High priority, easy task should come first
         assert_eq!(timeline[0].week_start, 1);

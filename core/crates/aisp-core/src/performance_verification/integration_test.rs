@@ -1,18 +1,18 @@
 //! Integration test for performance verification modules
-//! 
+//!
 //! This test validates that our SRP-compliant refactored modules work correctly.
 
 #[cfg(test)]
 mod integration_tests {
-    use crate::performance_verification::types::*;
     use crate::error::AispResult;
+    use crate::performance_verification::types::*;
 
     /// Test that our basic verification status types work
     #[test]
     fn test_verification_status_types() -> AispResult<()> {
         // Test verification status enumeration
         let status_pass = VerificationStatus::Passed;
-        let status_fail = VerificationStatus::Failed; 
+        let status_fail = VerificationStatus::Failed;
         let status_warning = VerificationStatus::PartiallyPassed;
 
         assert_eq!(status_pass, VerificationStatus::Passed);
@@ -52,8 +52,14 @@ mod integration_tests {
             description: "Response time constraint satisfied".to_string(),
             constraint_type: PerformanceConstraintType::ResponseTime,
             result: ConstraintResult::Satisfied,
-            expected: ConstraintValue::Numeric { value: 100.0, units: "ms".to_string() },
-            actual: ConstraintValue::Numeric { value: 75.0, units: "ms".to_string() },
+            expected: ConstraintValue::Numeric {
+                value: 100.0,
+                units: "ms".to_string(),
+            },
+            actual: ConstraintValue::Numeric {
+                value: 75.0,
+                units: "ms".to_string(),
+            },
             deviation: -25.0,
             confidence: 0.95,
             evidence: vec!["Measured response time is within acceptable limits".to_string()],
@@ -97,7 +103,7 @@ mod integration_tests {
     fn test_performance_constraint_analysis_structure() -> AispResult<()> {
         // This test validates that our main analysis structure can be constructed
         // We use placeholder sub-analyses to test the overall structure
-        
+
         let constraint_result = ConstraintVerificationResult {
             status: VerificationStatus::Passed,
             total_constraints: 1,
@@ -110,7 +116,7 @@ mod integration_tests {
 
         // Test that we can construct the types without errors
         assert_eq!(constraint_result.status, VerificationStatus::Passed);
-        
+
         println!("✅ Performance constraint analysis structure test passed!");
         Ok(())
     }

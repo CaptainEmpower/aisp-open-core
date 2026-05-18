@@ -2,12 +2,12 @@
 //!
 //! Core expression parsing logic for mathematical notation.
 
+use super::category_parser::CategoryTheoryParser;
 use super::types::*;
 use super::unicode_parser::UnicodeParser;
-use super::category_parser::CategoryTheoryParser;
 use crate::error::{AispError, AispResult};
-use std::str::Chars;
 use std::iter::Peekable;
+use std::str::Chars;
 
 /// Main expression parser
 pub struct ExpressionParser {
@@ -77,23 +77,24 @@ impl ExpressionParser {
                 '∀' | '∃' | 'λ' => self.parse_quantified_expression(chars, context),
                 // Category theory symbols
                 '𝔽' | '𝔾' | '⟨' | '⇒' | '⊣' | '∘' if self.config.enable_category_theory => {
-                    self.category_parser.parse_category_theory_construct(chars, context)
+                    self.category_parser
+                        .parse_category_theory_construct(chars, context)
                 }
                 // Greek letters and mathematical symbols
                 'α'..='ω' | 'Α'..='Ω' => self.unicode_parser.parse_greek_letter(chars, context),
                 // Mathematical operators and logic symbols
-                '≜' | '≔' | '≡' | '⇒' | '↔' | '⊢' | '⊨' | '⊕' | '⊖' | '⊗'
-                | '∈' | '∉' | '⊆' | '⊊' | '∪' | '∩' | '∅' | '℘' | '∧' | '∨' | '¬'
-                | '→' | '↦' | '≤' | '≥' | '≠' | '◊' | '⊘' => {
-                    self.unicode_parser.parse_mathematical_operator(chars, context)
-                }
+                '≜' | '≔' | '≡' | '⇒' | '↔' | '⊢' | '⊨' | '⊕' | '⊖' | '⊗' | '∈' | '∉' | '⊆'
+                | '⊊' | '∪' | '∩' | '∅' | '℘' | '∧' | '∨' | '¬' | '→' | '↦' | '≤' | '≥' | '≠'
+                | '◊' | '⊘' => self
+                    .unicode_parser
+                    .parse_mathematical_operator(chars, context),
                 // Number sets and mathematical constants
-                'ℕ' | 'ℤ' | 'ℚ' | 'ℝ' | 'ℂ' | '𝔸' | '𝔹' | '𝕊' | '𝕃' => {
-                    self.unicode_parser.parse_mathematical_constant(chars, context)
-                }
+                'ℕ' | 'ℤ' | 'ℚ' | 'ℝ' | 'ℂ' | '𝔸' | '𝔹' | '𝕊' | '𝕃' => self
+                    .unicode_parser
+                    .parse_mathematical_constant(chars, context),
                 // Subscripts and superscripts
-                '₀' | '₁' | '₂' | '₃' | '₄' | '₅' | '₆' | '₇' | '₈' | '₉'
-                | '⁰' | '¹' | '²' | '³' | '⁴' | '⁵' | '⁶' | '⁷' | '⁸' | '⁹' | '⁺' | '⁻' => {
+                '₀' | '₁' | '₂' | '₃' | '₄' | '₅' | '₆' | '₇' | '₈' | '₉' | '⁰' | '¹' | '²'
+                | '³' | '⁴' | '⁵' | '⁶' | '⁷' | '⁸' | '⁹' | '⁺' | '⁻' => {
                     self.unicode_parser.parse_script_symbol(chars, context)
                 }
                 // Parentheses and brackets
@@ -142,7 +143,9 @@ impl ExpressionParser {
                         expression: "lambda expression".to_string(),
                         reason: "Lambda calculus parsing disabled".to_string(),
                     });
-                    return Ok(EnhancedMathExpression::BasicSymbol(quantifier_char.to_string()));
+                    return Ok(EnhancedMathExpression::BasicSymbol(
+                        quantifier_char.to_string(),
+                    ));
                 }
                 Quantifier::Lambda
             }
@@ -151,9 +154,10 @@ impl ExpressionParser {
                     expression: format!("quantifier: {}", quantifier_char),
                     reason: "Invalid quantifier symbol".to_string(),
                 });
-                return Err(AispError::validation_error(
-                    format!("Invalid quantifier: {}", quantifier_char),
-                ));
+                return Err(AispError::validation_error(format!(
+                    "Invalid quantifier: {}",
+                    quantifier_char
+                )));
             }
         };
 
@@ -223,7 +227,9 @@ impl ExpressionParser {
                     expression: "bracketed expression".to_string(),
                     reason: format!("Invalid opening bracket: {}", open_bracket),
                 });
-                return Ok(EnhancedMathExpression::BasicSymbol(open_bracket.to_string()));
+                return Ok(EnhancedMathExpression::BasicSymbol(
+                    open_bracket.to_string(),
+                ));
             }
         };
 
@@ -482,13 +488,16 @@ mod tests {
         assert!(result.is_ok());
 
         let expr = result.unwrap();
-        assert!(matches!(expr, EnhancedMathExpression::ComplexStructure { .. }));
+        assert!(matches!(
+            expr,
+            EnhancedMathExpression::ComplexStructure { .. }
+        ));
     }
 
     #[test]
     fn test_mathematical_letter_detection() {
         let parser = ExpressionParser::new();
-        
+
         assert!(parser.is_mathematical_letter('𝔸')); // Mathematical bold A
         assert!(parser.is_mathematical_letter('ℂ')); // Complex numbers
         assert!(!parser.is_mathematical_letter('a')); // Regular letter
