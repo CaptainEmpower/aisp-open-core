@@ -1,5 +1,5 @@
 //! Canonical AST Module - Single Source of Truth
-//! 
+//!
 //! This module provides the unified, production-ready AST representation
 //! following SRP architecture with focused sub-modules:
 //!
@@ -9,20 +9,20 @@
 //! - `conversions`: Migration utilities and backward compatibility
 
 // Re-export all public types and functions
-pub use self::types::*;
-pub use self::blocks::*; 
-pub use self::document::*;
+pub use self::blocks::*;
 pub use self::conversions::*;
+pub use self::document::*;
+pub use self::types::*;
 
 // Explicit public re-exports for external visibility
-pub use self::document::CanonicalAispDocument;
 pub use self::blocks::CanonicalAispBlock;
+pub use self::document::CanonicalAispDocument;
 
 // Module declarations
-pub mod types;
 pub mod blocks;
-pub mod document;
 pub mod conversions;
+pub mod document;
+pub mod types;
 
 // Convenience functions for common operations
 pub fn create_document(name: &str, version: &str, date: &str) -> CanonicalAispDocument {
@@ -84,25 +84,27 @@ mod integration_tests {
     fn test_module_integration() {
         // Test that all components work together seamlessly
         let mut doc = create_document("integration_test", "5.1", "2026-01-27");
-        
+
         // Add various block types
-        doc.add_block(create_meta_block(vec!["Vision≜\"Integration Test\"".to_string()]));
+        doc.add_block(create_meta_block(vec![
+            "Vision≜\"Integration Test\"".to_string()
+        ]));
         doc.add_block(create_types_block(vec!["TestType≜Natural".to_string()]));
         doc.add_block(create_rules_block(vec!["∀x ∈ ℕ: x ≥ 0".to_string()]));
         doc.add_block(create_functions_block(vec!["f≜λx.x + 1".to_string()]));
         doc.add_block(create_evidence_block(vec!["δ≜0.001".to_string()]));
-        
+
         // Test document has all blocks
         assert_eq!(doc.blocks.len(), 5);
-        
+
         // Parse structured data
         doc.parse_structured_data();
-        
+
         // Verify parsing worked
         let meta_blocks = doc.get_meta_blocks();
         assert_eq!(meta_blocks.len(), 1);
         assert!(meta_blocks[0].entries.contains_key("Vision"));
-        
+
         let evidence_blocks = doc.get_evidence_blocks();
         assert_eq!(evidence_blocks.len(), 1);
         assert_eq!(evidence_blocks[0].delta, Some(0.001));
@@ -112,10 +114,10 @@ mod integration_tests {
     fn test_backward_compatibility_aliases() {
         let doc: AispDocument = create_document("test", "5.1", "2026-01-27");
         assert_eq!(doc.header.name, "test");
-        
+
         let block: AispBlock = create_meta_block(vec!["test≜value".to_string()]);
         match block {
-            AispBlock::Meta(_) => {}, // Success
+            AispBlock::Meta(_) => {} // Success
             _ => panic!("Expected Meta block"),
         }
     }
@@ -126,8 +128,10 @@ mod integration_tests {
         let mut doc = create_document("conversion_test", "5.1", "2026-01-27");
         doc.set_domain("test".to_string());
         doc.set_protocol("aisp".to_string());
-        
-        doc.add_block(create_meta_block(vec!["Vision≜\"Converted Document\"".to_string()]));
+
+        doc.add_block(create_meta_block(vec![
+            "Vision≜\"Converted Document\"".to_string()
+        ]));
 
         assert_eq!(doc.header.name, "conversion_test");
         assert_eq!(doc.metadata.domain, Some("test".to_string()));
@@ -137,13 +141,19 @@ mod integration_tests {
     #[test]
     fn test_document_statistics_integration() {
         let mut doc = create_document("stats_test", "5.1", "2026-01-27");
-        
-        doc.add_block(create_meta_block(vec!["key1≜value1".to_string(), "key2≜value2".to_string()]));
+
+        doc.add_block(create_meta_block(vec![
+            "key1≜value1".to_string(),
+            "key2≜value2".to_string(),
+        ]));
         doc.add_block(create_types_block(vec!["Type1≜Natural".to_string()]));
-        doc.add_block(create_rules_block(vec!["rule1".to_string(), "rule2".to_string()]));
-        
+        doc.add_block(create_rules_block(vec![
+            "rule1".to_string(),
+            "rule2".to_string(),
+        ]));
+
         doc.parse_structured_data();
-        
+
         let stats = doc.get_statistics();
         assert_eq!(stats.meta_blocks, 1);
         assert_eq!(stats.meta_entries, 2);
@@ -156,11 +166,14 @@ mod integration_tests {
     #[test]
     fn test_validation_integration() {
         let mut doc = create_document("", "5.1", "2026-01-27"); // Invalid empty name
-        
+
         let validation = doc.validate_structure();
         assert!(!validation.is_valid());
-        assert!(validation.errors.iter().any(|e| e.contains("name is empty")));
-        
+        assert!(validation
+            .errors
+            .iter()
+            .any(|e| e.contains("name is empty")));
+
         // Fix the name
         doc.header.name = "valid_name".to_string();
         let validation = doc.validate_structure();
@@ -170,22 +183,22 @@ mod integration_tests {
     #[test]
     fn test_extraction_utilities_integration() {
         let mut doc = create_document("extract_test", "5.1", "2026-01-27");
-        
+
         doc.add_block(create_meta_block(vec!["meta_key≜meta_value".to_string()]));
         doc.add_block(create_types_block(vec!["TestType≜Integer".to_string()]));
         doc.add_block(create_evidence_block(vec!["δ≜0.5".to_string()]));
-        
+
         doc.parse_structured_data();
-        
+
         // Test extraction utilities
         let meta_entries = extract_all_meta_entries(&doc);
         assert_eq!(meta_entries.len(), 1);
         assert!(meta_entries.contains_key("meta_key"));
-        
+
         let type_defs = extract_all_type_definitions(&doc);
         assert_eq!(type_defs.len(), 1);
         assert!(type_defs.contains_key("TestType"));
-        
+
         let evidence_metrics = extract_all_evidence_metrics(&doc);
         // Evidence metrics are different from delta/phi/tau values
         assert_eq!(evidence_metrics.len(), 0); // No custom metrics added
@@ -199,7 +212,7 @@ mod integration_tests {
         let rules = create_rules_block(vec!["rule".to_string()]);
         let functions = create_functions_block(vec!["f≜x".to_string()]);
         let evidence = create_evidence_block(vec!["δ≜0.1".to_string()]);
-        
+
         assert_eq!(meta.block_type(), "Meta");
         assert_eq!(types.block_type(), "Types");
         assert_eq!(rules.block_type(), "Rules");
@@ -211,45 +224,45 @@ mod integration_tests {
     fn test_comprehensive_document_lifecycle() {
         // Create document
         let mut doc = create_document("lifecycle_test", "5.1", "2026-01-27");
-        
+
         // Set metadata
         doc.set_domain("mathematics".to_string());
         doc.set_protocol("aisp".to_string());
-        
+
         // Add blocks
         doc.add_block(create_meta_block(vec![
             "Author≜\"Test Author\"".to_string(),
             "Version≜\"1.0\"".to_string(),
         ]));
-        
+
         doc.add_block(create_types_block(vec![
             "Natural≜ℕ".to_string(),
             "Real≜ℝ".to_string(),
         ]));
-        
+
         doc.add_block(create_rules_block(vec![
             "∀x ∈ ℕ: x ≥ 0".to_string(),
             "∀x ∈ ℝ: x ∈ ℝ".to_string(),
         ]));
-        
+
         doc.add_block(create_functions_block(vec![
             "successor≜λn.n + 1".to_string(),
             "identity≜λx.x".to_string(),
         ]));
-        
+
         doc.add_block(create_evidence_block(vec![
             "δ≜0.001".to_string(),
             "φ≜42".to_string(),
             "τ≜formal".to_string(),
         ]));
-        
+
         // Parse structured data
         doc.parse_structured_data();
-        
+
         // Validate
         let validation = doc.validate_structure();
         assert!(validation.is_valid());
-        
+
         // Get statistics
         let stats = doc.get_statistics();
         assert_eq!(stats.meta_blocks, 1);
@@ -261,12 +274,12 @@ mod integration_tests {
         assert_eq!(stats.functions_blocks, 1);
         assert_eq!(stats.function_definitions, 2);
         assert_eq!(stats.evidence_blocks, 1);
-        
+
         // Verify specific content
         let meta_blocks = doc.get_meta_blocks();
         assert!(meta_blocks[0].entries.contains_key("Author"));
         assert!(meta_blocks[0].entries.contains_key("Version"));
-        
+
         let evidence_blocks = doc.get_evidence_blocks();
         assert_eq!(evidence_blocks[0].delta, Some(0.001));
         assert_eq!(evidence_blocks[0].phi, Some(42));

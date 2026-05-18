@@ -4,15 +4,15 @@
 //! and parsing logic following SRP architecture.
 
 use super::types::*;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 
 /// Canonical Block representation with consistent method access patterns
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CanonicalAispBlock {
     Meta(MetaBlock),
     Types(TypesBlock),
-    Rules(RulesBlock), 
+    Rules(RulesBlock),
     Functions(FunctionsBlock),
     Evidence(EvidenceBlock),
 }
@@ -23,12 +23,12 @@ impl CanonicalAispBlock {
         match self {
             CanonicalAispBlock::Meta(_) => "Meta",
             CanonicalAispBlock::Types(_) => "Types",
-            CanonicalAispBlock::Rules(_) => "Rules", 
+            CanonicalAispBlock::Rules(_) => "Rules",
             CanonicalAispBlock::Functions(_) => "Functions",
             CanonicalAispBlock::Evidence(_) => "Evidence",
         }
     }
-    
+
     /// Get block as meta block if applicable
     pub fn as_meta(&self) -> Option<&MetaBlock> {
         match self {
@@ -36,7 +36,7 @@ impl CanonicalAispBlock {
             _ => None,
         }
     }
-    
+
     /// Get block as types block if applicable
     pub fn as_types(&self) -> Option<&TypesBlock> {
         match self {
@@ -44,7 +44,7 @@ impl CanonicalAispBlock {
             _ => None,
         }
     }
-    
+
     /// Get block as rules block if applicable
     pub fn as_rules(&self) -> Option<&RulesBlock> {
         match self {
@@ -52,7 +52,7 @@ impl CanonicalAispBlock {
             _ => None,
         }
     }
-    
+
     /// Get block as functions block if applicable
     pub fn as_functions(&self) -> Option<&FunctionsBlock> {
         match self {
@@ -60,7 +60,7 @@ impl CanonicalAispBlock {
             _ => None,
         }
     }
-    
+
     /// Get block as evidence block if applicable
     pub fn as_evidence(&self) -> Option<&EvidenceBlock> {
         match self {
@@ -106,7 +106,7 @@ pub struct FunctionsBlock {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EvidenceBlock {
     pub delta: Option<f64>,
-    pub phi: Option<u64>, 
+    pub phi: Option<u64>,
     pub tau: Option<String>,
     pub metrics: HashMap<String, f64>,
     pub raw_evidence: Vec<String>, // Keep raw strings for parsing
@@ -118,32 +118,37 @@ impl MetaBlock {
     pub fn parse_entries(&mut self) {
         for raw_entry in &self.raw_entries {
             if let Some((key, value)) = Self::parse_meta_entry(raw_entry) {
-                self.entries.insert(key.clone(), MetaEntry {
-                    key,
-                    value,
-                    span: None,
-                });
+                self.entries.insert(
+                    key.clone(),
+                    MetaEntry {
+                        key,
+                        value,
+                        span: None,
+                    },
+                );
             }
         }
     }
-    
+
     fn parse_meta_entry(entry: &str) -> Option<(String, MetaValue)> {
         // Simple parsing - extend as needed
-        if let Some(pos) = entry.find('≜') { // ≜ definition symbol
+        if let Some(pos) = entry.find('≜') {
+            // ≜ definition symbol
             let key = entry[..pos].trim().to_string();
             let value_str = entry[pos + '≜'.len_utf8()..].trim();
-            
+
             let value = if let Ok(num) = value_str.parse::<f64>() {
                 MetaValue::Number(num)
             } else if value_str == "true" || value_str == "false" {
                 MetaValue::Boolean(value_str == "true")
-            } else if value_str.contains('∀') || value_str.contains('∃') || value_str.contains('⇒') {
+            } else if value_str.contains('∀') || value_str.contains('∃') || value_str.contains('⇒')
+            {
                 // Simple heuristic for logical expressions
                 MetaValue::Constraint(LogicalExpression::Raw(value_str.to_string()))
             } else {
                 MetaValue::String(value_str.to_string())
             };
-            
+
             Some((key, value))
         } else {
             None
@@ -156,33 +161,40 @@ impl TypesBlock {
     pub fn parse_definitions(&mut self) {
         for raw_def in &self.raw_definitions {
             if let Some((name, type_expr)) = Self::parse_type_definition(raw_def) {
-                self.definitions.insert(name.clone(), TypeDefinition {
-                    name,
-                    type_expr,
-                    span: None,
-                });
+                self.definitions.insert(
+                    name.clone(),
+                    TypeDefinition {
+                        name,
+                        type_expr,
+                        span: None,
+                    },
+                );
             }
         }
     }
-    
+
     fn parse_type_definition(def: &str) -> Option<(String, TypeExpression)> {
         // Simple parsing - extend as needed
         if let Some(pos) = def.find('≜') {
             let name = def[..pos].trim().to_string();
             let type_str = def[pos + '≜'.len_utf8()..].trim();
-            
+
             let type_expr = if type_str.starts_with('{') && type_str.ends_with('}') {
                 // Set type
-                let inner = &type_str[1..type_str.len()-1];
-                let elements: Vec<String> = inner.split(',').map(|s| s.trim().to_string()).collect();
-                TypeExpression::Union(elements.into_iter().map(|e| 
-                    TypeExpression::Basic(BasicType::Custom(e))
-                ).collect())
+                let inner = &type_str[1..type_str.len() - 1];
+                let elements: Vec<String> =
+                    inner.split(',').map(|s| s.trim().to_string()).collect();
+                TypeExpression::Union(
+                    elements
+                        .into_iter()
+                        .map(|e| TypeExpression::Basic(BasicType::Custom(e)))
+                        .collect(),
+                )
             } else {
                 // Basic type
                 TypeExpression::Basic(BasicType::Custom(type_str.to_string()))
             };
-            
+
             Some((name, type_expr))
         } else {
             None
@@ -199,7 +211,7 @@ impl RulesBlock {
             }
         }
     }
-    
+
     fn parse_logical_rule(rule_str: &str) -> Option<LogicalRule> {
         // Simple parsing - for now just wrap as raw expression
         Some(LogicalRule {
@@ -220,13 +232,13 @@ impl FunctionsBlock {
             }
         }
     }
-    
+
     fn parse_function_definition(func_str: &str) -> Option<FunctionDefinition> {
         // Simple parsing - for now just wrap as raw
         if let Some(pos) = func_str.find('≜') {
             let name = func_str[..pos].trim().to_string();
             let lambda_str = func_str[pos + '≜'.len_utf8()..].trim();
-            
+
             Some(FunctionDefinition {
                 name,
                 lambda: LambdaExpression {
@@ -251,7 +263,7 @@ impl EvidenceBlock {
             self.parse_evidence_entry(raw_ev);
         }
     }
-    
+
     fn parse_evidence_entry(&mut self, evidence_str: &str) {
         // Parse δ, φ, τ values
         if evidence_str.contains('δ') {
@@ -270,13 +282,14 @@ impl EvidenceBlock {
             }
         }
     }
-    
+
     fn extract_numeric_value(text: &str, symbol: char) -> Option<f64> {
         if let Some(pos) = text.find(symbol) {
             let after_symbol = &text[pos + symbol.len_utf8()..];
             if let Some(eq_pos) = after_symbol.find('≜') {
                 let value_str = after_symbol[eq_pos + '≜'.len_utf8()..]
-                    .split_whitespace().next()?;
+                    .split_whitespace()
+                    .next()?;
                 value_str.parse().ok()
             } else {
                 None
@@ -285,13 +298,14 @@ impl EvidenceBlock {
             None
         }
     }
-    
+
     fn extract_string_value(text: &str, symbol: char) -> Option<String> {
         if let Some(pos) = text.find(symbol) {
             let after_symbol = &text[pos + symbol.len_utf8()..];
             if let Some(eq_pos) = after_symbol.find('≜') {
                 let value_str = after_symbol[eq_pos + '≜'.len_utf8()..]
-                    .split_whitespace().next()?;
+                    .split_whitespace()
+                    .next()?;
                 Some(value_str.to_string())
             } else {
                 None
@@ -313,7 +327,7 @@ mod tests {
             raw_entries: vec!["test".to_string()],
             span: None,
         });
-        
+
         assert_eq!(meta_block.block_type(), "Meta");
         assert!(meta_block.as_meta().is_some());
         assert!(meta_block.as_types().is_none());
@@ -326,7 +340,7 @@ mod tests {
             raw_entries: vec!["Vision≜\"test\"".to_string(), "count≜42".to_string()],
             span: None,
         };
-        
+
         meta_block.parse_entries();
         assert_eq!(meta_block.entries.len(), 2);
         assert!(meta_block.entries.contains_key("Vision"));
@@ -343,7 +357,7 @@ mod tests {
             raw_evidence: vec!["δ≜0.001".to_string(), "φ≜42".to_string()],
             span: None,
         };
-        
+
         evidence_block.parse_evidence();
         assert_eq!(evidence_block.delta, Some(0.001));
         assert_eq!(evidence_block.phi, Some(42));
@@ -356,7 +370,7 @@ mod tests {
             raw_definitions: Vec::new(),
             span: None,
         });
-        
+
         assert!(types_block.as_types().is_some());
         assert!(types_block.as_meta().is_none());
         assert!(types_block.as_rules().is_none());
@@ -371,7 +385,7 @@ mod tests {
             raw_functions: vec!["f≜λx.x + 1".to_string()],
             span: None,
         };
-        
+
         functions_block.parse_functions();
         assert_eq!(functions_block.functions.len(), 1);
         assert_eq!(functions_block.functions[0].name, "f");

@@ -4,84 +4,84 @@
 //! AISP 5.1 documents with zero-copy parsing and strong type safety guarantees.
 
 pub mod ast;
-pub mod parser; // Consolidated SRP-compliant parser
 pub mod batch_verification; // Batch verification optimization
+pub mod parser; // Consolidated SRP-compliant parser
 pub mod relational_new;
 pub mod temporal_new;
 pub mod validator;
 // pub mod z3_integration; // Temporarily disabled for compilation
+pub mod conflict_types;
 pub mod error;
 pub mod symbols;
-pub mod conflict_types;
 
 // New modular semantic analysis components
 pub mod type_checker;
 
 // New modular relational analysis components
-pub mod constraint_solver;
 pub mod conflict_detector;
+pub mod constraint_solver;
 
 // New modular temporal analysis components
-pub mod temporal_operator_analyzer;
-pub mod temporal_pattern_detector;
 pub mod temporal_logic_solver;
 pub mod temporal_model_checker;
+pub mod temporal_operator_analyzer;
+pub mod temporal_pattern_detector;
 
-// Concurrent behavior verification components  
+// Concurrent behavior verification components
 pub mod concurrent_behavior_verifier;
 
 // Advanced formal verification components
-pub mod property_types;
+pub mod axiom_system;
 pub mod formula_converter;
-pub mod property_factory;
+pub mod model_checker;
+pub mod proof_search;
+pub mod proof_types;
 pub mod property_extractor;
-pub mod smt_types;
+pub mod property_factory;
+pub mod property_types;
 pub mod smt_formula_converter;
 pub mod smt_generator;
-pub mod proof_types;
-pub mod axiom_system;
-pub mod proof_search;
+pub mod smt_types;
 pub mod theorem_prover;
-pub mod model_checker;
 
 // Invariant discovery system components
-pub mod invariant_types;
-pub mod invariant_formulas;
 pub mod invariant_analyzer;
-pub mod invariant_exporters;
-pub mod invariant_discovery_main;
 pub mod invariant_discovery;
+pub mod invariant_discovery_main;
+pub mod invariant_exporters;
+pub mod invariant_formulas;
+pub mod invariant_types;
 
 // Satisfiability checking components
 pub mod satisfiability_checker;
 
-// Formal verification framework  
+// Formal verification framework
 pub mod formal_verification;
 
 // Advanced behavioral verification components
+pub mod performance_verification;
 pub mod protocol_state_machine;
 pub mod resource_utilization;
-pub mod performance_verification;
 
-// Formal methods and remediation components  
-pub mod formal_semantics;
-pub mod soundness_proofs;
+// Formal methods and remediation components
 pub mod completeness_analysis;
+pub mod formal_semantics;
 pub mod semantic_preservation;
+pub mod soundness_proofs;
 
 // Rigorous mathematical foundations
-pub mod mathematical_semantics;
-pub mod mathematical_evaluator;
 pub mod incompleteness_handler;
-pub mod vector_space_verifier;
+pub mod mathematical_evaluator;
+pub mod mathematical_semantics;
 pub mod mechanized_proofs;
+pub mod vector_space_verifier;
 
 // Tri-vector signal validation
 pub mod tri_vector_validation;
 
 // Enhanced Z3 SMT solver integration (modular)
-pub mod z3_verification;
 pub mod semantic_z3_verifier;
+pub mod z3_verification;
 
 // Enhanced Z3 SMT solver integration (legacy re-exports)
 pub mod enhanced_z3_verification;
@@ -93,15 +93,15 @@ pub mod ghost_intent_validation;
 pub mod rossnet_scoring;
 
 // Complete AISP 5.1 Architecture Implementation
-pub mod pocket_architecture;          // Layer 1 (𝕃₁): Pocket Architecture
-pub mod ghost_intent_search;          // Layer 2 (𝕃₂): Ghost Intent Search  
-pub mod core_features;                // Missing core features F4,F6,F7,F14,F15,F16,F18
-pub mod compositional_proof_chain;    // Compositional proof chain connecting all layers
-pub mod performance_guarantees;       // Performance guarantee verifications
+pub mod compositional_proof_chain; // Compositional proof chain connecting all layers
+pub mod core_features; // Missing core features F4,F6,F7,F14,F15,F16,F18
+pub mod ghost_intent_search; // Layer 2 (𝕃₂): Ghost Intent Search
+pub mod performance_guarantees;
+pub mod pocket_architecture; // Layer 1 (𝕃₁): Pocket Architecture // Performance guarantee verifications
 
 // Phase 2: Enhanced Verification Capabilities
-pub mod advanced_theorem_prover;      // Advanced mathematical theorem proving
-pub mod category_theory_verifier;     // Category theory verification module
+pub mod advanced_theorem_prover; // Advanced mathematical theorem proving
+pub mod category_theory_verifier; // Category theory verification module
 pub mod mathematical_notation_parser; // Enhanced Unicode mathematical parsing
 
 // Hebbian learning constraint validation

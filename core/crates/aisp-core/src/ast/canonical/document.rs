@@ -3,12 +3,12 @@
 //! Document-level operations, construction, and manipulation methods
 //! following SRP architecture for canonical AST representation.
 
-use super::types::*;
 use super::blocks::*;
-use serde::{Serialize, Deserialize};
+use super::types::*;
+use serde::{Deserialize, Serialize};
 
 /// Canonical AISP Document representation - SINGLE SOURCE OF TRUTH
-/// 
+///
 /// This replaces both `ast::AispDocument` and `robust_parser::AispDocument`
 /// with a unified, production-ready type that all modules use consistently.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -49,29 +49,35 @@ impl CanonicalAispDocument {
                 metadata: None,
             },
             metadata: DocumentMetadata {
-                domain: None, 
+                domain: None,
                 protocol: None,
             },
             blocks: Vec::new(),
             span: None,
         }
     }
-    
+
     /// Add block to document
     pub fn add_block(&mut self, block: CanonicalAispBlock) {
         self.blocks.push(block);
     }
-    
+
     /// Get all blocks of a specific type
-    pub fn get_blocks_by_type<T>(&self, block_type: fn(&CanonicalAispBlock) -> Option<&T>) -> Vec<&T> {
+    pub fn get_blocks_by_type<T>(
+        &self,
+        block_type: fn(&CanonicalAispBlock) -> Option<&T>,
+    ) -> Vec<&T> {
         self.blocks.iter().filter_map(block_type).collect()
     }
-    
+
     /// Get first block of a specific type
-    pub fn get_first_block<T>(&self, block_type: fn(&CanonicalAispBlock) -> Option<&T>) -> Option<&T> {
+    pub fn get_first_block<T>(
+        &self,
+        block_type: fn(&CanonicalAispBlock) -> Option<&T>,
+    ) -> Option<&T> {
         self.blocks.iter().find_map(block_type)
     }
-    
+
     /// Parse structured data from raw strings (called after construction)
     pub fn parse_structured_data(&mut self) {
         for block in &mut self.blocks {
@@ -123,7 +129,7 @@ impl CanonicalAispDocument {
     /// Get document statistics
     pub fn get_statistics(&self) -> DocumentStatistics {
         let mut stats = DocumentStatistics::default();
-        
+
         for block in &self.blocks {
             match block {
                 CanonicalAispBlock::Meta(meta) => {
@@ -148,14 +154,14 @@ impl CanonicalAispDocument {
                 }
             }
         }
-        
+
         stats
     }
 
     /// Validate document structure
     pub fn validate_structure(&self) -> DocumentValidation {
         let mut validation = DocumentValidation::new();
-        
+
         // Check header completeness
         if self.header.version.is_empty() {
             validation.add_error("Header version is empty");
@@ -184,10 +190,16 @@ impl CanonicalAispDocument {
             validation.add_warning(&format!("Multiple rules blocks found: {}", rules_count));
         }
         if functions_count > 1 {
-            validation.add_warning(&format!("Multiple functions blocks found: {}", functions_count));
+            validation.add_warning(&format!(
+                "Multiple functions blocks found: {}",
+                functions_count
+            ));
         }
         if evidence_count > 1 {
-            validation.add_warning(&format!("Multiple evidence blocks found: {}", evidence_count));
+            validation.add_warning(&format!(
+                "Multiple evidence blocks found: {}",
+                evidence_count
+            ));
         }
 
         // Check for empty document
@@ -274,7 +286,7 @@ pub type AispDocument = CanonicalAispDocument;
 mod tests {
     use super::*;
     use std::collections::HashMap;
-    
+
     #[test]
     fn test_canonical_document_creation() {
         let doc = CanonicalAispDocument::new(
@@ -282,31 +294,31 @@ mod tests {
             "5.1".to_string(),
             "2026-01-27".to_string(),
         );
-        
+
         assert_eq!(doc.header.name, "test");
         assert_eq!(doc.header.version, "5.1");
         assert_eq!(doc.blocks.len(), 0);
     }
-    
+
     #[test]
     fn test_block_filtering() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         doc.add_block(CanonicalAispBlock::Meta(MetaBlock {
             entries: HashMap::new(),
             raw_entries: vec!["meta1".to_string()],
             span: None,
         }));
-        
+
         doc.add_block(CanonicalAispBlock::Types(TypesBlock {
             definitions: HashMap::new(),
             raw_definitions: Vec::new(),
             span: None,
         }));
-        
+
         let meta_blocks = doc.get_blocks_by_type(|b| b.as_meta());
         let type_blocks = doc.get_blocks_by_type(|b| b.as_types());
-        
+
         assert_eq!(meta_blocks.len(), 1);
         assert_eq!(type_blocks.len(), 1);
     }
@@ -314,21 +326,24 @@ mod tests {
     #[test]
     fn test_document_statistics() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         // Add meta block with entries
         let mut meta_entries = HashMap::new();
-        meta_entries.insert("key1".to_string(), MetaEntry {
-            key: "key1".to_string(),
-            value: MetaValue::String("value1".to_string()),
-            span: None,
-        });
-        
+        meta_entries.insert(
+            "key1".to_string(),
+            MetaEntry {
+                key: "key1".to_string(),
+                value: MetaValue::String("value1".to_string()),
+                span: None,
+            },
+        );
+
         doc.add_block(CanonicalAispBlock::Meta(MetaBlock {
             entries: meta_entries,
             raw_entries: Vec::new(),
             span: None,
         }));
-        
+
         let stats = doc.get_statistics();
         assert_eq!(stats.meta_blocks, 1);
         assert_eq!(stats.meta_entries, 1);
@@ -339,19 +354,22 @@ mod tests {
     fn test_document_validation() {
         let mut doc = CanonicalAispDocument::default();
         doc.header.name = "".to_string(); // Invalid empty name
-        
+
         let validation = doc.validate_structure();
         assert!(!validation.is_valid());
-        assert!(validation.errors.iter().any(|e| e.contains("name is empty")));
+        assert!(validation
+            .errors
+            .iter()
+            .any(|e| e.contains("name is empty")));
     }
 
     #[test]
     fn test_document_metadata_operations() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         doc.set_domain("mathematics".to_string());
         doc.set_protocol("aisp".to_string());
-        
+
         assert_eq!(doc.metadata.domain, Some("mathematics".to_string()));
         assert_eq!(doc.metadata.protocol, Some("aisp".to_string()));
     }
@@ -359,15 +377,15 @@ mod tests {
     #[test]
     fn test_structured_data_parsing() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         doc.add_block(CanonicalAispBlock::Meta(MetaBlock {
             entries: HashMap::new(),
             raw_entries: vec!["Vision≜\"test\"".to_string()],
             span: None,
         }));
-        
+
         doc.parse_structured_data();
-        
+
         let meta_blocks = doc.get_meta_blocks();
         assert_eq!(meta_blocks.len(), 1);
         assert_eq!(meta_blocks[0].entries.len(), 1);
@@ -377,19 +395,19 @@ mod tests {
     #[test]
     fn test_convenience_accessors() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         doc.add_block(CanonicalAispBlock::Rules(RulesBlock {
             rules: Vec::new(),
             raw_rules: Vec::new(),
             span: None,
         }));
-        
+
         doc.add_block(CanonicalAispBlock::Functions(FunctionsBlock {
             functions: Vec::new(),
             raw_functions: Vec::new(),
             span: None,
         }));
-        
+
         assert_eq!(doc.get_rules_blocks().len(), 1);
         assert_eq!(doc.get_functions_blocks().len(), 1);
         assert_eq!(doc.get_evidence_blocks().len(), 0);

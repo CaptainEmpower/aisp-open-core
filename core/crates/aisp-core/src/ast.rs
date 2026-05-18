@@ -1,5 +1,5 @@
 //! Abstract Syntax Tree for AISP documents
-//! 
+//!
 //! Provides type-safe representations of all AISP constructs with
 //! zero-copy parsing where possible.
 
@@ -13,13 +13,9 @@ use serde::{Deserialize, Serialize};
 
 // Re-export canonical types as primary interface for new development
 pub use canonical::{
-    CanonicalAispDocument,
-    CanonicalAispBlock, 
-    MetaBlock as CanonicalMetaBlock,
-    TypesBlock as CanonicalTypesBlock,
-    RulesBlock as CanonicalRulesBlock,
-    FunctionsBlock as CanonicalFunctionsBlock,
-    EvidenceBlock as CanonicalEvidenceBlock,
+    CanonicalAispBlock, CanonicalAispDocument, EvidenceBlock as CanonicalEvidenceBlock,
+    FunctionsBlock as CanonicalFunctionsBlock, MetaBlock as CanonicalMetaBlock,
+    RulesBlock as CanonicalRulesBlock, TypesBlock as CanonicalTypesBlock,
 };
 
 // Legacy AST types - maintained for backward compatibility during migration
@@ -93,8 +89,11 @@ impl AispBlock {
     /// Check if this is a required block
     pub fn is_required(&self) -> bool {
         match self {
-            Self::Meta(_) | Self::Types(_) | Self::Rules(_) | 
-            Self::Functions(_) | Self::Evidence(_) => true,
+            Self::Meta(_)
+            | Self::Types(_)
+            | Self::Rules(_)
+            | Self::Functions(_)
+            | Self::Evidence(_) => true,
         }
     }
 }
@@ -465,7 +464,7 @@ mod tests {
             entries: HashMap::new(),
             span: Span::new(1, 1, 1, 10),
         });
-        
+
         assert_eq!(meta_block.block_type(), "Meta");
         assert!(meta_block.is_required());
     }

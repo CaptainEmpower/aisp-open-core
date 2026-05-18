@@ -4,8 +4,8 @@
 //! following SRP architecture. Since the parser now uses canonical AST types
 //! directly, this module focuses on utility operations and type conversions.
 
-use super::types::*;
 use super::document::*;
+use super::types::*;
 use std::collections::HashMap;
 
 /// Conversion trait for future extensibility
@@ -41,59 +41,61 @@ pub fn extract_protocol_metadata(doc: &CanonicalAispDocument) -> Option<String> 
 /// Utility function to extract meta entries from all meta blocks
 pub fn extract_all_meta_entries(doc: &CanonicalAispDocument) -> HashMap<String, MetaValue> {
     let mut all_entries = HashMap::new();
-    
+
     for meta_block in doc.get_meta_blocks() {
         for (key, entry) in &meta_block.entries {
             all_entries.insert(key.clone(), entry.value.clone());
         }
     }
-    
+
     all_entries
 }
 
 /// Utility function to extract all type definitions
-pub fn extract_all_type_definitions(doc: &CanonicalAispDocument) -> HashMap<String, TypeExpression> {
+pub fn extract_all_type_definitions(
+    doc: &CanonicalAispDocument,
+) -> HashMap<String, TypeExpression> {
     let mut all_definitions = HashMap::new();
-    
+
     for types_block in doc.get_types_blocks() {
         for (name, type_def) in &types_block.definitions {
             all_definitions.insert(name.clone(), type_def.type_expr.clone());
         }
     }
-    
+
     all_definitions
 }
 
 /// Utility function to extract all logical rules
 pub fn extract_all_logical_rules(doc: &CanonicalAispDocument) -> Vec<LogicalRule> {
     let mut all_rules = Vec::new();
-    
+
     for rules_block in doc.get_rules_blocks() {
         all_rules.extend(rules_block.rules.clone());
     }
-    
+
     all_rules
 }
 
 /// Utility function to extract all function definitions
 pub fn extract_all_function_definitions(doc: &CanonicalAispDocument) -> Vec<FunctionDefinition> {
     let mut all_functions = Vec::new();
-    
+
     for functions_block in doc.get_functions_blocks() {
         all_functions.extend(functions_block.functions.clone());
     }
-    
+
     all_functions
 }
 
 /// Utility function to extract all evidence metrics
 pub fn extract_all_evidence_metrics(doc: &CanonicalAispDocument) -> HashMap<String, f64> {
     let mut all_metrics = HashMap::new();
-    
+
     for evidence_block in doc.get_evidence_blocks() {
         all_metrics.extend(evidence_block.metrics.clone());
     }
-    
+
     all_metrics
 }
 
@@ -129,13 +131,16 @@ mod tests {
     #[test]
     fn test_meta_extraction_utilities() {
         let mut doc = CanonicalAispDocument::default();
-        
+
         let mut entries = HashMap::new();
-        entries.insert("test_key".to_string(), MetaEntry {
-            key: "test_key".to_string(),
-            value: MetaValue::String("test_value".to_string()),
-            span: None,
-        });
+        entries.insert(
+            "test_key".to_string(),
+            MetaEntry {
+                key: "test_key".to_string(),
+                value: MetaValue::String("test_value".to_string()),
+                span: None,
+            },
+        );
 
         doc.add_block(CanonicalAispBlock::Meta(MetaBlock {
             entries,
@@ -145,7 +150,10 @@ mod tests {
 
         let extracted = extract_all_meta_entries(&doc);
         assert_eq!(extracted.len(), 1);
-        assert_eq!(extracted.get("test_key"), Some(&MetaValue::String("test_value".to_string())));
+        assert_eq!(
+            extracted.get("test_key"),
+            Some(&MetaValue::String("test_value".to_string()))
+        );
     }
 
     #[test]
@@ -154,13 +162,17 @@ mod tests {
         doc.set_domain("mathematics".to_string());
         doc.set_protocol("aisp".to_string());
 
-        assert_eq!(extract_domain_metadata(&doc), Some("mathematics".to_string()));
+        assert_eq!(
+            extract_domain_metadata(&doc),
+            Some("mathematics".to_string())
+        );
         assert_eq!(extract_protocol_metadata(&doc), Some("aisp".to_string()));
     }
 
     #[test]
     fn test_conversion_error_display() {
-        let error = ConversionError::ValidationFailed(vec!["Error 1".to_string(), "Error 2".to_string()]);
+        let error =
+            ConversionError::ValidationFailed(vec!["Error 1".to_string(), "Error 2".to_string()]);
         let display = format!("{}", error);
         assert!(display.contains("Validation failed"));
         assert!(display.contains("Error 1"));

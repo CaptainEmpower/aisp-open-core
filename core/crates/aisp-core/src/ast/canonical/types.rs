@@ -3,7 +3,7 @@
 //! Defines the fundamental types for the canonical AISP AST representation
 //! including spans, headers, and basic type system following SRP architecture.
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Source location span information
@@ -36,7 +36,7 @@ pub struct HeaderMetadata {
     pub tags: Vec<String>,
 }
 
-/// Document metadata 
+/// Document metadata
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DocumentMetadata {
     pub domain: Option<String>,
@@ -264,7 +264,12 @@ pub struct Parameter {
 impl Span {
     /// Create new span
     pub fn new(start: usize, end: usize, line: usize, column: usize) -> Self {
-        Self { start, end, line, column }
+        Self {
+            start,
+            end,
+            line,
+            column,
+        }
     }
 
     /// Check if span contains position
@@ -387,10 +392,9 @@ impl TypeExpression {
 impl BasicType {
     /// Check if type is numeric
     pub fn is_numeric(&self) -> bool {
-        matches!(self, 
-            BasicType::Natural | 
-            BasicType::Integer | 
-            BasicType::Real
+        matches!(
+            self,
+            BasicType::Natural | BasicType::Integer | BasicType::Real
         )
     }
 
@@ -435,7 +439,7 @@ mod tests {
         let header = DocumentHeader::new(
             "5.1".to_string(),
             "test".to_string(),
-            "2026-01-27".to_string()
+            "2026-01-27".to_string(),
         );
         assert_eq!(header.version, "5.1");
         assert_eq!(header.name, "test");
@@ -450,7 +454,7 @@ mod tests {
             .with_description("Test Description".to_string())
             .add_tag("test".to_string())
             .add_tag("demo".to_string());
-        
+
         assert_eq!(metadata.author, Some("Test Author".to_string()));
         assert_eq!(metadata.description, Some("Test Description".to_string()));
         assert_eq!(metadata.tags, vec!["test".to_string(), "demo".to_string()]);
@@ -485,7 +489,7 @@ mod tests {
         let metadata = DocumentMetadata::new()
             .with_domain("mathematics".to_string())
             .with_protocol("aisp".to_string());
-        
+
         assert_eq!(metadata.domain, Some("mathematics".to_string()));
         assert_eq!(metadata.protocol, Some("aisp".to_string()));
     }
