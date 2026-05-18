@@ -62,9 +62,12 @@ pub mod streaming;
 pub mod z3_validation;
 
 // Re-exports
-pub use symbol::{Category, Symbol, SymbolId, AISP_SYMBOLS, is_aisp_char, count_symbols, count_tokens, lookup_symbol, starts_with_symbol, get_glyph};
+pub use symbol::{
+    count_symbols, count_tokens, get_glyph, is_aisp_char, lookup_symbol, starts_with_symbol,
+    Category, Symbol, SymbolId, AISP_SYMBOLS,
+};
 pub use tier::Tier;
-pub use validate::{validate, is_valid, get_tier, get_density, ValidationResult, DensityMetrics};
+pub use validate::{get_density, get_tier, is_valid, validate, DensityMetrics, ValidationResult};
 
 #[cfg(feature = "z3")]
 pub use z3_validation::{validate_with_z3, AispConstruct, Z3Context};
@@ -83,5 +86,7 @@ pub const ABSOLUTE_MAX_SIZE: usize = 1024 * 1024;
 
 /// Check if a file extension is supported
 pub fn is_extension_supported(ext: &str) -> bool {
-    SUPPORTED_EXTENSIONS.iter().any(|&e| e.eq_ignore_ascii_case(ext))
+    SUPPORTED_EXTENSIONS
+        .iter()
+        .any(|&e| e.eq_ignore_ascii_case(ext))
 }

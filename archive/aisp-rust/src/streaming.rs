@@ -83,8 +83,12 @@ impl StreamState {
 
     /// Total semantic bindings
     pub fn total_bindings(&self) -> u32 {
-        (self.definitions + self.assignments + self.quantifiers
-            + self.lambdas + self.implications + self.set_ops) as u32
+        (self.definitions
+            + self.assignments
+            + self.quantifiers
+            + self.lambdas
+            + self.implications
+            + self.set_ops) as u32
     }
 
     /// Block score (0.0 - 1.0)

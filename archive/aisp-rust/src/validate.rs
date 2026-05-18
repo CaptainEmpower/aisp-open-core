@@ -48,8 +48,12 @@ impl DensityMetrics {
         let assignments = source.matches('≔').count() as u16;
         let quantifiers = source.matches(|c| c == '∀' || c == '∃').count() as u16;
         let lambdas = source.matches('λ').count() as u16;
-        let implications = source.matches(|c| matches!(c, '⇒' | '⇔' | '→' | '↔')).count() as u16;
-        let set_ops = source.matches(|c| matches!(c, '∈' | '⊆' | '∩' | '∪' | '∅')).count() as u16;
+        let implications = source
+            .matches(|c| matches!(c, '⇒' | '⇔' | '→' | '↔'))
+            .count() as u16;
+        let set_ops = source
+            .matches(|c| matches!(c, '∈' | '⊆' | '∩' | '∪' | '∅'))
+            .count() as u16;
 
         Self {
             blocks_found,
@@ -66,8 +70,12 @@ impl DensityMetrics {
 
     /// Total semantic bindings
     pub fn total_bindings(&self) -> u16 {
-        self.definitions + self.assignments + self.quantifiers
-            + self.lambdas + self.implications + self.set_ops
+        self.definitions
+            + self.assignments
+            + self.quantifiers
+            + self.lambdas
+            + self.implications
+            + self.set_ops
     }
 
     /// Block score (0.0 - 1.0)
@@ -126,7 +134,12 @@ impl ValidationResult {
     }
 
     /// Create successful result with metrics
-    pub fn success_with_metrics(tier: Tier, delta: f32, pure_density: f32, metrics: DensityMetrics) -> Self {
+    pub fn success_with_metrics(
+        tier: Tier,
+        delta: f32,
+        pure_density: f32,
+        metrics: DensityMetrics,
+    ) -> Self {
         Self {
             valid: true,
             tier,

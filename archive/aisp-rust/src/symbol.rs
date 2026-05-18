@@ -85,82 +85,388 @@ pub struct Symbol {
 /// Core AISP symbols (subset of Σ_512 for size optimization)
 pub static AISP_SYMBOLS: &[Symbol] = &[
     // Ω: Transmuters - logic and proof
-    Symbol { glyph: *b"\xE2\x8A\xA4\x00", len: 3, category: Category::Omega, id: 0 },   // ⊤ (top/true)
-    Symbol { glyph: *b"\xE2\x8A\xA5\x00", len: 3, category: Category::Omega, id: 1 },   // ⊥ (bottom/false)
-    Symbol { glyph: *b"\xE2\x88\xA7\x00", len: 3, category: Category::Omega, id: 2 },   // ∧ (and)
-    Symbol { glyph: *b"\xE2\x88\xA8\x00", len: 3, category: Category::Omega, id: 3 },   // ∨ (or)
-    Symbol { glyph: *b"\xC2\xAC\x00\x00", len: 2, category: Category::Omega, id: 4 },   // ¬ (not)
-    Symbol { glyph: *b"\xE2\x86\x92\x00", len: 3, category: Category::Omega, id: 5 },   // → (implies)
-    Symbol { glyph: *b"\xE2\x86\x94\x00", len: 3, category: Category::Omega, id: 6 },   // ↔ (iff)
-    Symbol { glyph: *b"\xE2\x87\x92\x00", len: 3, category: Category::Omega, id: 7 },   // ⇒ (implies)
-    Symbol { glyph: *b"\xE2\x87\x94\x00", len: 3, category: Category::Omega, id: 8 },   // ⇔ (iff)
-    Symbol { glyph: *b"\xE2\x8A\xA2\x00", len: 3, category: Category::Omega, id: 9 },   // ⊢ (proves)
-    Symbol { glyph: *b"\xE2\x8A\xA8\x00", len: 3, category: Category::Omega, id: 10 },  // ⊨ (models)
-    Symbol { glyph: *b"\xE2\x89\x9C\x00", len: 3, category: Category::Omega, id: 11 },  // ≜ (defined as)
-    Symbol { glyph: *b"\xE2\x89\x94\x00", len: 3, category: Category::Omega, id: 12 },  // ≔ (assign)
-    Symbol { glyph: *b"\xE2\x89\xA1\x00", len: 3, category: Category::Omega, id: 13 },  // ≡ (identical)
-    Symbol { glyph: *b"\xE2\x89\xA2\x00", len: 3, category: Category::Omega, id: 14 },  // ≢ (not identical)
-    Symbol { glyph: *b"\xCE\xBB\x00\x00", len: 2, category: Category::Omega, id: 15 },  // λ (lambda)
-    Symbol { glyph: *b"\xE2\x88\x8E\x00", len: 3, category: Category::Omega, id: 16 },  // ∎ (QED)
-    Symbol { glyph: *b"\xE2\x88\x98\x00", len: 3, category: Category::Omega, id: 17 },  // ∘ (compose)
-    Symbol { glyph: *b"\xE2\x86\xA6\x00", len: 3, category: Category::Omega, id: 18 },  // ↦ (mapsto)
-
+    Symbol {
+        glyph: *b"\xE2\x8A\xA4\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 0,
+    }, // ⊤ (top/true)
+    Symbol {
+        glyph: *b"\xE2\x8A\xA5\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 1,
+    }, // ⊥ (bottom/false)
+    Symbol {
+        glyph: *b"\xE2\x88\xA7\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 2,
+    }, // ∧ (and)
+    Symbol {
+        glyph: *b"\xE2\x88\xA8\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 3,
+    }, // ∨ (or)
+    Symbol {
+        glyph: *b"\xC2\xAC\x00\x00",
+        len: 2,
+        category: Category::Omega,
+        id: 4,
+    }, // ¬ (not)
+    Symbol {
+        glyph: *b"\xE2\x86\x92\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 5,
+    }, // → (implies)
+    Symbol {
+        glyph: *b"\xE2\x86\x94\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 6,
+    }, // ↔ (iff)
+    Symbol {
+        glyph: *b"\xE2\x87\x92\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 7,
+    }, // ⇒ (implies)
+    Symbol {
+        glyph: *b"\xE2\x87\x94\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 8,
+    }, // ⇔ (iff)
+    Symbol {
+        glyph: *b"\xE2\x8A\xA2\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 9,
+    }, // ⊢ (proves)
+    Symbol {
+        glyph: *b"\xE2\x8A\xA8\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 10,
+    }, // ⊨ (models)
+    Symbol {
+        glyph: *b"\xE2\x89\x9C\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 11,
+    }, // ≜ (defined as)
+    Symbol {
+        glyph: *b"\xE2\x89\x94\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 12,
+    }, // ≔ (assign)
+    Symbol {
+        glyph: *b"\xE2\x89\xA1\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 13,
+    }, // ≡ (identical)
+    Symbol {
+        glyph: *b"\xE2\x89\xA2\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 14,
+    }, // ≢ (not identical)
+    Symbol {
+        glyph: *b"\xCE\xBB\x00\x00",
+        len: 2,
+        category: Category::Omega,
+        id: 15,
+    }, // λ (lambda)
+    Symbol {
+        glyph: *b"\xE2\x88\x8E\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 16,
+    }, // ∎ (QED)
+    Symbol {
+        glyph: *b"\xE2\x88\x98\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 17,
+    }, // ∘ (compose)
+    Symbol {
+        glyph: *b"\xE2\x86\xA6\x00",
+        len: 3,
+        category: Category::Omega,
+        id: 18,
+    }, // ↦ (mapsto)
     // Γ: Topologics - sets and relations
-    Symbol { glyph: *b"\xE2\x88\x88\x00", len: 3, category: Category::Gamma, id: 64 },  // ∈ (element of)
-    Symbol { glyph: *b"\xE2\x88\x89\x00", len: 3, category: Category::Gamma, id: 65 },  // ∉ (not element)
-    Symbol { glyph: *b"\xE2\x8A\x86\x00", len: 3, category: Category::Gamma, id: 66 },  // ⊆ (subset)
-    Symbol { glyph: *b"\xE2\x8A\x87\x00", len: 3, category: Category::Gamma, id: 67 },  // ⊇ (superset)
-    Symbol { glyph: *b"\xE2\x88\xA9\x00", len: 3, category: Category::Gamma, id: 68 },  // ∩ (intersection)
-    Symbol { glyph: *b"\xE2\x88\xAA\x00", len: 3, category: Category::Gamma, id: 69 },  // ∪ (union)
-    Symbol { glyph: *b"\xE2\x88\x85\x00", len: 3, category: Category::Gamma, id: 70 },  // ∅ (empty set)
-    Symbol { glyph: *b"\xF0\x9D\x92\xAB", len: 4, category: Category::Gamma, id: 71 },  // 𝒫 (power set)
-
+    Symbol {
+        glyph: *b"\xE2\x88\x88\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 64,
+    }, // ∈ (element of)
+    Symbol {
+        glyph: *b"\xE2\x88\x89\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 65,
+    }, // ∉ (not element)
+    Symbol {
+        glyph: *b"\xE2\x8A\x86\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 66,
+    }, // ⊆ (subset)
+    Symbol {
+        glyph: *b"\xE2\x8A\x87\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 67,
+    }, // ⊇ (superset)
+    Symbol {
+        glyph: *b"\xE2\x88\xA9\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 68,
+    }, // ∩ (intersection)
+    Symbol {
+        glyph: *b"\xE2\x88\xAA\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 69,
+    }, // ∪ (union)
+    Symbol {
+        glyph: *b"\xE2\x88\x85\x00",
+        len: 3,
+        category: Category::Gamma,
+        id: 70,
+    }, // ∅ (empty set)
+    Symbol {
+        glyph: *b"\xF0\x9D\x92\xAB",
+        len: 4,
+        category: Category::Gamma,
+        id: 71,
+    }, // 𝒫 (power set)
     // ∀: Quantifiers
-    Symbol { glyph: *b"\xE2\x88\x80\x00", len: 3, category: Category::Forall, id: 128 }, // ∀ (for all)
-    Symbol { glyph: *b"\xE2\x88\x83\x00", len: 3, category: Category::Forall, id: 129 }, // ∃ (exists)
-    Symbol { glyph: *b"\xCE\xA0\x00\x00", len: 2, category: Category::Forall, id: 130 }, // Π (product)
-    Symbol { glyph: *b"\xCE\xA3\x00\x00", len: 2, category: Category::Forall, id: 131 }, // Σ (sum)
-    Symbol { glyph: *b"\xE2\x8A\x95\x00", len: 3, category: Category::Forall, id: 132 }, // ⊕ (plus)
-    Symbol { glyph: *b"\xE2\x8A\x96\x00", len: 3, category: Category::Forall, id: 133 }, // ⊖ (minus)
-    Symbol { glyph: *b"\xE2\x8A\x97\x00", len: 3, category: Category::Forall, id: 134 }, // ⊗ (tensor)
-    Symbol { glyph: *b"\xE2\x97\x8A\x00", len: 3, category: Category::Forall, id: 135 }, // ◊ (tier)
-
+    Symbol {
+        glyph: *b"\xE2\x88\x80\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 128,
+    }, // ∀ (for all)
+    Symbol {
+        glyph: *b"\xE2\x88\x83\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 129,
+    }, // ∃ (exists)
+    Symbol {
+        glyph: *b"\xCE\xA0\x00\x00",
+        len: 2,
+        category: Category::Forall,
+        id: 130,
+    }, // Π (product)
+    Symbol {
+        glyph: *b"\xCE\xA3\x00\x00",
+        len: 2,
+        category: Category::Forall,
+        id: 131,
+    }, // Σ (sum)
+    Symbol {
+        glyph: *b"\xE2\x8A\x95\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 132,
+    }, // ⊕ (plus)
+    Symbol {
+        glyph: *b"\xE2\x8A\x96\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 133,
+    }, // ⊖ (minus)
+    Symbol {
+        glyph: *b"\xE2\x8A\x97\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 134,
+    }, // ⊗ (tensor)
+    Symbol {
+        glyph: *b"\xE2\x97\x8A\x00",
+        len: 3,
+        category: Category::Forall,
+        id: 135,
+    }, // ◊ (tier)
     // 𝔻: Domaines - type domains
-    Symbol { glyph: *b"\xE2\x84\x95\x00", len: 3, category: Category::Domain, id: 256 }, // ℕ (naturals)
-    Symbol { glyph: *b"\xE2\x84\xA4\x00", len: 3, category: Category::Domain, id: 257 }, // ℤ (integers)
-    Symbol { glyph: *b"\xE2\x84\x9D\x00", len: 3, category: Category::Domain, id: 258 }, // ℝ (reals)
-    Symbol { glyph: *b"\xE2\x84\x9A\x00", len: 3, category: Category::Domain, id: 259 }, // ℚ (rationals)
-    Symbol { glyph: *b"\xF0\x9D\x94\xB9", len: 4, category: Category::Domain, id: 260 }, // 𝔹 (booleans)
-    Symbol { glyph: *b"\xF0\x9D\x95\x8A", len: 4, category: Category::Domain, id: 261 }, // 𝕊 (strings)
-
+    Symbol {
+        glyph: *b"\xE2\x84\x95\x00",
+        len: 3,
+        category: Category::Domain,
+        id: 256,
+    }, // ℕ (naturals)
+    Symbol {
+        glyph: *b"\xE2\x84\xA4\x00",
+        len: 3,
+        category: Category::Domain,
+        id: 257,
+    }, // ℤ (integers)
+    Symbol {
+        glyph: *b"\xE2\x84\x9D\x00",
+        len: 3,
+        category: Category::Domain,
+        id: 258,
+    }, // ℝ (reals)
+    Symbol {
+        glyph: *b"\xE2\x84\x9A\x00",
+        len: 3,
+        category: Category::Domain,
+        id: 259,
+    }, // ℚ (rationals)
+    Symbol {
+        glyph: *b"\xF0\x9D\x94\xB9",
+        len: 4,
+        category: Category::Domain,
+        id: 260,
+    }, // 𝔹 (booleans)
+    Symbol {
+        glyph: *b"\xF0\x9D\x95\x8A",
+        len: 4,
+        category: Category::Domain,
+        id: 261,
+    }, // 𝕊 (strings)
     // ⟦⟧: Delimiters and blocks
-    Symbol { glyph: *b"\xE2\x9F\xA6\x00", len: 3, category: Category::Block, id: 384 }, // ⟦ (block open)
-    Symbol { glyph: *b"\xE2\x9F\xA7\x00", len: 3, category: Category::Block, id: 385 }, // ⟧ (block close)
-    Symbol { glyph: *b"\xE2\x9F\xA8\x00", len: 3, category: Category::Block, id: 386 }, // ⟨ (tuple open)
-    Symbol { glyph: *b"\xE2\x9F\xA9\x00", len: 3, category: Category::Block, id: 387 }, // ⟩ (tuple close)
-    Symbol { glyph: *b"\xF0\x9D\x94\xB8", len: 4, category: Category::Block, id: 388 }, // 𝔸 (AISP header)
-
+    Symbol {
+        glyph: *b"\xE2\x9F\xA6\x00",
+        len: 3,
+        category: Category::Block,
+        id: 384,
+    }, // ⟦ (block open)
+    Symbol {
+        glyph: *b"\xE2\x9F\xA7\x00",
+        len: 3,
+        category: Category::Block,
+        id: 385,
+    }, // ⟧ (block close)
+    Symbol {
+        glyph: *b"\xE2\x9F\xA8\x00",
+        len: 3,
+        category: Category::Block,
+        id: 386,
+    }, // ⟨ (tuple open)
+    Symbol {
+        glyph: *b"\xE2\x9F\xA9\x00",
+        len: 3,
+        category: Category::Block,
+        id: 387,
+    }, // ⟩ (tuple close)
+    Symbol {
+        glyph: *b"\xF0\x9D\x94\xB8",
+        len: 4,
+        category: Category::Block,
+        id: 388,
+    }, // 𝔸 (AISP header)
     // Greek block labels
-    Symbol { glyph: *b"\xCE\xA9\x00\x00", len: 2, category: Category::Block, id: 389 }, // Ω (meta)
-    Symbol { glyph: *b"\xCE\x93\x00\x00", len: 2, category: Category::Block, id: 390 }, // Γ (rules)
-    Symbol { glyph: *b"\xCE\x9B\x00\x00", len: 2, category: Category::Block, id: 391 }, // Λ (funcs)
-    Symbol { glyph: *b"\xCE\xA7\x00\x00", len: 2, category: Category::Block, id: 392 }, // Χ (errors)
-    Symbol { glyph: *b"\xCE\x95\x00\x00", len: 2, category: Category::Block, id: 393 }, // Ε (evidence)
-    Symbol { glyph: *b"\xCE\x98\x00\x00", len: 2, category: Category::Block, id: 394 }, // Θ (theorems)
+    Symbol {
+        glyph: *b"\xCE\xA9\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 389,
+    }, // Ω (meta)
+    Symbol {
+        glyph: *b"\xCE\x93\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 390,
+    }, // Γ (rules)
+    Symbol {
+        glyph: *b"\xCE\x9B\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 391,
+    }, // Λ (funcs)
+    Symbol {
+        glyph: *b"\xCE\xA7\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 392,
+    }, // Χ (errors)
+    Symbol {
+        glyph: *b"\xCE\x95\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 393,
+    }, // Ε (evidence)
+    Symbol {
+        glyph: *b"\xCE\x98\x00\x00",
+        len: 2,
+        category: Category::Block,
+        id: 394,
+    }, // Θ (theorems)
 ];
 
 /// Check if a character is an AISP symbol
 pub fn is_aisp_char(c: char) -> bool {
-    matches!(c,
-        '≜' | '≔' | '≡' | '≢' | '⇒' | '⇔' | '↔' | '⊢' | '⊨' | '∎' |
-        '∀' | '∃' | 'λ' | 'Π' | 'Σ' |
-        '∈' | '∉' | '⊆' | '⊇' | '∩' | '∪' | '∅' |
-        '⊕' | '⊖' | '⊗' | '∘' | '→' | '↦' |
-        '⟨' | '⟩' | '⟦' | '⟧' | '◊' | '𝔸' |
-        '⊤' | '⊥' | '¬' | '∧' | '∨' |
-        'ℕ' | 'ℤ' | 'ℝ' | 'ℚ' | '𝔹' | '𝕊' |
-        '𝒫' | 'ψ' | 'δ' | 'φ' | 'τ' | 'ε' | 'γ' | 'ρ' |
-        'Ω' | 'Γ' | 'Λ' | 'Χ' | 'Ε' | 'Θ' | 'ℭ'
+    matches!(
+        c,
+        '≜' | '≔'
+            | '≡'
+            | '≢'
+            | '⇒'
+            | '⇔'
+            | '↔'
+            | '⊢'
+            | '⊨'
+            | '∎'
+            | '∀'
+            | '∃'
+            | 'λ'
+            | 'Π'
+            | 'Σ'
+            | '∈'
+            | '∉'
+            | '⊆'
+            | '⊇'
+            | '∩'
+            | '∪'
+            | '∅'
+            | '⊕'
+            | '⊖'
+            | '⊗'
+            | '∘'
+            | '→'
+            | '↦'
+            | '⟨'
+            | '⟩'
+            | '⟦'
+            | '⟧'
+            | '◊'
+            | '𝔸'
+            | '⊤'
+            | '⊥'
+            | '¬'
+            | '∧'
+            | '∨'
+            | 'ℕ'
+            | 'ℤ'
+            | 'ℝ'
+            | 'ℚ'
+            | '𝔹'
+            | '𝕊'
+            | '𝒫'
+            | 'ψ'
+            | 'δ'
+            | 'φ'
+            | 'τ'
+            | 'ε'
+            | 'γ'
+            | 'ρ'
+            | 'Ω'
+            | 'Γ'
+            | 'Λ'
+            | 'Χ'
+            | 'Ε'
+            | 'Θ'
+            | 'ℭ'
     )
 }
 
