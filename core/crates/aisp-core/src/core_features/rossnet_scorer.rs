@@ -326,9 +326,11 @@ impl RossNetScorer {
         self.scoring_stats.total_scores_calculated += 1;
 
         // Update average scoring time using exponential moving average
+        // Ensure minimum measurable time to prevent zero division issues
+        let actual_elapsed = elapsed_ms.max(0.001); // At least 1 microsecond
         let alpha = 0.1;
         self.scoring_stats.average_scoring_time_ms =
-            alpha * elapsed_ms + (1.0 - alpha) * self.scoring_stats.average_scoring_time_ms;
+            alpha * actual_elapsed + (1.0 - alpha) * self.scoring_stats.average_scoring_time_ms;
 
         // Update score distribution
         let range = match score {
@@ -347,6 +349,7 @@ impl RossNetScorer {
 
     /// Normalize weights to ensure consistency
     fn normalize_weights(&mut self) {
+        // Only normalize the main scoring weights, not bonus/penalty factors
         let total = self.weights.similarity_weight
             + self.weights.fitness_weight
             + self.weights.affinity_weight;
@@ -356,6 +359,10 @@ impl RossNetScorer {
             self.weights.fitness_weight /= total;
             self.weights.affinity_weight /= total;
         }
+        
+        // Ensure diversity bonus and consistency penalty stay within reasonable bounds
+        self.weights.diversity_bonus = self.weights.diversity_bonus.max(0.0).min(1.0);
+        self.weights.consistency_penalty = self.weights.consistency_penalty.max(0.0).min(1.0);
     }
 }
 
@@ -409,7 +416,8 @@ impl VectorSimilarityCalculator {
             content_b[6],
             content_b[7],
         ]);
-        let common_bits = !(hash_a ^ hash_b).count_ones();
+        let different_bits = (hash_a ^ hash_b).count_ones();
+        let common_bits = 64 - different_bits;
         let similarity = common_bits as f64 / 64.0;
         Ok(similarity)
     }
@@ -728,7 +736,7 @@ mod tests {
     #[test]
     fn test_weight_updates() {
         let mut scorer = RossNetScorer::new();
-        let original_similarity_weight = scorer.weights.similarity_weight;
+        let _original_similarity_weight = scorer.weights.similarity_weight;
 
         let mut adjustments = HashMap::new();
         adjustments.insert("similarity".to_string(), 0.6);
@@ -741,7 +749,8 @@ mod tests {
         let total = scorer.weights.similarity_weight
             + scorer.weights.fitness_weight
             + scorer.weights.affinity_weight;
-        assert!((total - 1.0).abs() < f64::EPSILON);
+        // Use a reasonable epsilon for floating point comparison (not machine epsilon)
+        assert!((total - 1.0).abs() < 1e-10);
     }
 
     #[test]
