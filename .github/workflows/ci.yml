@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Z3 proving is part of the default build (maintainer decision, see ROADMAP R-02),
+  # so every Rust job provisions system Z3.
+  build:
+    name: Build (workspace, Z3 enabled)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Z3
+        run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Check workspace
+        run: cargo check --workspace --all-targets
+
+  unit-tests:
+    name: Unit tests (lib targets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Z3
+        run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run lib unit tests
+        run: cargo test --workspace --lib
+
+  # Visibility job: several integration suites have known pre-existing failures
+  # (see ROADMAP R-05/R-13). Non-blocking until those land; flip to strict after.
+  integration-tests:
+    name: Integration tests (non-blocking, known failures)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Z3
+        run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run all tests (no fail fast)
+        run: cargo test --workspace --no-fail-fast
+
+  # Visibility job: ~337 existing warnings; ratchet down before making this strict.
+  lint:
+    name: Lint (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Z3
+        run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets
+
+  # Non-blocking until the npm harness fix (ROADMAP R-03) merges; flip to strict after.
+  npm-validator:
+    name: npm validator (non-blocking until R-03)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: tools/validator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
