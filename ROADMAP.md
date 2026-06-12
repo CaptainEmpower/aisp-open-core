@@ -67,7 +67,7 @@ The README and reference docs must not state what the repository cannot demonstr
 | R-10 | Isolate research modules (`anti_drift`, `ghost_intent_search`, `pocket_architecture`, temporal stubs, etc.) into an `experimental` module or feature flag, clearly marked unsupported | Core build/test does not depend on experimental modules; README distinguishes supported vs experimental surface | Planned |
 | R-11 | Replace `panic!()` in parser/validator paths with `Result`-based errors | No `panic!` reachable from public parse/validate APIs; fuzz/property tests confirm | Planned |
 | R-12 | Consolidate the 15 per-module `types.rs` files into a coherent shared type hierarchy; reduce the 337 build warnings | Warning count ratcheted down in CI; shared error/result types | Planned |
-| R-13 | Deduplicate the five overlapping `formal_verification_*` test files into one suite | Single formal-verification test entry point; no redundant suites | Planned |
+| R-13 | Deduplicate the five overlapping `formal_verification_*` test files into one suite | Single formal-verification test entry point; no redundant suites | In progress — ten suites gated behind nonexistent `*-deprecated` features removed; `property_testing_formal` restored to current APIs (13 tests passing). Remaining: consolidate the known-failing integration suites |
 
 ## Phase 3 — Formal verification done right
 

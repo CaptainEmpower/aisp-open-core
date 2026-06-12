@@ -15,13 +15,15 @@ check:
     just check-all
     just clippy-all
 
-# Check all workspace packages
+# Check all workspace packages (delegates to the canonical cargo alias, all features)
 check-all:
-    cargo check --workspace --all-targets
+    cargo check-all
 
-# Lint all workspace packages
+# Lint all workspace packages.
+# Advisory (-A warnings) until the warning ratchet lands (ROADMAP R-12);
+# the strict target is the `cargo clippy-all` alias (-D warnings).
 clippy-all:
-    cargo clippy --workspace --all-targets -- -W clippy::all -A warnings
+    cargo clippy --workspace --all-targets --all-features -- -W clippy::all -A warnings
 
 # Format all workspace packages
 fmt-all *args:
@@ -55,35 +57,35 @@ test-unit-quiet:
     @echo "📦 Running unit tests (quiet)..."
     @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test-fast
 
-# Run integration tests
+# Run integration tests (delegates to the canonical cargo alias)
 test-integration:
     @echo "🔗 Running integration tests..."
-    cargo test integration_comprehensive --all-features
+    cargo test-integration
 
 # Run integration tests (quiet - no unused variable warnings)
 test-integration-quiet:
     @echo "🔗 Running integration tests (quiet)..."
-    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test integration_comprehensive --all-features
+    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test-integration
 
-# Run performance benchmarks
+# Run performance benchmarks (delegates to the canonical cargo alias)
 test-performance:
     @echo "🏃 Running performance benchmarks..."
-    cargo test performance_benchmarks --all-features --release
+    cargo test-perf
 
 # Run performance benchmarks (quiet - no unused variable warnings)
 test-performance-quiet:
     @echo "🏃 Running performance benchmarks (quiet)..."
-    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test performance_benchmarks --all-features --release
+    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test-perf
 
-# Run security tests
+# Run security tests (delegates to the canonical cargo alias)
 test-security:
     @echo "🔒 Running security tests..."
-    cargo test security_regression --features security
+    cargo test-security
 
 # Run security tests (quiet - no unused variable warnings)
 test-security-quiet:
     @echo "🔒 Running security tests (quiet)..."
-    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test security_regression --features security
+    @RUSTFLAGS="-A unused-variables -A unused-imports -A dead-code -A unused-mut" cargo test-security
 
 # Build release version
 build:
@@ -168,11 +170,19 @@ watch:
     @echo "👀 Watching for changes..."
     cargo watch -x "test-fast"
 
-# Security audit
+# Security audit (skips with a warning when the tools are missing; `just install-tools` installs them)
 audit:
     @echo "🔍 Running security audit..."
-    cargo audit
-    cargo outdated
+    @if command -v cargo-audit >/dev/null 2>&1; then \
+        cargo audit; \
+    else \
+        echo "⚠️  cargo-audit not installed — skipping (run 'just install-tools')"; \
+    fi
+    @if command -v cargo-outdated >/dev/null 2>&1; then \
+        cargo outdated; \
+    else \
+        echo "⚠️  cargo-outdated not installed — skipping (run 'just install-tools')"; \
+    fi
 
 # Generate test coverage (if available)
 coverage:

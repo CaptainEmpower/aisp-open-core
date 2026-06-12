@@ -200,10 +200,12 @@ proptest! {
         let mut extractor1 = PropertyExtractor::new();
         let mut extractor2 = PropertyExtractor::new();
 
-        let mut parser1 = AispParser::new(doc.clone());
-        let mut parser2 = AispParser::new(doc.clone());
+        let parser1 = AispParser::new(doc.clone());
+        let parser2 = AispParser::new(doc.clone());
 
-        if let (Ok(parsed1), Ok(parsed2)) = (parser1.parse(), parser2.parse()) {
+        if let (Some(parsed1), Some(parsed2)) =
+            (parser1.parse(&doc).document, parser2.parse(&doc).document)
+        {
             if let (Ok(props1), Ok(props2)) = (
                 extractor1.extract_properties(&parsed1),
                 extractor2.extract_properties(&parsed2)
@@ -229,9 +231,9 @@ proptest! {
     #[test]
     fn prop_property_complexity_bounds(doc in formal_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(properties) = extractor.extract_properties(&parsed_doc) {
                 for property in &properties {
                     // Quantifier depth should be reasonable
@@ -263,9 +265,9 @@ proptest! {
     #[test]
     fn prop_property_statistics_accurate(doc in formal_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(_properties) = extractor.extract_properties(&parsed_doc) {
                 let stats = extractor.get_statistics();
                 let properties = extractor.get_properties();
@@ -334,9 +336,9 @@ proptest! {
     #[test]
     fn prop_complex_type_extraction(doc in complex_type_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(properties) = extractor.extract_properties(&parsed_doc) {
                 // Should extract properties for each type definition
                 let type_safety_props: Vec<_> = properties.iter()
@@ -381,9 +383,9 @@ proptest! {
         }
 
         let mut verifier = verifier.unwrap();
-        let mut parser = AispParser::new(doc.clone());
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             // Attempt verification (should not panic)
             let result = verifier.verify_document(&parsed_doc, None);
 
@@ -394,34 +396,38 @@ proptest! {
                 prop_assert!(matches!(
                     verification_result.status,
                     VerificationStatus::AllVerified |
-                    VerificationStatus::PartiallyVerified |
-                    VerificationStatus::Incomplete |
+                    VerificationStatus::PartiallyVerified { .. } |
+                    VerificationStatus::Incomplete { .. } |
                     VerificationStatus::Failed(_) |
                     VerificationStatus::Disabled
                 ), "Verification status should be valid");
 
                 // Properties should have valid statuses
-                for property in &verification_result.verified_properties {
+                for property in &verification_result.properties {
                     prop_assert!(matches!(
                         property.result,
-                        PropertyResult::Proven |
-                        PropertyResult::Disproven |
-                        PropertyResult::Unknown |
-                        PropertyResult::Error(_) |
-                        PropertyResult::Unsupported
+                        PropertyResult::Proven { .. } |
+                        PropertyResult::Disproven { .. } |
+                        PropertyResult::Unknown { .. } |
+                        PropertyResult::Error { .. } |
+                        PropertyResult::Unsupported { .. }
                     ), "Property result should be valid");
 
-                    // Verification time should be reasonable
-                    prop_assert!(property.verification_time <= Duration::from_secs(30),
-                               "Verification time should be bounded");
+                    // Verification time should be reasonable when reported
+                    if let Some(verification_time) = property.result.verification_time() {
+                        prop_assert!(verification_time <= Duration::from_secs(30),
+                                   "Verification time should be bounded");
+                    }
                 }
 
-                // Statistics should be reasonable
-                prop_assert!(verification_result.stats.smt_queries >= verification_result.verified_properties.len(),
-                           "SMT queries should be at least as many as properties");
-
-                prop_assert!(verification_result.stats.total_time >= Duration::ZERO,
-                           "Total time should be non-negative");
+                // Statistics should be internally consistent
+                let stats = &verification_result.statistics;
+                prop_assert_eq!(stats.total_properties, verification_result.properties.len(),
+                              "Statistics should count every property");
+                prop_assert_eq!(
+                    stats.proven_properties + stats.disproven_properties + stats.unknown_results,
+                    stats.total_properties,
+                    "Property outcome counts should partition the total");
             }
         }
     }
@@ -430,9 +436,9 @@ proptest! {
     #[test]
     fn prop_temporal_property_extraction(doc in temporal_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(properties) = extractor.extract_properties(&parsed_doc) {
                 // Should have temporal properties from rules containing temporal operators
                 let temporal_props: Vec<_> = properties.iter()
@@ -469,9 +475,9 @@ proptest! {
     #[test]
     fn prop_formula_structure_wellformed(doc in formal_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(properties) = extractor.extract_properties(&parsed_doc) {
                 for property in &properties {
                     // Formula should have consistent structure
@@ -523,9 +529,9 @@ proptest! {
     #[test]
     fn prop_property_context_consistency(doc in formal_document()) {
         let mut extractor = PropertyExtractor::new();
-        let mut parser = AispParser::new(doc);
+        let parser = AispParser::new(doc.clone());
 
-        if let Ok(parsed_doc) = parser.parse() {
+        if let Some(parsed_doc) = parser.parse(&doc).document {
             if let Ok(properties) = extractor.extract_properties(&parsed_doc) {
                 for property in &properties {
                     let context = &property.context;
@@ -587,9 +593,9 @@ mod formal_edge_cases {
 ⟦Ε⟧⟨⟩"#, name);
 
             let mut extractor = PropertyExtractor::new();
-            let mut parser = AispParser::new(doc.clone());
+            let parser = AispParser::new(doc.clone());
 
-            if let Ok(parsed_doc) = parser.parse() {
+            if let Some(parsed_doc) = parser.parse(&doc).document {
                 let result = extractor.extract_properties(&parsed_doc);
                 prop_assert!(result.is_ok(), "Empty documents should be handled gracefully");
 
@@ -632,9 +638,9 @@ mod formal_edge_cases {
             );
 
             let mut extractor = PropertyExtractor::new();
-            let mut parser = AispParser::new(large_doc);
+            let parser = AispParser::new(large_doc.clone());
 
-            if let Ok(parsed_doc) = parser.parse() {
+            if let Some(parsed_doc) = parser.parse(&large_doc).document {
                 let start = std::time::Instant::now();
                 let result = extractor.extract_properties(&parsed_doc);
                 let duration = start.elapsed();
@@ -660,9 +666,9 @@ mod formal_edge_cases {
         /// Property: Formal verification integration should be consistent
         #[test]
         fn prop_formal_verification_integration(doc in formal_document()) {
-            let mut parser = AispParser::new(doc.clone());
+            let parser = AispParser::new(doc.clone());
 
-            if let Ok(parsed_doc) = parser.parse() {
+            if let Some(parsed_doc) = parser.parse(&doc).document {
                 // Test property extraction
                 let mut extractor = PropertyExtractor::new();
                 let extraction_result = extractor.extract_properties(&parsed_doc);
@@ -676,7 +682,7 @@ mod formal_edge_cases {
                         if let Ok(verification) = verification_result {
                             // Properties should exist if extraction found them
                             let extracted_props = extraction_result.unwrap();
-                            let verified_props = &verification.verified_properties;
+                            let verified_props = &verification.properties;
 
                             // If we extracted properties, verification should handle them
                             if !extracted_props.is_empty() {
@@ -689,7 +695,7 @@ mod formal_edge_cases {
 
                             // Verification status should be consistent
                             let proven_count = verified_props.iter()
-                                .filter(|p| p.result == PropertyResult::Proven)
+                                .filter(|p| matches!(p.result, PropertyResult::Proven { .. }))
                                 .count();
 
                             match verification.status {
@@ -697,16 +703,23 @@ mod formal_edge_cases {
                                     prop_assert_eq!(proven_count, verified_props.len(),
                                                   "All verified should mean all properties proven");
                                 }
-                                VerificationStatus::PartiallyVerified => {
-                                    prop_assert!(proven_count > 0 && proven_count < verified_props.len(),
-                                               "Partially verified should mean some but not all proven");
+                                VerificationStatus::PartiallyVerified { verified_count, total_count } => {
+                                    prop_assert_eq!(verified_count, proven_count,
+                                               "Partially verified count should match proven properties");
+                                    prop_assert_eq!(total_count, verified_props.len(),
+                                               "Partially verified total should match property count");
+                                    prop_assert!(verified_count < total_count,
+                                               "Partially verified should mean not all proven");
                                 }
                                 VerificationStatus::Failed(_) => {
-                                    prop_assert!(verification.diagnostics.iter().any(|d|
+                                    prop_assert!(verified_props.iter().any(|p| matches!(
+                                                   p.result,
+                                                   PropertyResult::Error { .. } | PropertyResult::Disproven { .. })) ||
+                                               verification.diagnostics.iter().any(|d|
                                                    d.level == DiagnosticLevel::Error),
-                                               "Failed status should have error diagnostics");
+                                               "Failed status should be explained by an error/disproof or diagnostics");
                                 }
-                                VerificationStatus::Incomplete | VerificationStatus::Disabled => {
+                                VerificationStatus::Incomplete { .. } | VerificationStatus::Disabled => {
                                     // These are always acceptable
                                     prop_assert!(true);
                                 }
@@ -745,11 +758,11 @@ mod formal_edge_cases {
 ⟦Ε⟧⟨δ≜0.5⟩"#, name);
 
             let mut extractor = PropertyExtractor::new();
-            let mut parser = AispParser::new(doc);
+            let parser = AispParser::new(doc.clone());
 
             // Should either parse successfully or fail gracefully
-            match parser.parse() {
-                Ok(parsed_doc) => {
+            match parser.parse(&doc).document {
+                Some(parsed_doc) => {
                     // If it parses, property extraction should not panic
                     let result = extractor.extract_properties(&parsed_doc);
                     prop_assert!(result.is_ok(), "Property extraction should handle parsed documents");
@@ -764,7 +777,7 @@ mod formal_edge_cases {
                         }
                     }
                 }
-                Err(_) => {
+                None => {
                     // Parser rejection is acceptable for malformed documents
                     prop_assert!(true, "Parser rejection of malformed documents is acceptable");
                 }

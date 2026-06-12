@@ -137,17 +137,20 @@ fn benchmark_throughput() {
 
     let config = Arc::new(ValidationConfig::default());
 
-    // Create test content
+    // Create test content: must contain all five required blocks
+    // (Meta, Types, Rules, Functions, Evidence) so validation succeeds and
+    // the throughput measurement counts real successful validations.
     let test_content = r#"𝔸5.1.ThroughputTest@2026-01-28
 
-⟦Ω:Meta⟧{
-  domain≜"throughput_test"  
-  version≜"1.0.0"
-}
+⟦Ω:Meta⟧{domain≜throughput_test}
 
-⟦Σ:Types⟧{
-  TestType≜ℕ
-}
+⟦Σ:Types⟧{TestType≜ℕ}
+
+⟦Γ:Rules⟧{∀x:TestType→Valid(x)}
+
+⟦Λ:Funcs⟧{id≜λx.x}
+
+⟦Ε⟧⟨δ≜0.5⟩
 "#;
 
     let test_path = "/tmp/throughput_test.aisp";
