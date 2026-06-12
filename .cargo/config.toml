@@ -29,9 +29,10 @@ verify-z3 = ["test", "--features", "z3-verification", "--", "--test-threads=1"]
 # Use all available cores for parallel compilation
 jobs = -1
 
-[target.'cfg(unix)']
-# Unix-specific optimizations
-rustflags = ["-C", "target-cpu=native"]
+# NOTE: do not set `-C target-cpu=native` here. Host-specific codegen makes
+# build artifacts (including proc-macro dylibs) non-portable; cached CI
+# artifacts then SIGILL on runners with different CPUs. Opt in locally via
+# RUSTFLAGS instead.
 
 [env]
 # Set environment variables for testing
