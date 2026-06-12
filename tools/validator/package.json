@@ -22,7 +22,7 @@
     "wasm/aisp.h"
   ],
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.js\"",
     "build:wasm": "cd wasm && ./build.sh"
   },
   "keywords": [

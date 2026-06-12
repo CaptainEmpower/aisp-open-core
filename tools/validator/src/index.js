@@ -635,5 +635,17 @@ const AISP = {
 };
 
 export default AISP;
-export const { init, validate, validateAsync, isValid, getDensity, getTier, validateFile, debug, debugFile, setMaxDocSize } = AISP;
+// Bind named exports so `import { validate } from 'aisp-validator'` keeps
+// working — plain destructuring would detach methods from AISP and break
+// their `this` references.
+export const init = AISP.init.bind(AISP);
+export const validate = AISP.validate.bind(AISP);
+export const validateAsync = AISP.validateAsync.bind(AISP);
+export const isValid = AISP.isValid.bind(AISP);
+export const getDensity = AISP.getDensity.bind(AISP);
+export const getTier = AISP.getTier.bind(AISP);
+export const validateFile = AISP.validateFile.bind(AISP);
+export const debug = AISP.debug.bind(AISP);
+export const debugFile = AISP.debugFile.bind(AISP);
+export const setMaxDocSize = AISP.setMaxDocSize.bind(AISP);
 export { calculateSemanticDensity, calculatePureDensity, getTierFromDelta, AISP_SYMBOLS, SUPPORTED_EXTENSIONS, SIZE_LIMITS };
