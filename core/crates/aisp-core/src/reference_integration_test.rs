@@ -452,7 +452,7 @@ pub fn create_reference_test_document() -> String {
     .to_string()
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "z3-verification"))]
 mod tests {
     use super::*;
 

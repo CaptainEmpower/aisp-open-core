@@ -121,7 +121,7 @@ mod tests {
 
         #[cfg(not(feature = "z3-verification"))]
         {
-            assert!(facade_result.is_ok());
+            assert!(facade_result.is_err());
         }
     }
 
@@ -176,11 +176,16 @@ mod tests {
         let document = create_minimal_document();
         let result = quick_verify(&document, None);
 
-        assert!(result.is_ok());
-        let verification_result = result.unwrap();
+        #[cfg(not(feature = "z3-verification"))]
+        {
+            // Without Z3 the facade cannot be constructed
+            assert!(result.is_err());
+        }
 
         #[cfg(feature = "z3-verification")]
         {
+            assert!(result.is_ok());
+            let verification_result = result.unwrap();
             // With Z3, we should get a proper result
             match verification_result.status {
                 VerificationStatus::AllVerified
@@ -198,12 +203,6 @@ mod tests {
                     assert!(true);
                 }
             }
-        }
-
-        #[cfg(not(feature = "z3-verification"))]
-        {
-            // Without Z3, should get disabled status
-            assert_eq!(verification_result.status, VerificationStatus::Disabled);
         }
     }
 

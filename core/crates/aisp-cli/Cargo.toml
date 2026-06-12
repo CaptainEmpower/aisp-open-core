@@ -9,8 +9,8 @@ homepage.workspace = true
 description = "Command-line interface for AISP validation and analysis"
 
 [features]
-# Default CLI with MANDATORY Z3 verification (production-ready)
-default = ["z3-verification"]
+# Z3 verification is opt-in (requires a system Z3 installation)
+default = []
 z3-verification = ["aisp-core/z3-verification"]
 
 [[bin]]

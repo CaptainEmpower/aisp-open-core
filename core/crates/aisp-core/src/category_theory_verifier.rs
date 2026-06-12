@@ -569,7 +569,7 @@ impl Default for CategoryTheoryVerifier {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "z3-verification"))]
 mod tests {
     use super::*;
 

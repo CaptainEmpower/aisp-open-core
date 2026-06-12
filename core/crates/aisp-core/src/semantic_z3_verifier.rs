@@ -564,7 +564,7 @@ impl Default for SemanticZ3Verifier {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "z3-verification"))]
 mod tests {
     use super::*;
 

@@ -22,7 +22,7 @@ pub use crate::z3_verification::{
     Z3VerificationFacade,
 };
 
-#[cfg(test)]
+#[cfg(all(test, feature = "z3-verification"))]
 mod integration_tests {
     use super::*;
     use crate::ast::canonical::{

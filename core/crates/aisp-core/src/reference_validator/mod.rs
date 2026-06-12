@@ -304,7 +304,7 @@ impl Default for ReferenceValidator {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "z3-verification"))]
 mod tests {
     use super::*;
     use crate::ast::canonical::{
