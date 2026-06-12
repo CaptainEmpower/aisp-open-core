@@ -23,6 +23,27 @@ jobs:
       - name: Check workspace
         run: cargo check --workspace --all-targets
 
+  # Advisory job: compiles the workspace with every feature enabled so
+  # feature-gated code (e.g. the property-testing test suite) cannot bit-rot
+  # invisibly. Flip to strict once it is green on all open branches.
+  all-features-check:
+    name: Build all-features (advisory until R-13)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Z3
+        run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Check workspace (all features, advisory)
+        run: |
+          if cargo check --workspace --all-targets --all-features; then
+            echo "✅ All-features check passed — consider making this job strict (R-13)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=All-features check (advisory)::Feature-gated code fails to compile (ROADMAP R-13). Advisory until the fix lands on this branch."
+            echo "⚠️ Feature-gated code fails to compile under --all-features (ROADMAP R-13). Advisory only." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   unit-tests:
     name: Unit tests (lib targets)
     runs-on: ubuntu-latest
