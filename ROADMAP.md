@@ -23,8 +23,8 @@ item should be filed as an issue 1:1 and linked back here.
 
 **Broken or unsubstantiated today**
 
-- Clean checkout does not build: `z3-verification` is in default features and
-  `z3-sys` needs system Z3 headers
+- Building requires system Z3 headers (`z3-sys` fails with `z3.h not found`
+  otherwise) — this is intentional (proving is on by default) but undocumented
 - End-to-end validation suite fails 8/11 tests — the validator rejects its own fixtures
 - npm validator test harness cannot locate its tests
 - `reference_validator` "verification" returns hardcoded `true` results
@@ -43,10 +43,10 @@ Small, mechanical, high-leverage. Each item is a focused PR.
 
 | ID | Item | Acceptance criteria | Status |
 |----|------|---------------------|--------|
-| R-01 | Repo hygiene: remove committed `.rlib` binaries, resolve committed merge-conflict markers in `docs/examples/reference.md`, fix `WORKSPACE.md` drift | `git ls-files` contains no `.rlib`; no `<<<<<<<` markers in tracked files; WORKSPACE.md commands run as written | Planned |
-| R-02 | Move `z3-verification` out of default features; gate Z3 code/tests behind the feature | `cargo test --workspace` passes on clean Linux without Z3; `--features z3-verification` still works with Z3 installed | Planned |
-| R-03 | Fix npm validator test harness (`npm test` cannot resolve `test/`) | `npm test` discovers and runs tests with non-zero pass count | Planned |
-| R-04 | Add CI: Rust without Z3, Rust with Z3, fmt/clippy, npm validator | Workflow green on default branch; runs on all PRs | Planned |
+| R-01 | Repo hygiene: remove committed `.rlib` binaries, resolve committed merge-conflict markers in `docs/examples/reference.md`, fix `WORKSPACE.md` drift | `git ls-files` contains no `.rlib`; no `<<<<<<<` markers in tracked files; WORKSPACE.md commands run as written | PR #3 |
+| R-02 | Z3 build prerequisite: Z3 proving **stays in default features** (maintainer decision, 2026-06-12 — proving is core; PR #5 closed); document the system Z3 requirement (`libz3-dev` / `brew install z3`) prominently | README/WORKSPACE document the prerequisite; CI provisions Z3 on every job; a checkout with Z3 installed builds and tests green | Planned |
+| R-03 | Fix npm validator test harness (`npm test` cannot resolve `test/`) | `npm test` discovers and runs tests with non-zero pass count | PR #4 |
+| R-04 | Add CI: Rust (Z3 provisioned on all jobs), fmt/clippy, npm validator | Workflow green on default branch; runs on all PRs | Planned |
 | R-05 | Fix end-to-end validation suite (8/11 failing at `end_to_end_validation.rs:94`) by fixing the actual cause, not the assertions | All 11 e2e tests pass with the root cause documented in the PR | Planned |
 
 ## Phase 1 — Honest claims
@@ -106,6 +106,6 @@ The path from "interesting hypothesis" to "peer-reviewed result".
 Phase 0 (R-01..R-05)  →  unblocks everything; do first, in parallel PRs
 Phase 1 (R-06..R-08)  →  requires no new experiments, only honesty
 Phase 2 (R-09..R-13)  →  background refactoring, can interleave
-Phase 3 (R-14..R-16)  →  after R-02/R-08; needs green CI with z3 feature
+Phase 3 (R-14..R-16)  →  after R-04/R-08; needs green CI with Z3 provisioned
 Phase 4 (R-17..R-20)  →  independent of Rust work; can start any time
 ```
