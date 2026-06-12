@@ -7,6 +7,12 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Pin a portable CPU baseline so cached artifacts (proc-macro dylibs in
+  # particular) work across heterogeneous runners; a host-specific
+  # target-cpu from any cargo config would otherwise poison the cache and
+  # SIGILL on the next runner. Env RUSTFLAGS takes precedence over
+  # config-file rustflags.
+  RUSTFLAGS: -C target-cpu=x86-64
 
 jobs:
   # Z3 proving is part of the default build (maintainer decision, see ROADMAP R-02),
