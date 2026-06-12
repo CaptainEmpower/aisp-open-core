@@ -15,7 +15,7 @@ jobs:
     name: Build (workspace, Z3 enabled)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Z3
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
@@ -27,7 +27,7 @@ jobs:
     name: Unit tests (lib targets)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Z3
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
@@ -35,53 +35,76 @@ jobs:
       - name: Run lib unit tests
         run: cargo test --workspace --lib
 
-  # Visibility job: several integration suites have known pre-existing failures
-  # (see ROADMAP R-05/R-13). Non-blocking until those land; flip to strict after.
+  # Advisory job: several integration suites have known pre-existing failures
+  # (see ROADMAP R-05/R-13). Reports a warning instead of failing; flip to a
+  # plain `cargo test` (strict) once R-05/R-13 land.
   integration-tests:
-    name: Integration tests (non-blocking, known failures)
+    name: Integration tests (advisory until R-05/R-13)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Z3
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Run all tests (no fail fast)
-        run: cargo test --workspace --no-fail-fast
+      - name: Run all tests (no fail fast, advisory)
+        run: |
+          if cargo test --workspace --no-fail-fast; then
+            echo "✅ Full test suite passed — R-05/R-13 may be done; make this job strict." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=Integration tests (advisory)::Known pre-existing failures (ROADMAP R-05/R-13). This job does not block merges until those items land."
+            echo "⚠️ Integration suites have known pre-existing failures (ROADMAP R-05/R-13). Advisory only — see the log above for the failing targets." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-  # Visibility job: ~337 existing warnings; ratchet down before making this strict.
+  # Advisory job: ~337 existing warnings plus rustfmt drift; ratchet down before
+  # making this strict (ROADMAP R-12).
   lint:
-    name: Lint (non-blocking)
+    name: Lint (advisory until R-12)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Z3
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - name: rustfmt
-        run: cargo fmt --all -- --check
-      - name: clippy
-        run: cargo clippy --workspace --all-targets
+      - name: rustfmt (advisory)
+        run: |
+          if cargo fmt --all -- --check; then
+            echo "✅ rustfmt clean." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=rustfmt (advisory)::Formatting drift present (ROADMAP R-12). Advisory until the cleanup lands."
+            echo "⚠️ rustfmt reports formatting drift (ROADMAP R-12). Advisory only." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: clippy (advisory)
+        run: |
+          if cargo clippy --workspace --all-targets -- -D warnings; then
+            echo "✅ clippy clean." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=clippy (advisory)::Existing warnings (ROADMAP R-12). Advisory until the warning ratchet lands."
+            echo "⚠️ clippy reports existing warnings (ROADMAP R-12). Advisory only." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-  # Non-blocking until the npm harness fix (ROADMAP R-03) merges; flip to strict after.
+  # Advisory until the npm harness fix (ROADMAP R-03) merges; flip to strict after.
   npm-validator:
-    name: npm validator (non-blocking until R-03)
+    name: npm validator (advisory until R-03)
     runs-on: ubuntu-latest
-    continue-on-error: true
     defaults:
       run:
         working-directory: tools/validator
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Run tests
-        run: npm test
+      - name: Run tests (advisory)
+        run: |
+          if npm test; then
+            echo "✅ npm validator tests passed — R-03 is in; make this job strict." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning title=npm validator (advisory)::Test harness broken on this branch (ROADMAP R-03). Advisory until the fix merges."
+            echo "⚠️ npm validator harness fails (ROADMAP R-03). Advisory only." >> "$GITHUB_STEP_SUMMARY"
+          fi
