@@ -379,11 +379,7 @@ A simple game specification was written in both prose and AISP, then implemented
 
 #### SWE Benchmark Results
 
-<<<<<<< HEAD
-Using AISP Strict (older version) under rigorous test conditions:
-=======
 Using AISP Strict (older version) on the SWE-Bench verified 500 subset under rigorous test conditions:
->>>>>>> 560fdf5 (updated NPM CRATE evidence)
 
 | Condition | Status |
 |-----------|:------:|
@@ -393,13 +389,9 @@ Using AISP Strict (older version) on the SWE-Bench verified 500 subset under rig
 | No gold tests | ✓ |
 | Cold start (learning disabled) | ✓ |
 
-<<<<<<< HEAD
-**Result: +22% improvement over base model**
-=======
 **Result: +22% improvement over base model** (estimated 72-78% absolute performance range)
 
 *Note: Tested with AISP Strict, not the current 5.1 specification. We're optimistic AISP 5.1 can show further improvements.*
->>>>>>> 560fdf5 (updated NPM CRATE evidence)
 
 #### Pipeline Success Rates
 
@@ -665,8 +657,6 @@ The following is the complete formal specification of this repository, suitable 
 
 ---
 
-<<<<<<< HEAD
-=======
 ## Validation Tools
 
 Validate AISP documents programmatically with published packages:
@@ -751,16 +741,12 @@ Both implementations return equivalent result structures:
 
 ---
 
->>>>>>> 560fdf5 (updated NPM CRATE evidence)
 ## Quick Start
 
 1. **For AI Agents:** Copy the [Complete AISP Specification](#complete-aisp-specification) into your context
 2. **For Humans Learning:** Start with [Core Concept](#core-concept), then [Three-Layer Architecture](#three-layer-architecture)
 3. **For Reference:** Use [Symbol Reference](#symbol-reference) and [Feature Catalog](#feature-catalog) as lookups
-<<<<<<< HEAD
-=======
 4. **For Validation:** Use [Validation Tools](#validation-tools) to validate your AISP documents
->>>>>>> 560fdf5 (updated NPM CRATE evidence)
 
 ---
 
@@ -772,10 +758,8 @@ Both implementations return equivalent result structures:
 | [HUMAN_GUIDE.md](HUMAN_GUIDE.md) | Humans | Step-by-step tutorials |
 | [README.md](README.md) | Everyone | Introduction and overview |
 | [evidence/](evidence/) | Researchers | Empirical validation data |
-<<<<<<< HEAD
-=======
-| [validator/](validator/) | Developers | npm package source code |
-| [aisp-rust/](aisp-rust/) | Developers | Rust crate source code |
+| [tools/validator/](../../tools/validator/) | Developers | npm package source code |
+| [archive/aisp-rust/](../../archive/aisp-rust/) | Developers | Rust crate source code (archived) |
 
 ### Published Packages
 
@@ -783,7 +767,6 @@ Both implementations return equivalent result structures:
 |---------|----------|---------|
 | aisp-validator | [npm](https://www.npmjs.com/package/aisp-validator) | `npm install aisp-validator` |
 | aisp | [crates.io](https://crates.io/crates/aisp) | `aisp = "0.1"` |
->>>>>>> 560fdf5 (updated NPM CRATE evidence)
 
 ---
 
