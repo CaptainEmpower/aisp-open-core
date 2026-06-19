@@ -325,9 +325,9 @@ aisp_document = {
 
 // Header with version, identifier, and date  
 header = { "𝔸" ~ version ~ "." ~ identifier ~ "@" ~ date }
-version = { ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
-identifier = { (ASCII_ALPHANUMERIC | "-" | "_" | ".")+ }
-date = { ASCII_DIGIT{4} ~ "-" ~ ASCII_DIGIT{2} ~ "-" ~ ASCII_DIGIT{2} }
+version = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_" | ".")+ }
+date = @{ ASCII_DIGIT{4} ~ "-" ~ ASCII_DIGIT{2} ~ "-" ~ ASCII_DIGIT{2} }
 
 // Domain and protocol declarations
 domain_protocol_decl = { 
@@ -336,9 +336,9 @@ domain_protocol_decl = {
 }
 gamma_decl = { "γ" ~ "≔" ~ domain_path }
 rho_decl = { "ρ" ~ "≔" ~ "⟨" ~ tag_list ~ "⟩" }
-domain_path = { (ASCII_ALPHANUMERIC | "." | "-" | "_")+ }
+domain_path = @{ (ASCII_ALPHANUMERIC | "." | "-" | "_")+ }
 tag_list = { tag ~ ("," ~ tag)* }
-tag = { (ASCII_ALPHANUMERIC | "-" | "_")+ }
+tag = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 
 // AISP block structure with comprehensive Unicode support
 aisp_blocks = { aisp_block* }
@@ -385,31 +385,36 @@ type_expression = {
     basic_type | 
     identifier 
 }
-set_type_expr = { "{" ~ identifier ~ ("," ~ identifier)* ~ "}" }
+set_type_expr = { "{" ~ set_element ~ ("," ~ set_element)* ~ "}" }
+set_element = @{ (!("," | "}") ~ ANY)+ }
 basic_type = { "ℕ" | "ℝ" | "ℂ" | "ℚ" | "ℤ" | "𝕊" | "𝔹" | "Unit" | "Natural" | "Boolean" }
 
 lambda_expression = { 
-    "λ" ~ lambda_param ~ "." ~ lambda_param |
+    "λ" ~ lambda_param ~ "." ~ logical_expr |
     identifier
 }
 
-lambda_param = { (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+lambda_param = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Enhanced logical expressions with Unicode operators
 logical_expr = { 
+    if_expr |
     quantified_expr |
     implication_expr |
     comparison_expr |
     identifier
 }
+if_expr = { "if" ~ logical_expr ~ "then" ~ logical_expr ~ "else" ~ logical_expr }
 
 quantified_expr = { 
-    quantifier ~ identifier ~ ":" ~ type_expression ~ "→" ~ logical_expr
+    quantifier ~ identifier ~ ":" ~ quant_type ~ ("→" | ".") ~ logical_expr
 }
+quant_type = { set_type_expr | basic_type | simple_identifier }
+simple_identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 quantifier = { "∀" | "∃" }
 
 implication_expr = {
-    comparison_expr ~ ("→" ~ comparison_expr)*
+    comparison_expr ~ (("→" | "∧" | "∨") ~ comparison_expr)*
 }
 
 comparison_expr = {
@@ -441,11 +446,11 @@ argument_list = {
 
 evidence_symbol = { "δ" | "φ" | "τ" | "|" ~ "𝔅" ~ "|" | identifier }
 evidence_value = { number | string_literal | quality_tier }
-quality_tier = { "◊" ~ ("⁺" | "⁻")* }
+quality_tier = @{ "◊" ~ ("⁺" | "⁻")* }
 
 // Primitives with Unicode support
-number = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
-string_literal = { "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+number = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+string_literal = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
 
 // Error recovery
 malformed_block = { "⟦" ~ (!"⟧" ~ ANY)* ~ ("⟧" | &EOI) }
@@ -647,6 +652,16 @@ impl RobustAispParser {
     /// Parse individual AISP block
     fn parse_block(&self, pair: Pair<Rule>) -> AispResult<AispBlock> {
         match pair.as_rule() {
+            // The grammar wraps every concrete block in an `aisp_block` rule;
+            // descend into it before dispatching on the concrete block type.
+            Rule::aisp_block => {
+                let inner = pair.into_inner().next().ok_or_else(|| AispError::ParseError {
+                    line: 1,
+                    column: 1,
+                    message: "Empty block wrapper".to_string(),
+                })?;
+                self.parse_block(inner)
+            }
             Rule::omega_block => self.parse_omega_block(pair),
             Rule::sigma_block => self.parse_sigma_block(pair),
             Rule::gamma_block => self.parse_gamma_block(pair),

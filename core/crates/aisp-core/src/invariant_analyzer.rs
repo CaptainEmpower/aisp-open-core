@@ -118,6 +118,9 @@ impl InvariantAnalyzer {
             TypeExpression::Basic(BasicType::Natural) => {
                 self.add_natural_type_invariant(type_name)?;
             }
+            TypeExpression::Enumeration(values) => {
+                self.add_enumeration_invariant(type_name, values)?;
+            }
             TypeExpression::Union(variants) => {
                 // Extract variant names for enumeration-like unions
                 let variant_names: Vec<String> = variants

@@ -27,9 +27,13 @@ impl TypeContentParser {
     pub fn parse_type_expression(type_text: &str) -> TypeExpression {
         let type_text = type_text.trim();
 
-        // Handle set types: {element_type}
+        // Handle brace types: {a,b,c} is an enumeration, {element_type} a set
         if type_text.starts_with('{') && type_text.ends_with('}') {
             let inner = &type_text[1..type_text.len() - 1].trim();
+            if inner.contains(',') {
+                let values: Vec<String> = inner.split(',').map(|v| v.trim().to_string()).collect();
+                return TypeExpression::Enumeration(values);
+            }
             let element_type = Self::parse_type_expression(inner);
             return TypeExpression::Set(Box::new(element_type));
         }
