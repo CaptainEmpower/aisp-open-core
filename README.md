@@ -556,6 +556,27 @@ println!("Valid: {}, Tier: {}", result.valid, result.tier.symbol());
 
 **crates.io:** [crates.io/crates/aisp](https://crates.io/crates/aisp)
 
+### Building this repository from source
+
+The workspace builds with **Z3 theorem proving enabled by default** — formal
+verification is core to AISP, so the [Z3 SMT solver](https://github.com/Z3Prover/z3)
+is a required build prerequisite:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install libz3-dev z3
+
+# macOS
+brew install z3
+
+# Then build and test
+cargo build --workspace
+cargo test --workspace
+```
+
+If the build fails with `fatal error: 'z3.h' file not found`, the Z3
+development headers are missing — install them as above.
+
 ---
 
 ## 🗺️ Roadmap
