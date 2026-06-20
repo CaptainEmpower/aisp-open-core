@@ -910,7 +910,6 @@ mod tests {
         let _engine = BatchVerificationEngine::new(config);
 
         // Basic smoke test
-        assert!(true);
     }
 
     #[test]
@@ -933,13 +932,13 @@ mod tests {
 
         // Basic type validation
         match file_input {
-            DocumentInput::FilePath(_) => assert!(true),
-            _ => assert!(false),
+            DocumentInput::FilePath(_) => (),
+            _ => unreachable!(),
         }
 
         match content_input {
-            DocumentInput::Content { .. } => assert!(true),
-            _ => assert!(false),
+            DocumentInput::Content { .. } => (),
+            _ => unreachable!(),
         }
     }
 }

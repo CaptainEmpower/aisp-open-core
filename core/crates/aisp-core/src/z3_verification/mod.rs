@@ -187,15 +187,12 @@ mod tests {
                 | VerificationStatus::PartiallyVerified { .. }
                 | VerificationStatus::Incomplete { .. } => {
                     // All acceptable for minimal document
-                    assert!(true);
                 }
                 VerificationStatus::Failed(_) => {
                     // Failed verification is also acceptable for testing minimal documents
-                    assert!(true);
                 }
                 VerificationStatus::Disabled => {
                     // If Z3 is disabled, that's also acceptable
-                    assert!(true);
                 }
             }
         }

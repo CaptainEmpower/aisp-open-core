@@ -235,7 +235,7 @@ mod tests {
                 },
             )];
             match verifier.determine_status(&failed_props) {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected Failed status"),
             }
         }

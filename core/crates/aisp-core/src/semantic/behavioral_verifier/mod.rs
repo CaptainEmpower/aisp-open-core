@@ -321,7 +321,6 @@ mod tests {
     fn test_behavioral_verifier_creation() {
         let _verifier = BehavioralVerifier::new();
         // Module structure test - ensure components are initialized
-        assert!(true); // Placeholder assertion for successful creation
     }
 
     #[test]
@@ -358,7 +357,6 @@ mod tests {
     fn test_strict_verifier_creation() {
         let _verifier = BehavioralVerifier::new_strict();
         // Test that strict verifier uses strict security policies
-        assert!(true); // Placeholder assertion for successful creation
     }
 
     #[test]

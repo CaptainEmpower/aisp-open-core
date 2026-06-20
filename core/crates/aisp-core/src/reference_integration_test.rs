@@ -471,7 +471,6 @@ mod tests {
         }
 
         // Test should not panic regardless of compliance level
-        assert!(true);
     }
 
     #[test]
@@ -493,7 +492,6 @@ mod tests {
             println!(
                 "Note: Test document parsing failed, which is acceptable for integration testing"
             );
-            assert!(true);
         }
     }
 
@@ -541,12 +539,10 @@ mod tests {
             } else {
                 // If semantic analysis fails, test graceful degradation
                 println!("Note: Semantic analysis failed, testing graceful degradation");
-                assert!(true);
             }
         } else {
             // If parsing fails, test graceful degradation
             println!("Note: Test document parsing failed, testing graceful degradation");
-            assert!(true);
         }
     }
 }

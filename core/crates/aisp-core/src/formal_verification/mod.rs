@@ -106,6 +106,5 @@ mod tests {
         let _system = FormalVerificationSystem::new();
 
         // Integration smoke test
-        assert!(true);
     }
 }

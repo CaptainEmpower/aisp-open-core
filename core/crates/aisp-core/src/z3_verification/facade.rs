@@ -479,7 +479,7 @@ mod tests {
             // Test empty properties
             let empty_props = vec![];
             match facade.determine_verification_status(&empty_props) {
-                Z3VerificationStatus::Incomplete { .. } => assert!(true),
+                Z3VerificationStatus::Incomplete { .. } => (),
                 _ => panic!("Expected Incomplete status"),
             }
 
@@ -497,7 +497,7 @@ mod tests {
                 metadata: HashMap::new(),
             }];
             match facade.determine_verification_status(&proven_props) {
-                Z3VerificationStatus::AllVerified => assert!(true),
+                Z3VerificationStatus::AllVerified => (),
                 _ => panic!("Expected AllVerified status"),
             }
 
@@ -515,7 +515,7 @@ mod tests {
                 metadata: HashMap::new(),
             }];
             match facade.determine_verification_status(&failed_props) {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected Failed status"),
             }
         }
@@ -546,7 +546,7 @@ mod tests {
 
             // Status should reflect failure
             match verification.status {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected failure status for invalid document"),
             }
         }

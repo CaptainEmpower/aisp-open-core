@@ -106,7 +106,6 @@ ambiguous_func ≜ λx.undefined_operation(x)
 
         // Test that verification methods can be created and used
         // This is primarily a compilation test
-        assert!(true);
     }
 
     #[test]

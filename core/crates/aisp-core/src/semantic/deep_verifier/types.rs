@@ -530,7 +530,7 @@ mod tests {
 
         match optional {
             TypeStructure::Optional(inner) => match *inner {
-                TypeStructure::Array(_) => assert!(true),
+                TypeStructure::Array(_) => (),
                 _ => panic!("Expected Array inside Optional"),
             },
             _ => panic!("Expected Optional type"),

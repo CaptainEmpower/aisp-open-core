@@ -433,7 +433,7 @@ mod tests {
         );
 
         match prop.result {
-            PropertyResult::Proven => assert!(true),
+            PropertyResult::Proven => (),
             _ => panic!("Expected proven result"),
         }
     }

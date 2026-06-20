@@ -183,6 +183,5 @@ mod tests {
     fn test_conversion_trait_exists() {
         // Test that the conversion trait is available for future use
         // This is a placeholder test for the trait infrastructure
-        assert!(true);
     }
 }

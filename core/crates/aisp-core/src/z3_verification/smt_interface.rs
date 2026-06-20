@@ -540,7 +540,7 @@ mod tests {
         assert!(result.is_ok());
 
         match result.unwrap() {
-            Z3PropertyResult::Error { .. } => assert!(true),
+            Z3PropertyResult::Error { .. } => (),
             _ => panic!("Expected syntax error"),
         }
 
