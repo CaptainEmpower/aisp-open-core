@@ -396,6 +396,12 @@ impl MathParsingConfig {
     }
 }
 
+impl Default for ParsingContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ParsingContext {
     /// Create new parsing context
     pub fn new() -> Self {

@@ -35,6 +35,12 @@ pub struct AnalysisConfig {
     pub detailed_analysis: bool,
 }
 
+impl Default for ResourceUtilizationAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceUtilizationAnalyzer {
     /// Create new analyzer with default configuration
     pub fn new() -> Self {

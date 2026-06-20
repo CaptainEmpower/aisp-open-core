@@ -373,6 +373,12 @@ pub enum CriticalityLevel {
     Critical,
 }
 
+impl Default for FormalVerifier {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FormalVerifier {
     /// Create new formal verifier
     pub fn new() -> Self {
@@ -552,6 +558,12 @@ impl FormalVerifier {
     }
 }
 
+impl Default for PropertyVerifier {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PropertyVerifier {
     /// Create new property verifier
     pub fn new() -> Self {
@@ -614,6 +626,12 @@ impl PropertyVerifier {
     }
 }
 
+impl Default for StrategySelector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StrategySelector {
     /// Create new strategy selector
     pub fn new() -> Self {
@@ -660,6 +678,12 @@ impl StrategySelector {
     }
 }
 
+impl Default for ProofGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofGenerator {
     /// Create new proof generator
     pub fn new() -> Self {
@@ -691,6 +715,12 @@ impl ProofGenerator {
                 time_bound: std::time::Duration::from_secs(30),
             },
         }]
+    }
+}
+
+impl Default for ProofValidator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -736,6 +766,12 @@ impl ProofValidator {
             metrics: vec![],
             algorithm: CompletenessAlgorithm::CoverageAnalysis,
         }]
+    }
+}
+
+impl Default for ProofOptimizer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -786,6 +822,12 @@ impl ProofOptimizer {
     }
 }
 
+impl Default for VerificationCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VerificationCache {
     /// Create new verification cache
     pub fn new() -> Self {
@@ -800,6 +842,12 @@ impl VerificationCache {
             },
             config: CacheConfig::default(),
         }
+    }
+}
+
+impl Default for StatisticsCollector {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

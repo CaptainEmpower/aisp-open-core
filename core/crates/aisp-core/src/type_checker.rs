@@ -15,6 +15,12 @@ pub struct TypeChecker {
     errors: Vec<AispError>,
 }
 
+impl Default for TypeChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TypeChecker {
     /// Create a new type checker
     pub fn new() -> Self {

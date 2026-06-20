@@ -92,6 +92,12 @@ pub struct IncompletenessHandler {
     available_axioms: HashSet<String>,
 }
 
+impl Default for IncompletenessHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IncompletenessHandler {
     /// Create new incompleteness handler with default timeout
     pub fn new() -> Self {

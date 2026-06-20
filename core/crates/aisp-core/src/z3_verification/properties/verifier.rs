@@ -906,6 +906,12 @@ impl FormulaCache {
     }
 }
 
+impl Default for PropertyVerificationContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PropertyVerificationContext {
     /// Create new verification context
     pub fn new() -> Self {
@@ -915,6 +921,12 @@ impl PropertyVerificationContext {
             shared_state: SharedVerificationState::new(),
             context_stats: ContextStatistics::default(),
         }
+    }
+}
+
+impl Default for SharedVerificationState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -929,6 +941,12 @@ impl SharedVerificationState {
     }
 }
 
+impl Default for LemmaDatabase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LemmaDatabase {
     /// Create new lemma database
     pub fn new() -> Self {
@@ -937,6 +955,12 @@ impl LemmaDatabase {
             usage_stats: HashMap::new(),
             effectiveness_scores: HashMap::new(),
         }
+    }
+}
+
+impl Default for CounterexampleDatabase {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

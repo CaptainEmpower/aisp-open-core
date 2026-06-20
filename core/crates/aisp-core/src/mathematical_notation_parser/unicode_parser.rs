@@ -75,6 +75,12 @@ pub enum MathSymbolCategory {
     Miscellaneous,
 }
 
+impl Default for UnicodeParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UnicodeParser {
     /// Create new Unicode parser
     pub fn new() -> Self {

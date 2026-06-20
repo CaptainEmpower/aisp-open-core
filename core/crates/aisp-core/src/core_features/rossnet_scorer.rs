@@ -366,6 +366,12 @@ impl RossNetScorer {
     }
 }
 
+impl Default for SimilarityEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SimilarityEngine {
     /// Create new similarity engine
     pub fn new() -> Self {
@@ -482,6 +488,12 @@ impl StructuralSimilarityCalculator {
     }
 }
 
+impl Default for FitnessEvaluator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FitnessEvaluator {
     /// Create new fitness evaluator
     pub fn new() -> Self {
@@ -524,6 +536,12 @@ impl FitnessEvaluator {
     pub fn update_criterion_weight(&mut self, criterion: String, weight: f64) {
         self.criteria_weights
             .insert(criterion, weight.max(0.0).min(1.0));
+    }
+}
+
+impl Default for AffinityTracker {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -535,6 +535,12 @@ pub enum PolicyPriority {
     Critical,
 }
 
+impl Default for DeadlockAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DeadlockAnalyzer {
     /// Create new deadlock analyzer
     pub fn new() -> Self {
@@ -722,6 +728,12 @@ impl DeadlockAnalyzer {
     }
 }
 
+impl Default for ResourceGraphBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceGraphBuilder {
     /// Create new graph builder
     pub fn new() -> Self {
@@ -787,6 +799,12 @@ impl ResourceGraphBuilder {
     }
 }
 
+impl Default for ResourceGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceGraph {
     /// Create new empty resource graph
     pub fn new() -> Self {
@@ -825,6 +843,12 @@ impl ProcessNode {
     }
 }
 
+impl Default for PreventionAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PreventionAnalyzer {
     /// Create new prevention analyzer
     pub fn new() -> Self {
@@ -853,6 +877,12 @@ impl PreventionAnalyzer {
             },
             effectiveness: 0.85,
         }]
+    }
+}
+
+impl Default for RecoveryAnalyzer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -896,6 +926,12 @@ impl RecoveryAnalyzer {
             priority: PolicyPriority::High,
             fairness: 0.6,
         }]
+    }
+}
+
+impl Default for RecoveryCostCalculator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

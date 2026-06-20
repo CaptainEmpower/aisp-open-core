@@ -252,6 +252,12 @@ pub struct PerformanceSummary {
     pub timeouts: usize,
 }
 
+impl Default for TemporalLogicSolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalLogicSolver {
     /// Create a new temporal logic solver
     pub fn new() -> Self {

@@ -116,6 +116,12 @@ pub struct OperatorValidationResult {
     pub valid: bool,
 }
 
+impl Default for TemporalOperatorAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalOperatorAnalyzer {
     /// Create a new temporal operator analyzer
     ///

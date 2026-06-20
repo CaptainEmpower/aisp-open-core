@@ -1097,6 +1097,12 @@ impl TemporalModelChecker {
     }
 }
 
+impl Default for StateSpace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StateSpace {
     /// Create new state space
     pub fn new() -> Self {
@@ -1114,6 +1120,12 @@ impl StateSpace {
     }
 }
 
+impl Default for TransitionSystem {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TransitionSystem {
     /// Create new transition system
     pub fn new() -> Self {
@@ -1122,6 +1134,12 @@ impl TransitionSystem {
             transition_relation: TransitionRelation::Explicit(Vec::new()),
             fairness_constraints: Vec::new(),
         }
+    }
+}
+
+impl Default for PropertySynthesizer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1163,6 +1181,12 @@ impl PropertySynthesizer {
                 success_rate: 0.7,
             },
         ]
+    }
+}
+
+impl Default for PatternDatabase {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

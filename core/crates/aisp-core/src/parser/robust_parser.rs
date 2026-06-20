@@ -90,6 +90,12 @@ pub struct ParseResult {
     pub security_issues: Vec<SecurityIssue>,
 }
 
+impl Default for ParseResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ParseResult {
     /// Create new parse result
     pub fn new() -> Self {

@@ -134,6 +134,12 @@ pub enum ForecastRecommendationType {
     AlertConfiguration,
 }
 
+impl Default for ResourceForecaster {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceForecaster {
     /// Create new forecaster
     pub fn new() -> Self {

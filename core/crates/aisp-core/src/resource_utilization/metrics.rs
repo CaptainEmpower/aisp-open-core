@@ -56,6 +56,12 @@ pub struct StreamStatistics {
     pub trend: UtilizationTrend,
 }
 
+impl Default for MetricsCollector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MetricsCollector {
     /// Create new metrics collector
     pub fn new() -> Self {

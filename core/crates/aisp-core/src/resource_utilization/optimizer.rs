@@ -42,6 +42,12 @@ pub struct OptimizationStrategy {
     pub prerequisites: Vec<String>,
 }
 
+impl Default for ResourceOptimizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceOptimizer {
     /// Create new optimizer with default strategies
     pub fn new() -> Self {

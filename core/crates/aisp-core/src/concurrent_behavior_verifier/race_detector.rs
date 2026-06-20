@@ -443,6 +443,12 @@ pub struct EvidenceQuality {
     pub evidence_count: usize,
 }
 
+impl Default for RaceConditionDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RaceConditionDetector {
     /// Create new race condition detector
     pub fn new() -> Self {

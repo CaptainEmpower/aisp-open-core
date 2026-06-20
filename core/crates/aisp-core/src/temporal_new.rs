@@ -109,6 +109,12 @@ pub struct AnalysisTimeBreakdown {
     pub integration_ms: u64,
 }
 
+impl Default for UnifiedTemporalAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UnifiedTemporalAnalyzer {
     /// Create new unified temporal analyzer
     pub fn new() -> Self {

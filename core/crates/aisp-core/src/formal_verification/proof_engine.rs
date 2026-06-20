@@ -672,6 +672,12 @@ pub struct QualityThresholds {
     pub max_complexity: f64,
 }
 
+impl Default for ProofEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofEngine {
     /// Create new proof engine
     pub fn new() -> Self {
@@ -764,6 +770,12 @@ impl ProofEngine {
     }
 }
 
+impl Default for AdvancedProofValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdvancedProofValidator {
     /// Create new advanced proof validator
     pub fn new() -> Self {
@@ -849,6 +861,12 @@ impl AdvancedProofValidator {
     }
 }
 
+impl Default for AdvancedProofOptimizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdvancedProofOptimizer {
     /// Create new advanced proof optimizer
     pub fn new() -> Self {
@@ -915,6 +933,12 @@ impl AdvancedProofOptimizer {
             },
         );
         rules
+    }
+}
+
+impl Default for ProofRepository {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

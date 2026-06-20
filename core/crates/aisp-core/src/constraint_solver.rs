@@ -94,6 +94,12 @@ pub struct ConstraintConflict {
     pub resolution: Option<String>,
 }
 
+impl Default for ConstraintSolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConstraintSolver {
     /// Create a new constraint solver
     pub fn new() -> Self {

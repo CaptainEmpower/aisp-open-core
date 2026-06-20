@@ -353,6 +353,12 @@ pub struct RecoveryMechanism {
     pub cost: f64,
 }
 
+impl Default for ConcurrentBehaviorAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConcurrentBehaviorAnalyzer {
     /// Create new concurrent behavior analyzer
     pub fn new() -> Self {
@@ -570,6 +576,12 @@ impl ConcurrentBehaviorAnalyzer {
     }
 }
 
+impl Default for ProcessDiscoveryEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProcessDiscoveryEngine {
     /// Create new process discovery engine
     pub fn new() -> Self {
@@ -620,6 +632,12 @@ impl ProcessDiscoveryEngine {
     }
 }
 
+impl Default for ResourceTracker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceTracker {
     /// Create new resource tracker
     pub fn new() -> Self {
@@ -634,6 +652,12 @@ impl ResourceTracker {
     pub fn track_resources(&mut self, _processes: &[ConcurrentProcess]) -> AispResult<()> {
         // Resource tracking implementation
         Ok(())
+    }
+}
+
+impl Default for AnalysisCache {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

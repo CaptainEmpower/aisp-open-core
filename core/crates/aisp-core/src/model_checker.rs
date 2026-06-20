@@ -734,6 +734,12 @@ impl ModelChecker {
     }
 }
 
+impl Default for StateSpace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StateSpace {
     /// Create new empty state space
     pub fn new() -> Self {
@@ -744,6 +750,12 @@ impl StateSpace {
             atomic_props: HashMap::new(),
             labels: HashMap::new(),
         }
+    }
+}
+
+impl Default for ModelCheckingStats {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -209,6 +209,12 @@ pub enum RecommendationPriority {
     Low,
 }
 
+impl Default for TemporalPatternDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalPatternDetector {
     /// Create a new temporal pattern detector
     pub fn new() -> Self {

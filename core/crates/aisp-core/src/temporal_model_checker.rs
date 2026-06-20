@@ -310,6 +310,12 @@ pub struct ModelCheckerMetrics {
     pub transitions_evaluated: usize,
 }
 
+impl Default for TemporalModelChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalModelChecker {
     /// Create new temporal model checker
     pub fn new() -> Self {
