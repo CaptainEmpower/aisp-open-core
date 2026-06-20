@@ -153,8 +153,7 @@ impl<'a> PipelineVerifier<'a> {
             .any(|p| p.improvement_factor >= 97.0);
 
         // Verify using SMT that improvement grows exponentially
-        let exponential_growth_formula = format!(
-            ";; Verify exponential growth of improvement factor\n\
+        let exponential_growth_formula = ";; Verify exponential growth of improvement factor\n\
              (declare-const base_improvement Real)\n\
              (declare-const steps Real)\n\
              (declare-const improvement_factor Real)\n\
@@ -170,8 +169,7 @@ impl<'a> PipelineVerifier<'a> {
              (assert (= steps 20.0))\n\
              (assert (> improvement_factor 97.0))\n\
              \n\
-             (check-sat)"
-        );
+             (check-sat)".to_string();
 
         let exponential_verified = self
             .z3_verifier
@@ -246,10 +244,8 @@ pub mod utils {
         let improvement = calculate_improvement_factor(aisp_rate, prose_rate);
 
         // Basic sanity checks
-        prose_rate >= 0.0
-            && prose_rate <= 1.0
-            && aisp_rate >= 0.0
-            && aisp_rate <= 1.0
+        (0.0..=1.0).contains(&prose_rate)
+            && (0.0..=1.0).contains(&aisp_rate)
             && aisp_rate > prose_rate
             && improvement > 1.0
     }

@@ -1163,7 +1163,7 @@ mod tests {
         ); // Should evict formula1
 
         // After inserting 3 formulas with max_size=2, cache should respect size limit
-        assert!(cache.formulas.len() <= 2 && cache.formulas.len() >= 1);
+        assert!(cache.formulas.len() <= 2 && !cache.formulas.is_empty());
         // Should contain at least one of the more recently added formulas
         assert!(cache.formulas.contains_key("formula2") || cache.formulas.contains_key("formula3"));
 
@@ -1201,6 +1201,6 @@ mod tests {
 
         // LFU cache should maintain size limits and cache operations should work
         assert!(cache_lfu.formulas.len() <= 2);
-        assert!(cache_lfu.formulas.len() >= 1); // Should have at least one entry
+        assert!(!cache_lfu.formulas.is_empty()); // Should have at least one entry
     }
 }

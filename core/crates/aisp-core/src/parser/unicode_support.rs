@@ -785,7 +785,7 @@ impl UnicodeSymbolRegistry {
 
         self.by_type
             .entry(symbol_type)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(unicode_char);
     }
 

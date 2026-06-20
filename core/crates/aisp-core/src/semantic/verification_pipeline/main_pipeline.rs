@@ -506,91 +506,91 @@ impl Default for MultiLayerVerificationPipeline {
 
 impl fmt::Display for ComprehensiveVerificationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Comprehensive Verification Result\n")?;
-        write!(f, "=================================\n")?;
-        write!(
+        writeln!(f, "Comprehensive Verification Result")?;
+        writeln!(f, "=================================")?;
+        writeln!(
             f,
-            "Overall Security Score: {:.1}%\n",
+            "Overall Security Score: {:.1}%",
             self.overall_security_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Enterprise Compliance Score: {:.1}%\n",
+            "Enterprise Compliance Score: {:.1}%",
             self.enterprise_compliance_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Attack Resistance Rating: {:?}\n",
+            "Attack Resistance Rating: {:?}",
             self.attack_resistance_rating
         )?;
-        write!(
+        writeln!(
             f,
-            "Verification Confidence: {:.1}%\n",
+            "Verification Confidence: {:.1}%",
             self.verification_confidence * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Production Readiness Score: {:.1}%\n",
+            "Production Readiness Score: {:.1}%",
             self.production_readiness_score * 100.0
         )?;
 
         write!(f, "\nAdversarial Test Results:\n")?;
-        write!(
+        writeln!(
             f,
-            "  - Tests Passed: {}/{}\n",
+            "  - Tests Passed: {}/{}",
             self.adversarial_test_results.passed_tests, self.adversarial_test_results.total_tests
         )?;
-        write!(
+        writeln!(
             f,
-            "  - Attack Resistance: {:.1}%\n",
+            "  - Attack Resistance: {:.1}%",
             self.adversarial_test_results.attack_resistance * 100.0
         )?;
 
         write!(f, "\nSecurity Assessment:\n")?;
-        write!(
+        writeln!(
             f,
-            "  - Security Posture: {}\n",
+            "  - Security Posture: {}",
             self.security_assessment.security_posture
         )?;
-        write!(
+        writeln!(
             f,
-            "  - Threat Vectors: {}\n",
+            "  - Threat Vectors: {}",
             self.security_assessment.threat_landscape.len()
         )?;
 
         write!(f, "\nCompliance Status:\n")?;
-        write!(
+        writeln!(
             f,
-            "  - Compliant Frameworks: {}\n",
+            "  - Compliant Frameworks: {}",
             self.compliance_status.compliant_frameworks.len()
         )?;
-        write!(
+        writeln!(
             f,
-            "  - Violations: {}\n",
+            "  - Violations: {}",
             self.compliance_status.violations.len()
         )?;
 
         write!(f, "\nAudit Summary:\n")?;
-        write!(f, "  - Audit Passed: {}\n", self.audit_summary.audit_passed)?;
-        write!(
+        writeln!(f, "  - Audit Passed: {}", self.audit_summary.audit_passed)?;
+        writeln!(
             f,
-            "  - Total Findings: {}\n",
+            "  - Total Findings: {}",
             self.audit_summary.findings.len()
         )?;
 
         write!(f, "\nCertification Eligibility:\n")?;
-        write!(
+        writeln!(
             f,
-            "  - Eligible Standards: {}\n",
+            "  - Eligible Standards: {}",
             if self.certification_eligibility.eligible_standards.is_empty() {
                 "None".to_string()
             } else {
                 self.certification_eligibility.eligible_standards.join(", ")
             }
         )?;
-        write!(
+        writeln!(
             f,
-            "  - Requirements Met: {:.1}%\n",
+            "  - Requirements Met: {:.1}%",
             self.certification_eligibility.requirements_met * 100.0
         )?;
 
@@ -603,9 +603,9 @@ impl fmt::Display for ComprehensiveVerificationResult {
                 .take(5)
                 .enumerate()
             {
-                write!(
+                writeln!(
                     f,
-                    "{}. [{}] [{}] {}\n",
+                    "{}. [{}] [{}] {}",
                     i + 1,
                     rec.priority,
                     rec.category,

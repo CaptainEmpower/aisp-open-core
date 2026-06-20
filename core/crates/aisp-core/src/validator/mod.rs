@@ -54,7 +54,7 @@ test_func ≜ λx.x * 2
 
         // Should complete without panicking
         assert!(result.document_size > 0);
-        assert!(result.tier_symbol.len() > 0);
+        assert!(!result.tier_symbol.is_empty());
     }
 
     #[test]
@@ -127,8 +127,8 @@ id ≜ λx.x
         let result = validator.validate(simple_doc);
 
         // Test result properties
-        assert!(result.tier_symbol.len() > 0);
-        assert!(result.tier_name.len() > 0);
+        assert!(!result.tier_symbol.is_empty());
+        assert!(!result.tier_name.is_empty());
         assert!(result.tier_value <= 4);
         assert!(result.delta >= 0.0 && result.delta <= 1.0);
         assert!(result.ambiguity >= 0.0 && result.ambiguity <= 1.0);

@@ -227,6 +227,60 @@ impl Default for ResourceLimits {
         }
     }
 }
+// Production-ready Default implementations
+impl Default for BehavioralVerificationResult {
+    fn default() -> Self {
+        Self {
+            overall_score: 0.0,
+            execution_safety_score: 0.0,
+            behavioral_consistency_score: 0.0,
+            property_compliance_score: 0.0,
+            authenticity_score: 0.0,
+            execution_results: Vec::new(),
+            security_assessment: BehavioralSecurityAssessment::default(),
+            violations: Vec::new(),
+            recommendations: Vec::new(),
+        }
+    }
+}
+
+impl Default for BehavioralSecurityAssessment {
+    fn default() -> Self {
+        Self {
+            threat_level: ThreatLevel::Minimal,
+            attack_surface_size: 0.0,
+            vulnerability_count: 0,
+            security_score: 0.0,
+            compliance_level: ComplianceLevel::NonCompliant,
+        }
+    }
+}
+
+impl Default for SecurityViolation {
+    fn default() -> Self {
+        Self {
+            violation_type: SecurityViolationType::SuspiciousBehavior,
+            severity: ViolationSeverity::Low,
+            description: String::new(),
+            timestamp: Instant::now(),
+            context: String::new(),
+        }
+    }
+}
+
+impl Default for ExecutionResult {
+    fn default() -> Self {
+        Self {
+            function_name: String::new(),
+            input_parameters: Vec::new(),
+            output: ExecutionOutput::Success(String::new()),
+            execution_time: Duration::from_secs(0),
+            memory_usage: 0,
+            security_violations: Vec::new(),
+            behavior_classification: BehaviorClassification::Safe,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -280,59 +334,5 @@ mod tests {
         let display = format!("{}", result);
         assert!(display.contains("overall_score: 0.950"));
         assert!(display.contains("safety: 0.980"));
-    }
-}
-// Production-ready Default implementations
-impl Default for BehavioralVerificationResult {
-    fn default() -> Self {
-        Self {
-            overall_score: 0.0,
-            execution_safety_score: 0.0,
-            behavioral_consistency_score: 0.0,
-            property_compliance_score: 0.0,
-            authenticity_score: 0.0,
-            execution_results: Vec::new(),
-            security_assessment: BehavioralSecurityAssessment::default(),
-            violations: Vec::new(),
-            recommendations: Vec::new(),
-        }
-    }
-}
-
-impl Default for BehavioralSecurityAssessment {
-    fn default() -> Self {
-        Self {
-            threat_level: ThreatLevel::Minimal,
-            attack_surface_size: 0.0,
-            vulnerability_count: 0,
-            security_score: 0.0,
-            compliance_level: ComplianceLevel::NonCompliant,
-        }
-    }
-}
-
-impl Default for SecurityViolation {
-    fn default() -> Self {
-        Self {
-            violation_type: SecurityViolationType::SuspiciousBehavior,
-            severity: ViolationSeverity::Low,
-            description: String::new(),
-            timestamp: Instant::now(),
-            context: String::new(),
-        }
-    }
-}
-
-impl Default for ExecutionResult {
-    fn default() -> Self {
-        Self {
-            function_name: String::new(),
-            input_parameters: Vec::new(),
-            output: ExecutionOutput::Success(String::new()),
-            execution_time: Duration::from_secs(0),
-            memory_usage: 0,
-            security_violations: Vec::new(),
-            behavior_classification: BehaviorClassification::Safe,
-        }
     }
 }

@@ -469,17 +469,11 @@ impl AispParser {
 //
 
 /// Security-hardened parser with error recovery capabilities
+#[derive(Default)]
 pub struct RobustAispParser {
     config: RobustParserConfig,
 }
 
-impl Default for RobustAispParser {
-    fn default() -> Self {
-        Self {
-            config: RobustParserConfig::default(),
-        }
-    }
-}
 
 impl RobustAispParser {
     pub fn new() -> Self {
@@ -570,28 +564,25 @@ impl RobustAispParser {
         };
 
         for pair in pairs {
-            match pair.as_rule() {
-                Rule::aisp_document => {
-                    for inner_pair in pair.into_inner() {
-                        match inner_pair.as_rule() {
-                            Rule::header => {
-                                document.header = self.parse_header(inner_pair)?;
-                            }
-                            Rule::domain_protocol_decl => {
-                                document.metadata = self.parse_metadata(inner_pair)?;
-                            }
-                            Rule::aisp_blocks => {
-                                for block_pair in inner_pair.into_inner() {
-                                    if let Ok(block) = self.parse_block(block_pair) {
-                                        document.blocks.push(block);
-                                    }
+            if pair.as_rule() == Rule::aisp_document {
+                for inner_pair in pair.into_inner() {
+                    match inner_pair.as_rule() {
+                        Rule::header => {
+                            document.header = self.parse_header(inner_pair)?;
+                        }
+                        Rule::domain_protocol_decl => {
+                            document.metadata = self.parse_metadata(inner_pair)?;
+                        }
+                        Rule::aisp_blocks => {
+                            for block_pair in inner_pair.into_inner() {
+                                if let Ok(block) = self.parse_block(block_pair) {
+                                    document.blocks.push(block);
                                 }
                             }
-                            _ => {}
                         }
+                        _ => {}
                     }
                 }
-                _ => {}
             }
         }
 
@@ -689,25 +680,22 @@ impl RobustAispParser {
         let mut raw_entries = Vec::new();
 
         for inner in pair.into_inner() {
-            match inner.as_rule() {
-                Rule::meta_entries => {
-                    for entry in inner.into_inner() {
-                        let entry_text = entry.as_str().to_string();
-                        raw_entries.push(entry_text.clone());
+            if inner.as_rule() == Rule::meta_entries {
+                for entry in inner.into_inner() {
+                    let entry_text = entry.as_str().to_string();
+                    raw_entries.push(entry_text.clone());
 
-                        if let Some((key, value)) = MetaContentParser::parse_entry(&entry_text) {
-                            entries.insert(
-                                key.clone(),
-                                MetaEntry {
-                                    key: key.clone(),
-                                    value,
-                                    span: None,
-                                },
-                            );
-                        }
+                    if let Some((key, value)) = MetaContentParser::parse_entry(&entry_text) {
+                        entries.insert(
+                            key.clone(),
+                            MetaEntry {
+                                key: key.clone(),
+                                value,
+                                span: None,
+                            },
+                        );
                     }
                 }
-                _ => {}
             }
         }
 
@@ -724,27 +712,24 @@ impl RobustAispParser {
         let mut raw_definitions = Vec::new();
 
         for inner in pair.into_inner() {
-            match inner.as_rule() {
-                Rule::type_definitions => {
-                    for def in inner.into_inner() {
-                        let def_text = def.as_str().to_string();
-                        raw_definitions.push(def_text.clone());
+            if inner.as_rule() == Rule::type_definitions {
+                for def in inner.into_inner() {
+                    let def_text = def.as_str().to_string();
+                    raw_definitions.push(def_text.clone());
 
-                        if let Some((name, type_expr)) =
-                            TypeContentParser::parse_type_definition(&def_text)
-                        {
-                            definitions.insert(
-                                name.clone(),
-                                TypeDefinition {
-                                    name: name.clone(),
-                                    type_expr,
-                                    span: None,
-                                },
-                            );
-                        }
+                    if let Some((name, type_expr)) =
+                        TypeContentParser::parse_type_definition(&def_text)
+                    {
+                        definitions.insert(
+                            name.clone(),
+                            TypeDefinition {
+                                name: name.clone(),
+                                type_expr,
+                                span: None,
+                            },
+                        );
                     }
                 }
-                _ => {}
             }
         }
 
@@ -761,15 +746,12 @@ impl RobustAispParser {
         let mut raw_rules = Vec::new();
 
         for inner in pair.into_inner() {
-            match inner.as_rule() {
-                Rule::rule_definitions => {
-                    for rule in inner.into_inner() {
-                        let rule_text = rule.as_str().to_string();
-                        raw_rules.push(rule_text.clone());
-                        rules.push(LogicContentParser::parse_logical_rule(&rule_text));
-                    }
+            if inner.as_rule() == Rule::rule_definitions {
+                for rule in inner.into_inner() {
+                    let rule_text = rule.as_str().to_string();
+                    raw_rules.push(rule_text.clone());
+                    rules.push(LogicContentParser::parse_logical_rule(&rule_text));
                 }
-                _ => {}
             }
         }
 
@@ -786,25 +768,22 @@ impl RobustAispParser {
         let mut raw_functions = Vec::new();
 
         for inner in pair.into_inner() {
-            match inner.as_rule() {
-                Rule::function_definitions => {
-                    for func in inner.into_inner() {
-                        let func_text = func.as_str().to_string();
-                        raw_functions.push(func_text.clone());
+            if inner.as_rule() == Rule::function_definitions {
+                for func in inner.into_inner() {
+                    let func_text = func.as_str().to_string();
+                    raw_functions.push(func_text.clone());
 
-                        if let Some((name, lambda)) =
-                            LambdaContentParser::parse_function_definition(&func_text)
-                        {
-                            functions.push(FunctionDefinition {
-                                name: name.clone(),
-                                lambda,
-                                raw_text: func_text,
-                                span: None,
-                            });
-                        }
+                    if let Some((name, lambda)) =
+                        LambdaContentParser::parse_function_definition(&func_text)
+                    {
+                        functions.push(FunctionDefinition {
+                            name: name.clone(),
+                            lambda,
+                            raw_text: func_text,
+                            span: None,
+                        });
                     }
                 }
-                _ => {}
             }
         }
 
@@ -824,36 +803,33 @@ impl RobustAispParser {
         let mut raw_evidence = Vec::new();
 
         for inner in pair.into_inner() {
-            match inner.as_rule() {
-                Rule::evidence_entries => {
-                    for evidence in inner.into_inner() {
-                        let evidence_text = evidence.as_str().to_string();
-                        raw_evidence.push(evidence_text.clone());
+            if inner.as_rule() == Rule::evidence_entries {
+                for evidence in inner.into_inner() {
+                    let evidence_text = evidence.as_str().to_string();
+                    raw_evidence.push(evidence_text.clone());
 
-                        if let Some(entry) =
-                            EvidenceContentParser::parse_evidence_entry(&evidence_text)
-                        {
-                            match entry {
-                                super::content::evidence_content::EvidenceEntry::Delta(d) => {
-                                    delta = Some(d)
-                                }
-                                super::content::evidence_content::EvidenceEntry::Phi(p) => {
-                                    phi = Some(p)
-                                }
-                                super::content::evidence_content::EvidenceEntry::Tau(t) => {
-                                    tau = Some(t)
-                                }
-                                super::content::evidence_content::EvidenceEntry::Metric(
-                                    name,
-                                    value,
-                                ) => {
-                                    metrics.insert(name, value);
-                                }
+                    if let Some(entry) =
+                        EvidenceContentParser::parse_evidence_entry(&evidence_text)
+                    {
+                        match entry {
+                            super::content::evidence_content::EvidenceEntry::Delta(d) => {
+                                delta = Some(d)
+                            }
+                            super::content::evidence_content::EvidenceEntry::Phi(p) => {
+                                phi = Some(p)
+                            }
+                            super::content::evidence_content::EvidenceEntry::Tau(t) => {
+                                tau = Some(t)
+                            }
+                            super::content::evidence_content::EvidenceEntry::Metric(
+                                name,
+                                value,
+                            ) => {
+                                metrics.insert(name, value);
                             }
                         }
                     }
                 }
-                _ => {}
             }
         }
 
@@ -899,7 +875,7 @@ impl RobustAispParser {
         let block_boundaries = self.extract_block_boundaries(input);
 
         for boundary in &block_boundaries {
-            match self.parse_single_block(&boundary) {
+            match self.parse_single_block(boundary) {
                 Ok(block) => {
                     document.blocks.push(block);
                     if !boundary.is_well_formed {
@@ -976,7 +952,7 @@ impl RobustAispParser {
                             start_pos: start,
                             end_pos: end,
                             content: content.to_string(),
-                            is_well_formed: self.validate_block_structure(&content),
+                            is_well_formed: self.validate_block_structure(content),
                         });
                     }
                 }

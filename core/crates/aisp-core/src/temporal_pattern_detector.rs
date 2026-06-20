@@ -389,7 +389,7 @@ impl TemporalPatternDetector {
         let description = rule
             .description_template
             .replace("{formula}", &formula)
-            .replace("{p}", variables.get(0).unwrap_or(&"P".to_string()))
+            .replace("{p}", variables.first().unwrap_or(&"P".to_string()))
             .replace("{q}", variables.get(1).unwrap_or(&"Q".to_string()));
 
         TemporalPattern {

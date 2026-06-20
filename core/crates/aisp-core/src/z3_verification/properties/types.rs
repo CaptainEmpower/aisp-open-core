@@ -122,10 +122,12 @@ impl Default for OptimizationConfig {
 
 /// Load balancing strategies for parallel verification
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum LoadBalancingStrategy {
     /// Round-robin assignment
     RoundRobin,
     /// Assign based on current load
+    #[default]
     LoadBased,
     /// Assign based on property complexity
     ComplexityBased,
@@ -133,11 +135,6 @@ pub enum LoadBalancingStrategy {
     WorkStealing,
 }
 
-impl Default for LoadBalancingStrategy {
-    fn default() -> Self {
-        LoadBalancingStrategy::LoadBased
-    }
-}
 
 /// Property verification context
 #[derive(Debug, Clone)]
@@ -311,11 +308,9 @@ mod tests {
         assert!(ComplexityLevel::Simple < ComplexityLevel::Complex);
         assert!(ComplexityLevel::Complex < ComplexityLevel::Extreme);
 
-        let mut levels = vec![
-            ComplexityLevel::Extreme,
+        let mut levels = [ComplexityLevel::Extreme,
             ComplexityLevel::Simple,
-            ComplexityLevel::Complex,
-        ];
+            ComplexityLevel::Complex];
         levels.sort();
 
         assert_eq!(levels[0], ComplexityLevel::Simple);

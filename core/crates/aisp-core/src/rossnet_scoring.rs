@@ -722,7 +722,7 @@ mod tests {
         let similarity = validator
             .calculate_structural_similarity(&document)
             .unwrap();
-        assert!(similarity >= 0.0 && similarity <= 1.0);
+        assert!((0.0..=1.0).contains(&similarity));
     }
 
     #[test]
@@ -795,7 +795,7 @@ mod tests {
         let validator = RossNetValidator::new(config);
 
         let warnings_low = validator.generate_warnings(0.6);
-        assert!(warnings_low.len() >= 1);
+        assert!(!warnings_low.is_empty());
         assert!(warnings_low
             .iter()
             .any(|w| w.contains("below minimum threshold")));

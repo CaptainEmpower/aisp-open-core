@@ -269,13 +269,11 @@ mod tests {
 
     #[test]
     fn test_attack_resistance_rating_levels() {
-        let ratings = vec![
-            AttackResistanceRating::Minimal,
+        let ratings = [AttackResistanceRating::Minimal,
             AttackResistanceRating::Basic,
             AttackResistanceRating::Standard,
             AttackResistanceRating::Enhanced,
-            AttackResistanceRating::Military,
-        ];
+            AttackResistanceRating::Military];
 
         assert_eq!(ratings.len(), 5);
         assert_eq!(ratings[4], AttackResistanceRating::Military);

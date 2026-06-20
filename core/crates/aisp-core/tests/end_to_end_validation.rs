@@ -16,6 +16,12 @@ pub struct TestDocumentBuilder {
     blocks: HashMap<String, String>,
 }
 
+impl Default for TestDocumentBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestDocumentBuilder {
     pub fn new() -> Self {
         Self {

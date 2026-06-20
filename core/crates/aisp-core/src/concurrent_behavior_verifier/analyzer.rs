@@ -481,7 +481,7 @@ impl ConcurrentBehaviorAnalyzer {
             for resource in &process.shared_resources {
                 resource_users
                     .entry(resource.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(&process.id);
             }
         }

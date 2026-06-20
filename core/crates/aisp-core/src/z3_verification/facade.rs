@@ -132,7 +132,7 @@ impl Z3VerificationFacade {
             },
             timing: Z3TimingBreakdown::default(),
             resource_usage: Z3ResourceUsage::default(),
-            diagnostics: diagnostics,
+            diagnostics,
         })
     }
 

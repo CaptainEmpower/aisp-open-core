@@ -1021,7 +1021,7 @@ mod tests {
 
         assert!(!result.valid); // Should fail validation due to drift
         assert!(!result.warnings.is_empty()); // Should have warnings
-        assert!(result.drift_patterns.incidents.len() > 0); // Should detect drift incidents
+        assert!(!result.drift_patterns.incidents.is_empty()); // Should detect drift incidents
     }
 
     #[test]

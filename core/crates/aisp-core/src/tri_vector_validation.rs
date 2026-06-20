@@ -341,7 +341,7 @@ impl TriVectorValidator {
 
                 // Check for orthogonality violations
                 let mut has_violations = false;
-                for (_, orthogonality) in &result.orthogonality_results {
+                for orthogonality in result.orthogonality_results.values() {
                     if orthogonality.orthogonality_type == OrthogonalityType::NotOrthogonal {
                         has_violations = true;
                         result.errors.push(TriVectorError::OrthogonalityViolated {
@@ -895,7 +895,6 @@ mod tests {
     #[test]
     fn test_validator_creation() {
         let validator = TriVectorValidator::new();
-        assert!(!validator.config.require_formal_proofs || validator.config.require_formal_proofs);
         assert_eq!(validator.config.orthogonality_tolerance, 1e-10);
     }
 

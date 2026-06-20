@@ -242,7 +242,7 @@ impl EnhancedHebbianLearner {
             std_deviation: std_dev,
             min_affinity: sorted_affinities.first().copied().unwrap_or(0.0),
             max_affinity: sorted_affinities.last().copied().unwrap_or(0.0),
-            median_affinity: if sorted_affinities.len() % 2 == 0 {
+            median_affinity: if sorted_affinities.len().is_multiple_of(2) {
                 let mid = sorted_affinities.len() / 2;
                 (sorted_affinities[mid - 1] + sorted_affinities[mid]) / 2.0
             } else {

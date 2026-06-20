@@ -168,7 +168,7 @@ impl SMTGenerator {
 
         for property in properties {
             // Extract sorts from property context
-            for (type_name, _) in &property.context.type_definitions {
+            for type_name in property.context.type_definitions.keys() {
                 if !self.type_env.contains_key(type_name) {
                     custom_sorts.insert(type_name.clone());
                 }

@@ -14,17 +14,21 @@ use std::time::Duration;
 /// - Adaptive strategies maintain performance > Sequential baseline
 /// - Priority-based ensures critical verifications execute first
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum ExecutionStrategy {
     Sequential,
     Parallel,
+    #[default]
     AdaptiveParallel,
     PriorityBased,
 }
 
 /// Failure handling strategies for verification pipeline
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum FailureHandlingStrategy {
     FailFast,
+    #[default]
     ContinueOnError,
     RetryWithBackoff,
     GracefulDegradation,
@@ -137,17 +141,7 @@ pub struct ResourceManager {
     pub resource_pools: HashMap<String, usize>,
 }
 
-impl Default for ExecutionStrategy {
-    fn default() -> Self {
-        Self::AdaptiveParallel
-    }
-}
 
-impl Default for FailureHandlingStrategy {
-    fn default() -> Self {
-        Self::ContinueOnError
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -175,11 +169,9 @@ mod tests {
 
     #[test]
     fn test_security_violation_types() {
-        let violations = vec![
-            SecurityViolationType::UnauthorizedAccess,
+        let violations = [SecurityViolationType::UnauthorizedAccess,
             SecurityViolationType::DataLeakage,
-            SecurityViolationType::IntegrityBreach,
-        ];
+            SecurityViolationType::IntegrityBreach];
         assert_eq!(violations.len(), 3);
     }
 

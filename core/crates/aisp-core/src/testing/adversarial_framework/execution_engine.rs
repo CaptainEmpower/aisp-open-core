@@ -300,7 +300,7 @@ impl AttackExecutionEngine {
             }
             PayloadGenerator::CyclicReference => {
                 // Simplified cyclic pattern
-                format!("𝔸5.1.test@2026-01-27⟦Γ:Rules⟧{{∀x:T:x∈T∧T⊆x}}")
+                "𝔸5.1.test@2026-01-27⟦Γ:Rules⟧{∀x:T:x∈T∧T⊆x}".to_string()
             }
         }
     }

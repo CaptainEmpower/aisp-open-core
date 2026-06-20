@@ -625,7 +625,8 @@ mod tests {
         assert!(analysis.is_ok());
 
         let analysis = analysis.unwrap();
-        assert!(analysis.optimization_opportunities.len() >= 0);
+        // optimization_opportunities is always present (possibly empty)
+        let _ = &analysis.optimization_opportunities;
     }
 
     #[test]

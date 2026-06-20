@@ -495,7 +495,7 @@ impl crate::testing::adversarial_framework::AdversarialTestSuite {
             if let CanonicalAispBlock::Types(types) = block {
                 for raw_def in &types.raw_definitions {
                     // Check for combining characters that could hide content
-                    if raw_def.chars().any(|c| c >= '\u{0300}' && c <= '\u{036F}') {
+                    if raw_def.chars().any(|c| ('\u{0300}'..='\u{036F}').contains(&c)) {
                         return true;
                     }
                 }

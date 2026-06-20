@@ -17,8 +17,10 @@ use serde::{Deserialize, Serialize};
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Default)]
 pub enum Tier {
     /// ⊘: δ < 0.20 — Rejected
+    #[default]
     Reject = 0,
     /// ◊⁻: δ ≥ 0.20 — Bronze
     Bronze = 1,
@@ -115,11 +117,6 @@ impl Tier {
     }
 }
 
-impl Default for Tier {
-    fn default() -> Self {
-        Self::Reject
-    }
-}
 
 impl core::fmt::Display for Tier {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 
 /// Comprehensive concurrent behavior analysis result
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct ConcurrentBehaviorAnalysis {
     /// Identified concurrent processes
     pub concurrent_processes: Vec<ConcurrentProcess>,
@@ -428,20 +429,6 @@ pub struct ResourceContentionAnalysis {
     pub mitigations: Vec<String>,
 }
 
-impl Default for ConcurrentBehaviorAnalysis {
-    fn default() -> Self {
-        Self {
-            concurrent_processes: Vec::new(),
-            race_condition_analysis: RaceConditionAnalysis::default(),
-            deadlock_analysis: DeadlockAnalysis::default(),
-            synchronization_analysis: SynchronizationAnalysis::default(),
-            resource_contention: ResourceContentionAnalysis::default(),
-            message_passing_analysis: MessagePassingAnalysis::default(),
-            performance_impact: ConcurrencyPerformanceImpact::default(),
-            warnings: Vec::new(),
-        }
-    }
-}
 
 // Continued type definitions for remaining structs...
 #[derive(Debug, Clone)]

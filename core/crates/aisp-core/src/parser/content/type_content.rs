@@ -186,7 +186,7 @@ impl TypeContentParser {
         // Type names should start with uppercase letter
         let first_char = name.chars().next().unwrap();
         if !first_char.is_uppercase() {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Type name '{}' should start with uppercase letter",
                 name
             )));
@@ -194,7 +194,7 @@ impl TypeContentParser {
 
         // Check for valid characters
         if !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Invalid type name '{}'. Only alphanumeric and underscore allowed",
                 name
             )));

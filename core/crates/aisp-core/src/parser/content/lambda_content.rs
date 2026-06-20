@@ -218,7 +218,7 @@ impl LambdaContentParser {
             }
 
             if !Self::is_valid_identifier(param) {
-                return Err(AispError::validation_error(&format!(
+                return Err(AispError::validation_error(format!(
                     "Invalid lambda parameter: '{}'. Must be valid identifier",
                     param
                 )));

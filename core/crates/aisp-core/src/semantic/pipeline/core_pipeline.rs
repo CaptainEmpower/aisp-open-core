@@ -187,13 +187,13 @@ mod tests {
     fn test_pipeline_creation() {
         let pipeline = MultiLayerVerificationPipeline::new();
         // Pipeline should be created successfully
-        assert_eq!(std::mem::size_of_val(&pipeline) > 0, true);
+        assert!(std::mem::size_of_val(&pipeline) > 0);
     }
 
     #[test]
     fn test_enhanced_security_pipeline() {
         let pipeline = MultiLayerVerificationPipeline::with_enhanced_security();
-        assert_eq!(std::mem::size_of_val(&pipeline) > 0, true);
+        assert!(std::mem::size_of_val(&pipeline) > 0);
     }
 
     #[test]

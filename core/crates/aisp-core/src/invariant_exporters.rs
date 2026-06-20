@@ -26,9 +26,9 @@ pub fn export_json(invariants: &[DiscoveredInvariant]) -> String {
         json.push_str(&format!("      \"source_count\": {}\n", inv.sources.len()));
         json.push_str("    }");
         if i < invariants.len() - 1 {
-            json.push_str(",");
+            json.push(',');
         }
-        json.push_str("\n");
+        json.push('\n');
     }
 
     json.push_str("  ],\n");
@@ -56,7 +56,7 @@ pub fn export_smt_lib(invariants: &[DiscoveredInvariant]) -> String {
             }
         }
     }
-    smt.push_str("\n");
+    smt.push('\n');
 
     // Add predicate declarations
     smt.push_str("; Predicate declarations\n");
@@ -65,7 +65,7 @@ pub fn export_smt_lib(invariants: &[DiscoveredInvariant]) -> String {
             smt.push_str(&format!("(declare-fun {} () Bool)\n", predicate));
         }
     }
-    smt.push_str("\n");
+    smt.push('\n');
 
     // Add function declarations
     smt.push_str("; Function declarations\n");
@@ -74,7 +74,7 @@ pub fn export_smt_lib(invariants: &[DiscoveredInvariant]) -> String {
             smt.push_str(&format!("(declare-fun {} () Bool)\n", function));
         }
     }
-    smt.push_str("\n");
+    smt.push('\n');
 
     // Add invariant assertions
     smt.push_str("; Invariant assertions\n");
@@ -123,7 +123,7 @@ pub fn export_human_readable(invariants: &[DiscoveredInvariant]) -> String {
             group_invariants.len()
         ));
         output.push_str(&"-".repeat(40));
-        output.push_str("\n");
+        output.push('\n');
 
         for (i, invariant) in group_invariants.iter().enumerate() {
             output.push_str(&format!("{}. {}\n", i + 1, invariant.name));
@@ -149,10 +149,10 @@ pub fn export_human_readable(invariants: &[DiscoveredInvariant]) -> String {
                 ));
             }
 
-            output.push_str("\n");
+            output.push('\n');
         }
 
-        output.push_str("\n");
+        output.push('\n');
     }
 
     output
@@ -198,7 +198,7 @@ pub fn export_detailed_report(invariants: &[DiscoveredInvariant]) -> String {
                 if let Some(ref text) = evidence.location.source_text {
                     output.push_str(&format!("     Context: {}\n", text));
                 }
-                output.push_str("\n");
+                output.push('\n');
             }
         }
 
@@ -222,7 +222,7 @@ pub fn export_detailed_report(invariants: &[DiscoveredInvariant]) -> String {
         ));
 
         if i < invariants.len() - 1 {
-            output.push_str("\n");
+            output.push('\n');
             output.push_str(&"-".repeat(80));
             output.push_str("\n\n");
         }

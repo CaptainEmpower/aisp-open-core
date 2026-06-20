@@ -320,12 +320,12 @@ impl TypeChecker {
 
     /// Find undefined type references
     fn find_undefined_types(&self) -> HashSet<String> {
-        let undefined = HashSet::new();
+        
 
         // TODO: Implement comprehensive undefined type detection
         // This would scan all type references and check if they're defined
 
-        undefined
+        HashSet::new()
     }
 }
 

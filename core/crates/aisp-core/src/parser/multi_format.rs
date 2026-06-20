@@ -134,7 +134,9 @@ impl MultiFormatParser {
         }
 
         // Phase 2: Format-specific parsing
-        let result = match analysis.format {
+        
+
+        match analysis.format {
             DocumentFormat::PureAisp => self.parse_pure_aisp(content, detection_time_us),
             DocumentFormat::MarkdownWithAisp => {
                 self.parse_markdown_with_aisp(content, analysis, detection_time_us)
@@ -145,9 +147,7 @@ impl MultiFormatParser {
             DocumentFormat::Unknown => Err(AispError::UnsupportedFormat {
                 format: "Unknown document format".to_string(),
             }),
-        };
-
-        result
+        }
     }
 
     /// Parse pure AISP document using existing parser

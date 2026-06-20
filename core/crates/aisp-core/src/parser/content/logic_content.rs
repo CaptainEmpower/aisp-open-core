@@ -487,7 +487,7 @@ impl LogicContentParser {
         }
 
         if !Self::is_valid_identifier(&quantifier.variable) {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Invalid quantifier variable: '{}'",
                 quantifier.variable
             )));

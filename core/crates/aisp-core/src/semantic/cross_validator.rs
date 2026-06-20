@@ -229,6 +229,7 @@ mod validation_types {
         pub validated_by: Vec<VerificationLayer>,
     }
     #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[derive(Default)]
     pub struct ComplianceVerification {
         pub compliant: bool,
         pub verified_requirements: Vec<String>,
@@ -288,14 +289,7 @@ mod validation_types {
         }
     }
 
-    impl Default for ComplianceVerification {
-        fn default() -> Self {
-            Self {
-                compliant: false,
-                verified_requirements: Vec::new(),
-            }
-        }
-    }
+    
 
     impl Default for CrossValidationResult {
         fn default() -> Self {
@@ -313,6 +307,12 @@ mod validation_types {
                 integration_metrics: IntegrationMetrics::default(),
                 final_assessment: FinalSecurityAssessment::default(),
             }
+        }
+    }
+
+    impl Default for ValidationCache {
+        fn default() -> Self {
+            Self::new()
         }
     }
 
@@ -2149,31 +2149,31 @@ impl Default for CrossValidationChecker {
 
 impl fmt::Display for CrossValidationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Cross-Validation Result\n")?;
-        write!(f, "=======================\n")?;
-        write!(
+        writeln!(f, "Cross-Validation Result")?;
+        writeln!(f, "=======================")?;
+        writeln!(
             f,
-            "Overall Consistency: {:.1}%\n",
+            "Overall Consistency: {:.1}%",
             self.overall_consistency_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Semantic-Behavioral Agreement: {:.1}%\n",
+            "Semantic-Behavioral Agreement: {:.1}%",
             self.semantic_behavioral_agreement * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Cross-Validation Confidence: {:.1}%\n",
+            "Cross-Validation Confidence: {:.1}%",
             self.cross_validation_confidence * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Conflict Resolution Score: {:.1}%\n",
+            "Conflict Resolution Score: {:.1}%",
             self.conflict_resolution_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Verification Coverage: {:.1}%\n",
+            "Verification Coverage: {:.1}%",
             self.verification_coverage * 100.0
         )?;
         write!(
@@ -2182,14 +2182,14 @@ impl fmt::Display for CrossValidationResult {
             self.conflicts_detected.len(),
             self.resolved_conflicts.len()
         )?;
-        write!(
+        writeln!(
             f,
-            "Final Threat Level: {:?}\n",
+            "Final Threat Level: {:?}",
             self.final_assessment.unified_threat_level
         )?;
-        write!(
+        writeln!(
             f,
-            "Security Confidence: {:.1}%\n",
+            "Security Confidence: {:.1}%",
             self.final_assessment.security_confidence * 100.0
         )?;
         Ok(())

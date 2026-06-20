@@ -196,7 +196,7 @@ impl ValidationResult {
             warnings: analysis
                 .warnings()
                 .into_iter()
-                .map(|w| AispWarning::warning(w))
+                .map(AispWarning::warning)
                 .collect(),
             error: None,
         }

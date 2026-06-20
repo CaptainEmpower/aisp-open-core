@@ -576,7 +576,7 @@ impl LogicalStructure {
                 var_vec
                     .iter()
                     .cloned()
-                    .zip(assignment_vec.into_iter())
+                    .zip(assignment_vec)
                     .collect()
             })
             .collect()
@@ -612,6 +612,12 @@ pub struct ComputationalSemantics {
     pub type_env: TypeEnvironment,
     /// Logical structure for evaluation
     pub structure: LogicalStructure,
+}
+
+impl Default for ComputationalSemantics {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ComputationalSemantics {

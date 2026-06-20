@@ -95,7 +95,7 @@ mod tests {
         config.parallel_verification = false;
 
         let system = FormalVerificationSystem::with_config(config.clone());
-        assert_eq!(system.config.parallel_verification, false);
+        assert!(!system.config.parallel_verification);
     }
 
     #[test]

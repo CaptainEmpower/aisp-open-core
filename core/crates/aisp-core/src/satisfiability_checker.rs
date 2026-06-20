@@ -680,7 +680,7 @@ mod tests {
     fn test_model_value_types() {
         let bool_val = ModelValue::Boolean(true);
         let int_val = ModelValue::Integer(-5);
-        let real_val = ModelValue::Real(3.14);
+        let real_val = ModelValue::Real(3.5);
         let str_val = ModelValue::String("test".to_string());
         let enum_val = ModelValue::Enumeration("Active".to_string());
 

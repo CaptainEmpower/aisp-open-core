@@ -846,6 +846,12 @@ impl GhostIntentSearchEngine {
 
 // Supporting implementations
 
+impl Default for PocketRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PocketRepository {
     pub fn new() -> Self {
         Self {
@@ -865,6 +871,12 @@ impl PocketRepository {
     }
 }
 
+impl Default for SignalVectorIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SignalVectorIndex {
     pub fn new() -> Self {
         Self {
@@ -875,6 +887,12 @@ impl SignalVectorIndex {
     }
 }
 
+impl Default for SpatialTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SpatialTree {
     pub fn new() -> Self {
         Self {
@@ -882,6 +900,12 @@ impl SpatialTree {
             root: None,
             max_depth: 32,
         }
+    }
+}
+
+impl Default for AffinityGraph {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

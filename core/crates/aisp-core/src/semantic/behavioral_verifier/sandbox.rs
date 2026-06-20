@@ -191,6 +191,12 @@ impl SafeExecutionSandbox {
     }
 }
 
+impl Default for ExecutionMonitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ExecutionMonitor {
     pub fn new() -> Self {
         Self {
@@ -262,6 +268,12 @@ impl IsolationEngine {
     pub fn cleanup_isolation_context(&mut self, context_id: String) -> AispResult<()> {
         self.active_contexts.remove(&context_id);
         Ok(())
+    }
+}
+
+impl Default for BehaviorAnalyzer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

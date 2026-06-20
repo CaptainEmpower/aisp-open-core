@@ -230,6 +230,12 @@ pub enum InvariantStatus {
     ChecksFailed,
 }
 
+impl Default for PropertyBasedTester {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PropertyBasedTester {
     pub fn new() -> Self {
         Self {
@@ -352,6 +358,12 @@ impl PropertyBasedTester {
     }
 }
 
+impl Default for PlaceholderDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PlaceholderDetector {
     pub fn new() -> Self {
         Self {
@@ -423,6 +435,12 @@ impl PlaceholderDetector {
                 confidence_weight: 0.95,
             },
         ]
+    }
+}
+
+impl Default for RuntimeInvariantChecker {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -501,6 +519,12 @@ impl RuntimeInvariantChecker {
                 violation_severity: ViolationSeverity::High,
             },
         ]
+    }
+}
+
+impl Default for ComplianceValidator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

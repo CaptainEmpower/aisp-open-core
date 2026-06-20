@@ -215,7 +215,7 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        let mut conflicts = Vec::new();
+        
 
         // Simplified implementation - production would do deeper analysis
         // This would involve:
@@ -225,7 +225,7 @@ impl ConflictDetector {
 
         // Placeholder for production implementation
 
-        conflicts
+        Vec::new()
     }
 
     /// Detect type mismatches in constraint relations
@@ -233,7 +233,7 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        let mut conflicts = Vec::new();
+        
 
         // Simplified implementation - production would do type inference
         // This would involve:
@@ -243,7 +243,7 @@ impl ConflictDetector {
 
         // Placeholder for production implementation
 
-        conflicts
+        Vec::new()
     }
 
     /// Create resolution for unsatisfiable constraints

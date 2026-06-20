@@ -317,7 +317,7 @@ fn run_method_comparison() -> Result<(), Box<dyn std::error::Error>> {
         println!("   Testing {}:", name);
 
         let config = VerificationConfig {
-            methods: methods,
+            methods,
             timeout_per_property: Duration::from_secs(5),
             total_timeout: Duration::from_secs(30),
             memory_limit: 500_000_000, // 500MB

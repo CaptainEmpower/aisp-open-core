@@ -72,7 +72,7 @@ impl ResourceUtilizationAnalyzer {
             let measurement = self.measure_resource(resource_type)?;
             self.metrics
                 .entry(resource_type.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(measurement);
         }
         Ok(())
@@ -90,7 +90,7 @@ impl ResourceUtilizationAnalyzer {
                 let measurement = self.measure_resource(resource_type)?;
                 self.metrics
                     .entry(resource_type.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(measurement);
             }
         }

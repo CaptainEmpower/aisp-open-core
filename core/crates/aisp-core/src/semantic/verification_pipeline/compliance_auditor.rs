@@ -124,16 +124,12 @@ impl ComplianceAuditor {
         ];
 
         // Streamline audit checklist
-        auditor.audit_checklist = auditor
-            .audit_checklist
-            .into_iter()
-            .filter(|checkpoint| {
+        auditor.audit_checklist.retain(|checkpoint| {
                 matches!(
                     checkpoint.checkpoint_id.as_str(),
                     "PARSE_SECURITY" | "TYPE_SAFETY" | "ADVERSARIAL_RESISTANCE"
                 )
-            })
-            .collect();
+            });
 
         auditor
     }
@@ -451,7 +447,7 @@ impl ComplianceAuditor {
             "JSON" => self.generate_json_report(),
             "HTML" => self.generate_html_report(),
             "PDF" => Ok("PDF report generation not implemented".to_string()),
-            _ => Err(crate::error::AispError::internal_error(&format!(
+            _ => Err(crate::error::AispError::internal_error(format!(
                 "Unsupported report format: {}",
                 format
             ))),

@@ -369,7 +369,7 @@ impl ProductionZ3Verifier {
     ) -> AispResult<()> {
         // Simple formula parsing - for now just create a simple boolean assertion
         // In production, would implement proper SMT-LIB parser
-        let formula_ast = z3::ast::Bool::from_bool(true).into();
+        let formula_ast = z3::ast::Bool::from_bool(true);
 
         solver.assert(&formula_ast);
         Ok(())
@@ -447,9 +447,7 @@ impl ProductionZ3Verifier {
         document: &CanonicalAispDocument,
     ) -> AispResult<String> {
         // Generate SMT-LIB formula for document structure validity
-        let formula = format!(
-            "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))"
-        );
+        let formula = "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))".to_string();
         Ok(formula)
     }
 

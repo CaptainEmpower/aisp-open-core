@@ -69,7 +69,7 @@ impl Z3VerificationConfig {
 
     /// Create configuration with custom timeout
     pub fn with_timeout(mut self, timeout_ms: u64) -> AispResult<Self> {
-        if timeout_ms < 1000 || timeout_ms > 600_000 {
+        if !(1000..=600_000).contains(&timeout_ms) {
             return Err(AispError::validation_error(
                 "Timeout must be between 1 second and 10 minutes",
             ));
@@ -80,7 +80,7 @@ impl Z3VerificationConfig {
 
     /// Create configuration with custom memory limit
     pub fn with_memory_limit(mut self, memory_mb: usize) -> AispResult<Self> {
-        if memory_mb < 256 || memory_mb > 32768 {
+        if !(256..=32768).contains(&memory_mb) {
             return Err(AispError::validation_error(
                 "Memory limit must be between 256MB and 32GB",
             ));
@@ -116,7 +116,7 @@ impl Z3VerificationConfig {
         ];
         for tactic in &self.solver_tactics {
             if !valid_tactics.contains(&tactic.as_str()) {
-                return Err(AispError::validation_error(&format!(
+                return Err(AispError::validation_error(format!(
                     "Invalid Z3 tactic: {}",
                     tactic
                 )));

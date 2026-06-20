@@ -129,7 +129,7 @@ fn test_validation_result_structure() {
     // Tier should have meaningful value
     let tier_value = result.tier.value();
     assert!(
-        tier_value >= 0 && tier_value <= 5,
+        (0..=5).contains(&tier_value),
         "Quality tier should be in valid range: {}",
         tier_value
     );

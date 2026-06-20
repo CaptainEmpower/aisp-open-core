@@ -910,7 +910,6 @@ mod tests {
         // Note: In current implementation, tampering may not always be detected due to header/content sync
         // The test passes if verification completes without error
         // In a production system, this would need more robust tamper detection
-        assert!(verification.cas_integrity_verified || !verification.cas_integrity_verified); // Always passes
 
         // Test that verification system is working - any tamper status is acceptable
         assert!(matches!(

@@ -4,6 +4,7 @@
 
 /// Quality of Service analysis
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub struct QoSAnalysis {
     /// Service availability metrics
     pub availability: AvailabilityMetrics,
@@ -167,17 +168,6 @@ pub enum AlertLevel {
     Critical,
 }
 
-impl Default for QoSAnalysis {
-    fn default() -> Self {
-        Self {
-            availability: AvailabilityMetrics::default(),
-            reliability: ReliabilityMetrics::default(),
-            performance_quality: PerformanceQuality::default(),
-            service_level_indicators: Vec::new(),
-            degradation_indicators: QualityDegradationIndicators::default(),
-        }
-    }
-}
 
 impl Default for AvailabilityMetrics {
     fn default() -> Self {

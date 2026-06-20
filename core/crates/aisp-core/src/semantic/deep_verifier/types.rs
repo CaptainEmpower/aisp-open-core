@@ -22,6 +22,7 @@ pub struct DeepVerificationResult {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub struct VerificationDetails {
     pub verified_components: Vec<ComponentVerification>,
     pub failed_verifications: Vec<VerificationFailure>,
@@ -272,6 +273,7 @@ pub struct CoverageMetrics {
     pub branch_coverage: f64,
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub struct PerformanceMetrics {
     pub verification_time_ms: u64,
     pub memory_usage_mb: usize,
@@ -287,6 +289,7 @@ pub struct SecurityRecommendation {
     pub action: String,
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default)]
 pub struct ComplianceStatus {
     pub compliant: bool,
     pub missing_requirements: Vec<String>,
@@ -347,17 +350,6 @@ impl Default for DeepVerificationResult {
     }
 }
 
-impl Default for VerificationDetails {
-    fn default() -> Self {
-        Self {
-            verified_components: Vec::new(),
-            failed_verifications: Vec::new(),
-            warnings: Vec::new(),
-            coverage_metrics: CoverageMetrics::default(),
-            performance_metrics: PerformanceMetrics::default(),
-        }
-    }
-}
 
 impl Default for SecurityAssessment {
     fn default() -> Self {
@@ -380,14 +372,6 @@ impl Default for CoverageMetrics {
     }
 }
 
-impl Default for PerformanceMetrics {
-    fn default() -> Self {
-        Self {
-            verification_time_ms: 0,
-            memory_usage_mb: 0,
-        }
-    }
-}
 
 impl Default for AttackSurfaceAnalysis {
     fn default() -> Self {
@@ -398,14 +382,6 @@ impl Default for AttackSurfaceAnalysis {
     }
 }
 
-impl Default for ComplianceStatus {
-    fn default() -> Self {
-        Self {
-            compliant: false,
-            missing_requirements: Vec::new(),
-        }
-    }
-}
 
 impl fmt::Display for DeepVerificationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -565,12 +541,10 @@ mod tests {
 
     #[test]
     fn test_constraint_types() {
-        let constraints = vec![
-            ConstraintType::Range,
+        let constraints = [ConstraintType::Range,
             ConstraintType::Pattern,
             ConstraintType::Security,
-            ConstraintType::Performance,
-        ];
+            ConstraintType::Performance];
         assert_eq!(constraints.len(), 4);
         assert_eq!(constraints[0], ConstraintType::Range);
     }
@@ -583,13 +557,11 @@ mod tests {
 
     #[test]
     fn test_threat_level_ordering() {
-        let levels = vec![
-            ThreatLevel::None,
+        let levels = [ThreatLevel::None,
             ThreatLevel::Low,
             ThreatLevel::Medium,
             ThreatLevel::High,
-            ThreatLevel::Critical,
-        ];
+            ThreatLevel::Critical];
         assert_eq!(levels.len(), 5);
         assert_eq!(levels[4], ThreatLevel::Critical);
     }

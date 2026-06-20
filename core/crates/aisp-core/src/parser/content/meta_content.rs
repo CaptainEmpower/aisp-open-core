@@ -105,7 +105,7 @@ impl MetaContentParser {
             .chars()
             .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Invalid meta key format: '{}'. Only alphanumeric, underscore, and dash allowed",
                 key
             )));

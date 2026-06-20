@@ -691,7 +691,7 @@ impl ProofEngine {
         let generator = self.select_generator(property)?;
 
         // Generate proof using selected generator
-        let proof = self.apply_generator(&generator, property)?;
+        let proof = self.apply_generator(generator, property)?;
 
         // Validate generated proof
         let validation = self.validator.validate(&proof)?;

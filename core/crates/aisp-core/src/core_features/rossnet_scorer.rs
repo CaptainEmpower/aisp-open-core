@@ -304,8 +304,8 @@ impl RossNetScorer {
     /// Calculate confidence level
     fn calculate_confidence_level(&self, components: &HashMap<String, f64>) -> f64 {
         let variance = self.calculate_component_variance(components);
-        let confidence = (1.0 / (1.0 + variance)).max(0.1).min(1.0);
-        confidence
+        
+        (1.0 / (1.0 + variance)).max(0.1).min(1.0)
     }
 
     /// Calculate variance in score components
@@ -559,7 +559,7 @@ impl AffinityTracker {
         new_affinity: f64,
     ) {
         let key = (content_a, content_b);
-        let history = self.affinity_history.entry(key).or_insert_with(Vec::new);
+        let history = self.affinity_history.entry(key).or_default();
 
         // Apply temporal decay to existing values
         let temporal_decay = self.decay_factors.get("temporal").copied().unwrap_or(0.95);
@@ -674,7 +674,7 @@ mod tests {
         let fitness = evaluator
             .evaluate_fitness(&content_a, &content_b, &context)
             .unwrap();
-        assert!(fitness >= 0.0 && fitness <= 1.0);
+        assert!((0.0..=1.0).contains(&fitness));
     }
 
     #[test]

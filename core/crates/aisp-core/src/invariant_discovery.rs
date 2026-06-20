@@ -286,7 +286,7 @@ mod tests {
 
         // Test export integration (should work even with empty invariants)
         let report = discovery.export_human_readable(&invariants);
-        assert!(report.len() > 0); // Should generate some output
+        assert!(!report.is_empty()); // Should generate some output
 
         // Only check for specific content if invariants were found
         if !invariants.is_empty() {

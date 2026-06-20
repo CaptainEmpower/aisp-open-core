@@ -119,7 +119,7 @@ impl<'a> TriVectorVerifier<'a> {
         // Extract dimensions from document type definitions
         for block in &document.blocks {
             if let AispBlock::Types(types_block) = block {
-                for (name, _type_def) in &types_block.definitions {
+                for name in types_block.definitions.keys() {
                     match name.as_str() {
                         "V_H" => vh_dimension = 768, // From reference.md specification
                         "V_L" => vl_dimension = 512,
@@ -154,8 +154,7 @@ impl<'a> TriVectorVerifier<'a> {
     }
 
     fn verify_vh_vs_orthogonality(&mut self, certificates: &mut Vec<String>) -> AispResult<bool> {
-        let vh_vs_formula = format!(
-            ";; Tri-vector orthogonality: V_H ∩ V_S ≡ ∅\n\
+        let vh_vs_formula = ";; Tri-vector orthogonality: V_H ∩ V_S ≡ ∅\n\
              ;; Mathematical foundation: Linear algebra vector space orthogonality\n\
              \n\
              ;; Declare vector space types\n\
@@ -198,8 +197,7 @@ impl<'a> TriVectorVerifier<'a> {
                                 (= (dot_product x y) zero))))\n\
              \n\
              ;; Check satisfiability (should be SAT if orthogonal)\n\
-             (check-sat)"
-        );
+             (check-sat)".to_string();
 
         let result = self
             .z3_verifier
@@ -218,8 +216,7 @@ impl<'a> TriVectorVerifier<'a> {
     }
 
     fn verify_vl_vs_orthogonality(&mut self, certificates: &mut Vec<String>) -> AispResult<bool> {
-        let vl_vs_formula = format!(
-            ";; Tri-vector orthogonality: V_L ∩ V_S ≡ ∅\n\
+        let vl_vs_formula = ";; Tri-vector orthogonality: V_L ∩ V_S ≡ ∅\n\
              ;; Mathematical foundation: Linear algebra vector space orthogonality\n\
              \n\
              ;; Declare vector space types (reusing previous declarations conceptually)\n\
@@ -264,8 +261,7 @@ impl<'a> TriVectorVerifier<'a> {
              ;; This verifies that spaces are truly independent\n\
              (assert (not (= (+ (dimension V_L) (dimension V_S)) (dimension (intersection V_L V_S)))))\n\
              \n\
-             (check-sat)"
-        );
+             (check-sat)".to_string();
 
         let result = self
             .z3_verifier

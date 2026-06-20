@@ -414,8 +414,7 @@ impl SemanticZ3Verifier {
 
     /// Generate Z3 formula for consistency checking
     fn generate_consistency_formula(&self) -> String {
-        format!(
-            ";; Basic logical consistency check\n\
+        ";; Basic logical consistency check\n\
              (declare-const P Bool)\n\
              (declare-const Q Bool)\n\
              \n\
@@ -427,16 +426,14 @@ impl SemanticZ3Verifier {
              \n\
              ;; Check satisfiability\n\
              (check-sat)\n\
-             (get-model)"
-        )
+             (get-model)".to_string()
     }
 
     /// Generate Z3 formula for semantic verification
     fn generate_semantic_formula(&self, claim: &str) -> String {
         // Simplified: generate basic formula based on claim content
         if claim.contains("orthogonal") {
-            format!(
-                ";; Orthogonality verification\n\
+            ";; Orthogonality verification\n\
                  (declare-const v1_x Real)\n\
                  (declare-const v1_y Real)\n\
                  (declare-const v2_x Real)\n\
@@ -450,15 +447,12 @@ impl SemanticZ3Verifier {
                  (assert (not (and (= v2_x 0) (= v2_y 0))))\n\
                  \n\
                  (check-sat)\n\
-                 (get-model)"
-            )
+                 (get-model)".to_string()
         } else {
-            format!(
-                ";; Generic semantic verification\n\
+            ";; Generic semantic verification\n\
                  (declare-const claim_valid Bool)\n\
                  (assert claim_valid)\n\
-                 (check-sat)"
-            )
+                 (check-sat)".to_string()
         }
     }
 
