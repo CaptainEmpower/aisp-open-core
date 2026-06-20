@@ -58,7 +58,8 @@ impl LambdaContentParser {
                 &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..dot_pos]
             } else {
                 &text[1..dot_pos]
-            }.trim();
+            }
+            .trim();
             let body_part = text[dot_pos + 1..].trim();
 
             let parameters = Self::parse_parameters(param_part);

@@ -190,8 +190,8 @@ pub struct TestStatistics {
 
 impl fmt::Display for BehavioralVerificationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BehavioralVerificationResult {{ overall_score: {:.3}, safety: {:.3}, consistency: {:.3}, compliance: {:.3}, authenticity: {:.3} }}", 
-               self.overall_score, self.execution_safety_score, self.behavioral_consistency_score, 
+        write!(f, "BehavioralVerificationResult {{ overall_score: {:.3}, safety: {:.3}, consistency: {:.3}, compliance: {:.3}, authenticity: {:.3} }}",
+               self.overall_score, self.execution_safety_score, self.behavioral_consistency_score,
                self.property_compliance_score, self.authenticity_score)
     }
 }

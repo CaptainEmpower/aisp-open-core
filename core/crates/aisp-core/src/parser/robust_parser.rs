@@ -655,11 +655,14 @@ impl RobustAispParser {
             // The grammar wraps every concrete block in an `aisp_block` rule;
             // descend into it before dispatching on the concrete block type.
             Rule::aisp_block => {
-                let inner = pair.into_inner().next().ok_or_else(|| AispError::ParseError {
-                    line: 1,
-                    column: 1,
-                    message: "Empty block wrapper".to_string(),
-                })?;
+                let inner = pair
+                    .into_inner()
+                    .next()
+                    .ok_or_else(|| AispError::ParseError {
+                        line: 1,
+                        column: 1,
+                        message: "Empty block wrapper".to_string(),
+                    })?;
                 self.parse_block(inner)
             }
             Rule::omega_block => self.parse_omega_block(pair),
@@ -1555,7 +1558,8 @@ mod tests {
 
         let result = parser.parse(unicode_input);
         // Complex Unicode parsing is still in development - ensure it doesn't crash
-        assert!(result.is_success() || result.partial_success || !result.errors.is_empty()); // Parser completes without panicking
+        assert!(result.is_success() || result.partial_success || !result.errors.is_empty());
+        // Parser completes without panicking
     }
 
     #[test]

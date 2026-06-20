@@ -694,26 +694,26 @@ mod tests {
                     verified_components: Vec::new(),
                     failed_verifications: Vec::new(),
                     warnings: Vec::new(),
-                    coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics { 
-                        line_coverage: 0.90, 
-                        branch_coverage: 0.90 
+                    coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics {
+                        line_coverage: 0.90,
+                        branch_coverage: 0.90
                     },
-                    performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics { 
-                        verification_time_ms: 100, 
-                        memory_usage_mb: 10 
+                    performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics {
+                        verification_time_ms: 100,
+                        memory_usage_mb: 10
                     },
                 },
                 security_assessment: crate::semantic::deep_verifier::SecurityAssessment {
                     threat_level: crate::semantic::deep_verifier::ThreatLevel::Low,
                     vulnerability_count: 0,
-                    attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis { 
-                        surface_area: 0.1, 
-                        vulnerabilities: Vec::new() 
+                    attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis {
+                        surface_area: 0.1,
+                        vulnerabilities: Vec::new()
                     },
                     security_recommendations: Vec::new(),
-                    compliance_status: crate::semantic::deep_verifier::ComplianceStatus { 
-                        compliant: true, 
-                        missing_requirements: Vec::new() 
+                    compliance_status: crate::semantic::deep_verifier::ComplianceStatus {
+                        compliant: true,
+                        missing_requirements: Vec::new()
                     },
                 },
                 recommendations: Vec::new(),
@@ -756,9 +756,9 @@ mod tests {
                 cross_validated_vulnerabilities: Vec::new(),
                 security_confidence: 0.90,
                 attack_resistance_score: 0.90,
-                compliance_verification: crate::semantic::cross_validator::ComplianceVerification { 
-                    compliant: true, 
-                    verified_requirements: Vec::new() 
+                compliance_verification: crate::semantic::cross_validator::ComplianceVerification {
+                    compliant: true,
+                    verified_requirements: Vec::new()
                 },
                 actionable_recommendations: Vec::new(),
             },
@@ -813,22 +813,22 @@ mod tests {
                     verified_components: Vec::new(),
                     failed_verifications: Vec::new(),
                     warnings: Vec::new(),
-                    coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics { 
-                        line_coverage: 0.96, branch_coverage: 0.96 
+                    coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics {
+                        line_coverage: 0.96, branch_coverage: 0.96
                     },
-                    performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics { 
-                        verification_time_ms: 100, memory_usage_mb: 10 
+                    performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics {
+                        verification_time_ms: 100, memory_usage_mb: 10
                     },
                 },
                 security_assessment: crate::semantic::deep_verifier::SecurityAssessment {
                     threat_level: crate::semantic::deep_verifier::ThreatLevel::Minimal,
                     vulnerability_count: 0,
-                    attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis { 
-                        surface_area: 0.05, vulnerabilities: Vec::new() 
+                    attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis {
+                        surface_area: 0.05, vulnerabilities: Vec::new()
                     },
                     security_recommendations: Vec::new(),
-                    compliance_status: crate::semantic::deep_verifier::ComplianceStatus { 
-                        compliant: true, missing_requirements: Vec::new() 
+                    compliance_status: crate::semantic::deep_verifier::ComplianceStatus {
+                        compliant: true, missing_requirements: Vec::new()
                     },
                 },
                 recommendations: Vec::new(),
@@ -871,8 +871,8 @@ mod tests {
                 cross_validated_vulnerabilities: Vec::new(),
                 security_confidence: 0.96,
                 attack_resistance_score: 0.96,
-                compliance_verification: crate::semantic::cross_validator::ComplianceVerification { 
-                    compliant: true, verified_requirements: Vec::new() 
+                compliance_verification: crate::semantic::cross_validator::ComplianceVerification {
+                    compliant: true, verified_requirements: Vec::new()
                 },
                 actionable_recommendations: Vec::new(),
             },
@@ -941,22 +941,22 @@ mod tests {
                         verified_components: Vec::new(),
                         failed_verifications: Vec::new(),
                         warnings: Vec::new(),
-                        coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics { 
-                            line_coverage: 0.90, branch_coverage: 0.90 
+                        coverage_metrics: crate::semantic::deep_verifier::CoverageMetrics {
+                            line_coverage: 0.90, branch_coverage: 0.90
                         },
-                        performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics { 
-                            verification_time_ms: 100, memory_usage_mb: 10 
+                        performance_metrics: crate::semantic::deep_verifier::PerformanceMetrics {
+                            verification_time_ms: 100, memory_usage_mb: 10
                         },
                     },
                     security_assessment: crate::semantic::deep_verifier::SecurityAssessment {
                         threat_level: crate::semantic::deep_verifier::ThreatLevel::Low,
                         vulnerability_count: 0,
-                        attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis { 
-                            surface_area: 0.1, vulnerabilities: Vec::new() 
+                        attack_surface_analysis: crate::semantic::deep_verifier::AttackSurfaceAnalysis {
+                            surface_area: 0.1, vulnerabilities: Vec::new()
                         },
                         security_recommendations: Vec::new(),
-                        compliance_status: crate::semantic::deep_verifier::ComplianceStatus { 
-                            compliant: true, missing_requirements: Vec::new() 
+                        compliance_status: crate::semantic::deep_verifier::ComplianceStatus {
+                            compliant: true, missing_requirements: Vec::new()
                         },
                     },
                     recommendations: Vec::new(),
@@ -999,8 +999,8 @@ mod tests {
                     cross_validated_vulnerabilities: Vec::new(),
                     security_confidence: 0.90,
                     attack_resistance_score: 0.90,
-                    compliance_verification: crate::semantic::cross_validator::ComplianceVerification { 
-                        compliant: true, verified_requirements: Vec::new() 
+                    compliance_verification: crate::semantic::cross_validator::ComplianceVerification {
+                        compliant: true, verified_requirements: Vec::new()
                     },
                     actionable_recommendations: Vec::new(),
                 },

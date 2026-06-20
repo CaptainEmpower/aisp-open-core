@@ -359,7 +359,7 @@ impl RossNetScorer {
             self.weights.fitness_weight /= total;
             self.weights.affinity_weight /= total;
         }
-        
+
         // Ensure diversity bonus and consistency penalty stay within reasonable bounds
         self.weights.diversity_bonus = self.weights.diversity_bonus.max(0.0).min(1.0);
         self.weights.consistency_penalty = self.weights.consistency_penalty.max(0.0).min(1.0);
