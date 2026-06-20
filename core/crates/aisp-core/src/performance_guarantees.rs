@@ -8,14 +8,11 @@
 //! - Resource Complexity: Bounded memory and time guarantees
 
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    compositional_proof_chain::{CompositionalVerificationResult, SystemGuarantees},
+    compositional_proof_chain::CompositionalVerificationResult,
     error::{AispError, AispResult},
-    incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    incompleteness_handler::IncompletenessHandler,
+    mathematical_evaluator::MathEvaluator,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Performance guarantee verification system

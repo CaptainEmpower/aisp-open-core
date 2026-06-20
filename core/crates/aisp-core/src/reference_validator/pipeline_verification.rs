@@ -5,7 +5,6 @@
 
 use crate::error::AispResult;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
-use std::time::Duration;
 
 /// Pipeline verification result
 #[derive(Debug, Clone)]
@@ -203,7 +202,7 @@ impl<'a> PipelineVerifier<'a> {
 
 /// Utility functions for pipeline verification
 pub mod utils {
-    use super::*;
+    
 
     /// Calculate expected success rate for prose pipeline
     pub fn calculate_prose_success_rate(steps: u32) -> f64 {

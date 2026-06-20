@@ -82,7 +82,7 @@ impl SmtInterface {
 
     /// Verify SMT formula with comprehensive validation
     pub fn verify_smt_formula(&mut self, formula: &str) -> AispResult<Z3PropertyResult> {
-        let start = Instant::now();
+        let _start = Instant::now();
         self.stats.queries_executed += 1;
 
         if self.config.verbose {
@@ -302,7 +302,7 @@ impl SmtInterface {
     fn parse_assertion(
         &self,
         content: &str,
-        ctx: &Context,
+        _ctx: &Context,
         constants: &HashMap<String, ast::Real>,
     ) -> Result<ast::Bool, String> {
         if content.starts_with("(") && content.ends_with(")") {

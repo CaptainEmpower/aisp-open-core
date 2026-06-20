@@ -276,7 +276,7 @@ impl TemporalLogicSolver {
         &mut self,
         operators: &[OperatorInstance],
         patterns: &[TemporalPattern],
-        document_size: usize,
+        _document_size: usize,
     ) -> FormulaAnalysisResult {
         let start_time = std::time::Instant::now();
         let mut analyzed_formulas = Vec::new();
@@ -289,7 +289,7 @@ impl TemporalLogicSolver {
 
         // Analyze each formula
         for formula in formulas {
-            let formula_start = std::time::Instant::now();
+            let _formula_start = std::time::Instant::now();
 
             // Check cache first
             if let Some(cached_result) = self.formula_cache.get(&formula.id) {

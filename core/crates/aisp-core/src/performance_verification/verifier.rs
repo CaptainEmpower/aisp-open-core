@@ -10,7 +10,7 @@ use super::{
 };
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
-    error::{AispError, AispResult},
+    error::AispResult,
 };
 use std::time::Instant;
 

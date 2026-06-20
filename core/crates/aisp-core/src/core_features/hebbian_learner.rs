@@ -4,7 +4,7 @@
 
 use super::types::*;
 use crate::{
-    error::{AispError, AispResult},
+    error::AispResult,
     pocket_architecture::content_hash,
     pocket_architecture::{ContentHash, InteractionResult},
 };
@@ -319,7 +319,7 @@ impl ConfidenceTracker {
 
         // Calculate confidence based on frequency and consistency
         let frequency = self.update_frequencies[&key] as f64;
-        let frequency_confidence = (frequency / (frequency + 5.0)).min(1.0);
+        let _frequency_confidence = (frequency / (frequency + 5.0)).min(1.0);
 
         // Update running confidence score
         let current_confidence = self.confidence_scores.get(&key).copied().unwrap_or(0.5);

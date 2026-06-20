@@ -7,7 +7,7 @@ use aisp_core::{
     ast::canonical::{CanonicalAispDocument as AispDocument, *},
     parser::robust_parser::AispParser,
     semantic::QualityTier,
-    validator::{AispValidator, ValidationConfig},
+    validator::AispValidator,
 };
 
 /// Builder for creating parser test cases

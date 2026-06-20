@@ -7,8 +7,7 @@ use super::types::*;
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
 };
-use crate::error::{AispError, AispResult};
-use std::collections::HashMap;
+use crate::error::AispResult;
 
 /// Logic consistency checker for mathematical correctness
 pub struct LogicConsistencyChecker {

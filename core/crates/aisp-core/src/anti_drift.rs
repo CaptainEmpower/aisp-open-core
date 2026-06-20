@@ -13,7 +13,7 @@
 
 //! that preserve their intended behavior over extended periods.
 
-use crate::ast::canonical::{LogicalExpression, LogicalRule};
+use crate::ast::canonical::LogicalExpression;
 
 use crate::{
     ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
@@ -900,7 +900,7 @@ impl AntiDriftValidator {
 mod tests {
     use super::*;
     use crate::ast::canonical::{DocumentHeader, DocumentMetadata, Span};
-    use crate::semantic::QualityTier;
+    
 
     fn create_test_document() -> AispDocument {
         AispDocument {

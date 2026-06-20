@@ -259,7 +259,7 @@ mod tests {
     #[test]
     fn test_verification_methods_creation() {
         let config = ValidationConfig::default();
-        let methods = VerificationMethods::new(config);
+        let _methods = VerificationMethods::new(config);
         // Test that verification methods can be created
         assert!(true); // Placeholder assertion for successful creation
     }

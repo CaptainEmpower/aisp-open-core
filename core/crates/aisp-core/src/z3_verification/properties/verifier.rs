@@ -4,9 +4,7 @@
 
 use super::types::*;
 use crate::{
-    error::{AispError, AispResult},
-    proof_types::*,
-    property_types::*,
+    error::AispResult,
     tri_vector_validation::*,
 };
 use std::collections::HashMap;
@@ -618,7 +616,7 @@ impl PropertyVerifier {
     fn verify_smt_formula(
         &mut self,
         formula: &str,
-        property_id: &str,
+        _property_id: &str,
     ) -> AispResult<PropertyResult> {
         // Check cache first
         if let Some(cached_result) = self.formula_cache.get(formula) {

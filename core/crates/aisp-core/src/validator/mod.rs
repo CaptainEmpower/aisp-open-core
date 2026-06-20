@@ -102,7 +102,7 @@ ambiguous_func ≜ λx.undefined_operation(x)
     #[test]
     fn test_verification_methods_integration() {
         let config = ValidationConfig::default();
-        let methods = VerificationMethods::new(config);
+        let _methods = VerificationMethods::new(config);
 
         // Test that verification methods can be created and used
         // This is primarily a compilation test

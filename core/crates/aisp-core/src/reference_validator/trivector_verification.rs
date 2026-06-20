@@ -9,7 +9,6 @@ use crate::ast::canonical::{
 };
 use crate::error::AispResult;
 use crate::semantic::DeepVerificationResult;
-use crate::tri_vector_validation::OrthogonalityResult;
 use crate::vector_space_verifier::VectorSpaceVerifier;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
 
@@ -319,7 +318,7 @@ mod tests {
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
     use crate::z3_verification::Z3VerificationFacade;
-    use std::collections::HashMap;
+    
 
     fn create_test_document() -> AispDocument {
         AispDocument {

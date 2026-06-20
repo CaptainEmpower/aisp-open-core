@@ -200,7 +200,7 @@ impl TemporalOperatorAnalyzer {
         &mut self,
         rules_block: &RulesBlock,
         errors: &mut Vec<AispError>,
-        warnings: &mut Vec<AispWarning>,
+        _warnings: &mut Vec<AispWarning>,
     ) {
         for rule in &rules_block.rules {
             let rule_id = format!("rule_{:?}", rule.span);
@@ -232,7 +232,7 @@ impl TemporalOperatorAnalyzer {
     fn analyze_function_operators(
         &mut self,
         functions_block: &FunctionsBlock,
-        errors: &mut Vec<AispError>,
+        _errors: &mut Vec<AispError>,
         warnings: &mut Vec<AispWarning>,
     ) {
         for function in &functions_block.functions {

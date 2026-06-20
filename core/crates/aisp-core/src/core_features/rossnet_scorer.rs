@@ -4,7 +4,7 @@
 
 use super::types::*;
 use crate::{
-    error::{AispError, AispResult},
+    error::AispResult,
     pocket_architecture::ContentHash,
 };
 use std::collections::HashMap;

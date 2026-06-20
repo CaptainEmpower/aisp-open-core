@@ -6,7 +6,7 @@
 use super::canonical_types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument,
-    error::{AispError, AispResult},
+    error::AispResult,
     tri_vector_validation::TriVectorValidationResult,
 };
 use std::collections::HashMap;
@@ -363,9 +363,9 @@ impl ProductionZ3Verifier {
     #[cfg(feature = "z3-verification")]
     fn parse_and_assert_formula(
         &self,
-        context: &z3::Context,
+        _context: &z3::Context,
         solver: &z3::Solver,
-        formula: &str,
+        _formula: &str,
     ) -> AispResult<()> {
         // Simple formula parsing - for now just create a simple boolean assertion
         // In production, would implement proper SMT-LIB parser
@@ -383,11 +383,11 @@ impl ProductionZ3Verifier {
         if let Some(context) = pool.contexts.pop() {
             Ok(context)
         } else if pool.contexts.len() < pool.max_contexts {
-            let config = z3::Config::new();
+            let _config = z3::Config::new();
             Ok(z3::Context::thread_local())
         } else {
             // Create new context if pool is full
-            let config = z3::Config::new();
+            let _config = z3::Config::new();
             Ok(z3::Context::thread_local())
         }
     }
@@ -444,7 +444,7 @@ impl ProductionZ3Verifier {
     /// Generate document validity SMT formula
     fn generate_document_validity_formula(
         &self,
-        document: &CanonicalAispDocument,
+        _document: &CanonicalAispDocument,
     ) -> AispResult<String> {
         // Generate SMT-LIB formula for document structure validity
         let formula = "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))".to_string();
@@ -696,7 +696,7 @@ mod tests {
 
     #[test]
     fn test_cache_functionality() {
-        let mut verifier = ProductionZ3Verifier::new().unwrap();
+        let verifier = ProductionZ3Verifier::new().unwrap();
 
         // First check should miss cache
         let formula = "(assert true)";

@@ -7,7 +7,7 @@
 
 use super::aisp_extractor::{AispCodeBlockExtractor, ExtractedAispBlock, ExtractionContext};
 use super::format_detection::{DocumentFormat, FormatAnalysis, FormatDetector};
-use super::robust_parser::{ParseResult, RobustAispParser};
+use super::robust_parser::RobustAispParser;
 use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::{AispError, AispResult};
 
@@ -120,7 +120,7 @@ impl MultiFormatParser {
 
     /// Parse a document with automatic format detection
     pub fn parse(&self, content: &str) -> AispResult<ParsedDocument> {
-        let start_time = std::time::Instant::now();
+        let _start_time = std::time::Instant::now();
 
         // Phase 1: Format Detection
         let detection_start = std::time::Instant::now();
@@ -151,7 +151,7 @@ impl MultiFormatParser {
     }
 
     /// Parse pure AISP document using existing parser
-    fn parse_pure_aisp(&self, content: &str, detection_time_us: u64) -> AispResult<ParsedDocument> {
+    fn parse_pure_aisp(&self, content: &str, _detection_time_us: u64) -> AispResult<ParsedDocument> {
         let parsing_start = std::time::Instant::now();
 
         let parser = RobustAispParser::new();
@@ -162,7 +162,7 @@ impl MultiFormatParser {
             column: 0,
         })?;
 
-        let parsing_time_us = parsing_start.elapsed().as_micros() as u64;
+        let _parsing_time_us = parsing_start.elapsed().as_micros() as u64;
 
         // For pure AISP, we just return the document directly
         Ok(ParsedDocument::Pure(document))

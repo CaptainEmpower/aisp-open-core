@@ -2,10 +2,7 @@
 //!
 //! Type definitions and common structures for AISP core features.
 
-use crate::{
-    error::{AispError, AispResult},
-    pocket_architecture::ContentHash,
-};
+use crate::error::{AispError, AispResult};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

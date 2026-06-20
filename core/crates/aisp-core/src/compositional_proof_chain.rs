@@ -12,14 +12,12 @@ use crate::{
     error::{AispError, AispResult},
     ghost_intent_search::{GhostIntentSearchEngine, GhostSearchResult, SearchStatus},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    mathematical_evaluator::MathEvaluator,
     pocket_architecture::{PocketArchitectureVerifier, PocketVerificationResult},
     tri_vector_validation::OrthogonalityResult,
     vector_space_verifier::VectorSpaceVerifier,
-    z3_verification::PropertyResult,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Complete compositional proof system for AISP layer integration
@@ -415,7 +413,7 @@ impl CompositionalProofChain {
     /// Proves: 𝕃₀.⊢stable ∧ 𝕃₀.⊢deterministic
     fn verify_layer_0_properties(
         &mut self,
-        input: &VectorSpaceInput,
+        _input: &VectorSpaceInput,
     ) -> AispResult<LayerVerificationResult> {
         let start_time = Instant::now();
         let mut properties = Vec::new();

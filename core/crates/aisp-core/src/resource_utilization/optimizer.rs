@@ -300,7 +300,7 @@ impl ResourceOptimizer {
     /// Analyze cost-benefit of optimization plan
     fn analyze_cost_benefit(&self, plan: &OptimizationPlan) -> AispResult<CostBenefitAnalysis> {
         let mut total_cost = 0.0;
-        let mut total_benefit = plan.estimated_total_improvement;
+        let total_benefit = plan.estimated_total_improvement;
 
         for recommendations in plan.resource_optimizations.values() {
             for recommendation in recommendations {

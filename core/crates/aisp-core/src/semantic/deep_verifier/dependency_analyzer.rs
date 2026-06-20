@@ -7,8 +7,8 @@ use super::types::*;
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
 };
-use crate::error::{AispError, AispResult};
-use std::collections::{HashMap, HashSet};
+use crate::error::AispResult;
+use std::collections::HashSet;
 
 /// Dependency graph analyzer for transitive verification
 pub struct DependencyGraphAnalyzer {

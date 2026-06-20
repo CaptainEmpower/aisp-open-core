@@ -9,7 +9,6 @@ use crate::error::AispResult;
 use crate::mathematical_evaluator::{MathEvaluator, MathValue, UndefinedReason};
 use crate::semantic::DeepVerificationResult;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
-use std::collections::HashMap;
 
 /// Mathematical foundations verification result
 #[derive(Debug, Clone)]
@@ -98,7 +97,7 @@ impl<'a> AmbiguityVerifier<'a> {
 
         // Generate SMT formula that handles edge cases
         let smt_formula = self.generate_robust_smt_formula(unique_parses, total_parses);
-        let smt_result = self.z3_verifier.verify_smt_formula(&smt_formula).unwrap_or(
+        let _smt_result = self.z3_verifier.verify_smt_formula(&smt_formula).unwrap_or(
             Z3PropertyResult::Unknown {
                 reason: "Default fallback".to_string(),
                 partial_progress: 0.0,
@@ -237,7 +236,7 @@ pub fn generate_ambiguity_test_cases() -> Vec<(f64, f64, bool)> {
 mod tests {
     use super::*;
     use crate::z3_verification::Z3VerificationFacade;
-    use std::collections::HashMap;
+    
 
     fn create_test_semantic_result(ambiguity: f64, coherence: f64) -> DeepVerificationResult {
         let mut result = DeepVerificationResult::test_default();

@@ -4,7 +4,7 @@
 //! This module consolidates all type definitions to eliminate conflicts
 //! and provide a single source of truth for Z3 verification types.
 
-use crate::{ast::canonical::*, error::*, tri_vector_validation::*};
+use crate::error::*;
 use std::collections::HashMap;
 use std::time::{Duration, Instant, SystemTime};
 

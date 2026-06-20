@@ -26,26 +26,23 @@
 // IMPORTS AND RE-EXPORTS
 //
 
-use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *,
-};
-use crate::error::{AispError, AispResult};
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
+use crate::error::AispResult;
 use crate::semantic::behavioral_verifier::{
-    BehavioralVerificationResult, BehavioralVerifier, SafeExecutionSandbox,
+    BehavioralVerificationResult, BehavioralVerifier,
 };
 use crate::semantic::deep_verifier::{
-    DeepSemanticVerifier, DeepVerificationResult, LogicAnalysisResult, SecurityAssessment,
-    ThreatLevel, TypeAnalysisResult,
+    DeepSemanticVerifier, DeepVerificationResult,
+    ThreatLevel,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 // Re-export all public items from modular implementation
 pub use conflict_resolver::*;
 pub use consistency_analyzer::*;
 pub use orchestration::*;
-pub use security_assessor::*;
 pub use validation_types::*;
 
 //
@@ -1896,7 +1893,7 @@ impl CrossValidationChecker {
         let validation_start = Instant::now();
 
         // Initialize verification orchestrator
-        let verification_session = self
+        let _verification_session = self
             .verification_orchestrator
             .start_verification_session(document)?;
 
@@ -1994,7 +1991,7 @@ impl CrossValidationChecker {
         &self,
         semantic_results: &DeepVerificationResult,
         behavioral_results: &BehavioralVerificationResult,
-        consistency_analysis: &ConsistencyAnalysis,
+        _consistency_analysis: &ConsistencyAnalysis,
     ) -> AispResult<Vec<VerificationConflict>> {
         let mut conflicts = Vec::new();
 
@@ -2203,7 +2200,7 @@ impl fmt::Display for CrossValidationResult {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    use crate::ast::canonical::{DocumentHeader, DocumentMetadata, MetaBlock};
+    
 
     #[test]
     fn test_cross_validation_checker_creation() {

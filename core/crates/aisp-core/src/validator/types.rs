@@ -12,7 +12,7 @@ use crate::rossnet_scoring::RossNetValidationResult;
 use crate::semantic::{DeepVerificationResult, QualityTier};
 use crate::tri_vector_validation::TriVectorValidationResult;
 use crate::z3_verification::canonical_types::Z3VerificationResult;
-use crate::{AISP_VERSION, MAX_DOCUMENT_SIZE};
+use crate::MAX_DOCUMENT_SIZE;
 use std::time::Duration;
 
 /// Validation configuration options

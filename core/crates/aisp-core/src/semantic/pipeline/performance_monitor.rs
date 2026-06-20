@@ -293,7 +293,7 @@ impl PerformanceMonitor {
     }
 
     /// Trigger performance alert
-    fn trigger_performance_alert(&self, stage: &VerificationStage, duration: Duration) {
+    fn trigger_performance_alert(&self, _stage: &VerificationStage, _duration: Duration) {
         // Mock alert implementation
     }
 

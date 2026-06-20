@@ -4,11 +4,8 @@
 //! Implements SRP by focusing solely on authenticity verification
 
 use super::types::*;
-use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-};
-use crate::error::{AispError, AispResult};
-use std::collections::HashMap;
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
+use crate::error::AispResult;
 
 /// Deception detection for fake implementations and surface compliance
 pub struct DeceptionDetector {

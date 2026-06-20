@@ -2,7 +2,6 @@
 //!
 //! Core type definitions and configuration for mathematical notation parsing.
 
-use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 use thiserror::Error;
 

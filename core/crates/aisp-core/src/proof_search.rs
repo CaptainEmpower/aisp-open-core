@@ -461,7 +461,7 @@ impl ProofSearchEngine {
         format!("{:?}", formula1) == format!("{:?}", formula2)
     }
 
-    fn rule_concludes(&self, pattern: &FormulaPattern, goal: &FormulaStructure) -> bool {
+    fn rule_concludes(&self, pattern: &FormulaPattern, _goal: &FormulaStructure) -> bool {
         // Simplified pattern matching
         matches!(pattern.pattern, PatternStructure::Variable(_))
     }

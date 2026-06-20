@@ -4,7 +4,7 @@
 //! AISP formal verification system against ALL requirements in reference.md,
 //! establishing a formal methods challenge suite.
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, *};
+use crate::ast::canonical::*;
 use crate::error::AispResult;
 use crate::parser::robust_parser::RobustAispParser;
 use crate::reference_validator::{ComplianceLevel, ReferenceValidator};
@@ -499,7 +499,7 @@ mod tests {
 
     #[test]
     fn test_pipeline_mathematical_verification() {
-        let mut suite = ReferenceChallengeTestSuite::new();
+        let _suite = ReferenceChallengeTestSuite::new();
 
         // Test pipeline success rate calculations from reference.md
         let expected_rates = vec![

@@ -3,8 +3,6 @@
 //! Type definitions and supporting structures for deep semantic verification
 //! Implements SRP by containing only type definitions
 
-use crate::ast::canonical::*;
-use std::collections::HashMap;
 use std::fmt;
 
 /// Deep verification result with comprehensive analysis

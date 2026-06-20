@@ -2,11 +2,9 @@
 //!
 //! Specialized verification engine for temporal logic properties in AISP documents.
 
-use super::types::*;
 use crate::{
-    error::{AispError, AispResult},
+    error::AispResult,
     property_types::*,
-    temporal_new::*,
 };
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
@@ -921,7 +919,7 @@ impl TemporalPropertyVerifier {
         property: &PropertyFormula,
         model: &TransitionSystem,
     ) -> AispResult<TemporalVerificationResult> {
-        let start_time = Instant::now();
+        let _start_time = Instant::now();
 
         // Check cache first
         let cache_key = self.generate_cache_key(property, model);

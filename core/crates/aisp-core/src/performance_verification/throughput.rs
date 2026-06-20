@@ -2,7 +2,6 @@
 //!
 //! Focused module for throughput-related performance metrics and analysis.
 
-use std::time::Duration;
 
 /// Throughput analysis results
 #[derive(Debug, Clone)]

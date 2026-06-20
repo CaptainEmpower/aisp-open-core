@@ -156,7 +156,7 @@ impl PipelineOrchestrator {
 
     /// Get priority-based execution order
     fn get_priority_order(&self) -> Vec<VerificationStage> {
-        let mut priority_stages = vec![
+        let priority_stages = vec![
             VerificationStage::SecurityEnforcement,
             VerificationStage::ParseValidation,
             VerificationStage::SemanticAnalysis,

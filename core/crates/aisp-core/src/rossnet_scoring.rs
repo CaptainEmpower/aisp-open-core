@@ -14,7 +14,7 @@
 //! of AISP implementations across different domains and contexts.
 
 use crate::{
-    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument},
     error::*,
     semantic::DeepVerificationResult,
 };
@@ -753,7 +753,7 @@ mod tests {
 
     #[test]
     fn test_rossnet_score_computation() {
-        let components = RossNetComponents {
+        let _components = RossNetComponents {
             similarity: 0.8,
             fitness: 0.7,
             affinity: 0.9,

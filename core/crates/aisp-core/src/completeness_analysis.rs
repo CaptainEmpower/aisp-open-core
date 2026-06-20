@@ -21,13 +21,10 @@
 //! - **Approximation Quality**: Bounds on false negatives
 
 use crate::{
-    ast::*,
-    error::{AispError, AispResult},
+    error::AispResult,
     formal_semantics::*,
-    soundness_proofs::*,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 
 /// Completeness analysis result characterizing validator capabilities
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -615,7 +612,7 @@ impl CompletenessAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::*;
+    
 
     #[test]
     fn test_completeness_analysis() {

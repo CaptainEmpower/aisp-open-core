@@ -11,14 +11,12 @@
 use crate::{
     error::{AispError, AispResult},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
-    z3_verification::PropertyResult,
+    mathematical_evaluator::MathEvaluator,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 // use sha2::{Sha256, Digest}; // Would need sha2 crate dependency
-use uuid::Uuid;
 
 /// Complete Pocket Architecture implementation
 /// 𝒫≜⟨ℋ:Header,ℳ:Membrane,𝒩:Nucleus⟩

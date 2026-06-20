@@ -2,7 +2,7 @@
 //!
 //! This test suite verifies that our implementation changes actually work.
 
-use aisp_core::{semantic::SemanticAnalyzer, validator::AispValidator};
+use aisp_core::validator::AispValidator;
 
 /// Test that our enumeration parser fix works
 #[test]

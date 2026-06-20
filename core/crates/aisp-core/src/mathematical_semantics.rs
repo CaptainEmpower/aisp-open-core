@@ -43,7 +43,7 @@
 //! - ⟦⟧: Semantic interpretation function
 
 use crate::{ast::*, error::AispResult};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
 use std::hash::Hash;
 use std::rc::Rc;
@@ -641,7 +641,7 @@ impl ComputationalSemantics {
     }
 
     /// Semantic interpretation of AISP documents
-    pub fn interpret_document(&mut self, document: &AispDocument) -> AispResult<SemanticValue> {
+    pub fn interpret_document(&mut self, _document: &AispDocument) -> AispResult<SemanticValue> {
         // This will be implemented to provide rigorous compositional semantics
         // For now, return a placeholder
         Ok(SemanticValue::Boolean(true))

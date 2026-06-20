@@ -385,7 +385,7 @@ impl ProofSummary {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashSet;
+    
 
     #[test]
     fn test_theorem_prover_creation() {

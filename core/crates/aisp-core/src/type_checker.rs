@@ -141,7 +141,7 @@ impl TypeChecker {
 
     /// Validate that type definitions are well-formed
     fn validate_type_definitions(&mut self) {
-        for (name, type_expr) in &self.type_definitions.clone() {
+        for (_name, type_expr) in &self.type_definitions.clone() {
             if let Err(error) = self.validate_type_expression(type_expr, &mut HashSet::new()) {
                 self.errors.push(error);
             }
@@ -219,7 +219,7 @@ impl TypeChecker {
     fn check_function_types(&mut self, document: &AispDocument) {
         for block in &document.blocks {
             if let AispBlock::Functions(functions_block) = block {
-                for (name, function) in &functions_block.functions {
+                for (_name, function) in &functions_block.functions {
                     if let Err(error) = self.validate_function_signature(function) {
                         self.errors.push(error);
                     }
@@ -245,7 +245,7 @@ impl TypeChecker {
     fn check_meta_types(&mut self, document: &AispDocument) {
         for block in &document.blocks {
             if let AispBlock::Meta(meta_block) = block {
-                for (key, entry) in &meta_block.entries {
+                for (_key, entry) in &meta_block.entries {
                     if let Err(error) = self.validate_meta_entry(entry) {
                         self.errors.push(error);
                     }
@@ -432,7 +432,7 @@ mod tests {
 
     #[test]
     fn test_function_type_validation() {
-        let mut checker = TypeChecker::new();
+        let checker = TypeChecker::new();
 
         let function = FunctionDefinition {
             name: "test".to_string(),

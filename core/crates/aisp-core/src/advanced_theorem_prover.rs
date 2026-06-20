@@ -6,12 +6,11 @@
 //! theorems, and complex mathematical reasoning.
 
 use crate::{
-    error::{AispError, AispResult},
-    incompleteness_handler::{IncompletenessHandler, IncompletenessResult, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    error::AispResult,
+    incompleteness_handler::{IncompletenessHandler, TruthValue},
+    mathematical_evaluator::MathEvaluator,
     z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade},
 };
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 

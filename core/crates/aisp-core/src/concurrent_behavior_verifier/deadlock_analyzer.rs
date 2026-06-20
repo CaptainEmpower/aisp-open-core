@@ -4,7 +4,7 @@
 
 use super::types::*;
 use crate::error::AispResult;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Deadlock analysis engine
@@ -599,37 +599,37 @@ impl DeadlockAnalyzer {
     }
 
     /// Resource allocation graph based detection
-    fn rag_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn rag_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // RAG-based deadlock detection implementation
         Ok(Vec::new())
     }
 
     /// Wait-for graph based detection
-    fn wait_for_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn wait_for_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // Wait-for graph deadlock detection implementation
         Ok(Vec::new())
     }
 
     /// Banker's algorithm based detection
-    fn bankers_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn bankers_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // Banker's algorithm implementation
         Ok(Vec::new())
     }
 
     /// Lock ordering based detection
-    fn lock_ordering_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn lock_ordering_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // Lock ordering violation detection
         Ok(Vec::new())
     }
 
     /// Timeout based detection
-    fn timeout_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn timeout_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // Timeout-based deadlock detection
         Ok(Vec::new())
     }
 
     /// Model checking based detection
-    fn model_checking_detection(&self, graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
+    fn model_checking_detection(&self, _graph: &ResourceGraph) -> AispResult<Vec<Deadlock>> {
         // Model checking approach
         Ok(Vec::new())
     }
@@ -637,7 +637,7 @@ impl DeadlockAnalyzer {
     /// Analyze potential deadlock scenarios
     fn analyze_potential_deadlocks(
         &self,
-        graph: &ResourceGraph,
+        _graph: &ResourceGraph,
     ) -> AispResult<Vec<PotentialDeadlock>> {
         // Potential deadlock analysis implementation
         Ok(Vec::new())
@@ -759,8 +759,8 @@ impl ResourceGraphBuilder {
     /// Add resource nodes to graph
     fn add_resource_nodes(
         &self,
-        graph: &mut ResourceGraph,
-        processes: &[ConcurrentProcess],
+        _graph: &mut ResourceGraph,
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<()> {
         // Resource node creation implementation
         Ok(())
@@ -769,8 +769,8 @@ impl ResourceGraphBuilder {
     /// Add allocation edges to graph
     fn add_allocation_edges(
         &self,
-        graph: &mut ResourceGraph,
-        processes: &[ConcurrentProcess],
+        _graph: &mut ResourceGraph,
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<()> {
         // Allocation edge creation implementation
         Ok(())
@@ -779,8 +779,8 @@ impl ResourceGraphBuilder {
     /// Add request edges to graph
     fn add_request_edges(
         &self,
-        graph: &mut ResourceGraph,
-        processes: &[ConcurrentProcess],
+        _graph: &mut ResourceGraph,
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<()> {
         // Request edge creation implementation
         Ok(())

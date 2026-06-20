@@ -524,7 +524,7 @@ mod tests {
 
     #[test]
     fn test_execution_engine_creation() {
-        let engine = AttackExecutionEngine::new();
+        let _engine = AttackExecutionEngine::new();
         // Test that engine can be created without panicking
         assert!(true);
     }

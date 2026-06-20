@@ -3,12 +3,9 @@
 //! Enhances Z3 integration to move beyond syntactic verification to actual
 //! semantic mathematical consistency checking for AISP formal verification.
 
-use crate::advanced_theorem_prover::{AdvancedTheoremProver, AdvancedTheoremResult};
-use crate::category_theory_verifier::{CategoryTheoryVerifier, CategoryVerificationResult};
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use crate::incompleteness_handler::{IncompletenessHandler, TruthValue};
 use crate::mathematical_evaluator::{MathEvaluator, MathValue, UndefinedReason};
-use crate::mathematical_notation_parser::{EnhancedMathExpression, MathematicalNotationParser};
 use crate::vector_space_verifier::VectorSpaceVerifier;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
 use std::collections::HashMap;

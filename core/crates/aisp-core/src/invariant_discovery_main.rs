@@ -148,7 +148,7 @@ impl Default for InvariantDiscovery {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::invariant_types::InvariantType;
+    
     use std::collections::HashMap;
 
     fn create_test_document() -> AispDocument {
@@ -259,7 +259,7 @@ mod tests {
         assert!(!result.is_empty());
 
         // Comprehensive analysis might find more invariants with lower confidence
-        let has_low_confidence = result.iter().any(|inv| inv.confidence < 0.7);
+        let _has_low_confidence = result.iter().any(|inv| inv.confidence < 0.7);
         // Note: This may or may not be true depending on the document,
         // but comprehensive analysis allows for it
     }

@@ -9,7 +9,7 @@ use super::performance_monitor::PerformanceMonitor;
 use super::security_enforcer::SecurityEnforcer;
 use super::types::*;
 use crate::ast::canonical::CanonicalAispDocument as AispDocument;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use crate::semantic::behavioral_verifier::BehavioralVerifier;
 use crate::semantic::cross_validator::{CrossValidationChecker, CrossValidationResult};
 use crate::semantic::deep_verifier::DeepSemanticVerifier;
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn test_calculate_overall_success() {
-        let pipeline = MultiLayerVerificationPipeline::new();
+        let _pipeline = MultiLayerVerificationPipeline::new();
 
         // Mock results (simplified for testing)
         let semantic_confidence = 0.85;
@@ -214,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_calculate_security_score() {
-        let pipeline = MultiLayerVerificationPipeline::new();
+        let _pipeline = MultiLayerVerificationPipeline::new();
         let attack_resistance = 0.92;
 
         // Mock security score calculation

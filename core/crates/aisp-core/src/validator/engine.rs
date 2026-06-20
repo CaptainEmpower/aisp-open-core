@@ -269,7 +269,7 @@ impl AispValidator {
         let parser = RobustAispParser::new();
         let parse_result = parser.parse(source);
 
-        let mut document = match parse_result.document {
+        let document = match parse_result.document {
             Some(robust_doc) => {
                 let mut canonical = robust_doc.into_canonical();
                 canonical.parse_structured_data(); // Convert raw strings to structured data

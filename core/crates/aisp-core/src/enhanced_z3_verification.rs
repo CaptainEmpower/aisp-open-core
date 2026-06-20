@@ -28,7 +28,7 @@ mod integration_tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    use crate::ast::Position;
+    
 
     fn create_test_document() -> AispDocument {
         AispDocument {

@@ -5,10 +5,9 @@
 use super::types::*;
 use crate::{
     error::{AispError, AispResult},
-    proof_types::ProofTree,
-    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    property_types::PropertyFormula,
 };
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Advanced proof generation and management engine
@@ -715,7 +714,7 @@ impl ProofEngine {
     }
 
     /// Select appropriate proof generator
-    fn select_generator(&self, property: &PropertyFormula) -> AispResult<&ProofGeneratorImpl> {
+    fn select_generator(&self, _property: &PropertyFormula) -> AispResult<&ProofGeneratorImpl> {
         self.generators
             .first()
             .ok_or_else(|| AispError::validation_error("No generators available"))
@@ -724,7 +723,7 @@ impl ProofEngine {
     /// Apply generator to property
     fn apply_generator(
         &self,
-        generator: &ProofGeneratorImpl,
+        _generator: &ProofGeneratorImpl,
         property: &PropertyFormula,
     ) -> AispResult<FormalProof> {
         // Generator application would be implemented here
@@ -777,7 +776,7 @@ impl AdvancedProofValidator {
     }
 
     /// Validate proof using multiple strategies
-    pub fn validate(&self, proof: &FormalProof) -> AispResult<ProofValidation> {
+    pub fn validate(&self, _proof: &FormalProof) -> AispResult<ProofValidation> {
         // Validation implementation would go here
         Ok(ProofValidation::Valid)
     }

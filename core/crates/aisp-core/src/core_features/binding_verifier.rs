@@ -3,7 +3,7 @@
 //! Implements the four-state binding system: Δ⊗λ∈{0,1,2,3}
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 
 /// Four-state binding verifier with formal guarantees

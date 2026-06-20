@@ -2,7 +2,7 @@
 //!
 //! Core type definitions for concurrent behavior verification.
 
-use crate::protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger};
+use crate::protocol_state_machine::ProtocolStateMachine;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 

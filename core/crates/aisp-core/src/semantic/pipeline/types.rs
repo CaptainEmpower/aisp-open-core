@@ -3,7 +3,6 @@
 //! Shared types and enums for the verification pipeline system
 //! Follows SRP by containing only type definitions
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::Duration;
 

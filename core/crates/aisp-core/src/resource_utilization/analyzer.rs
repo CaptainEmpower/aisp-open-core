@@ -5,7 +5,7 @@
 use super::types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
-    error::{AispError, AispResult},
+    error::AispResult,
 };
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
@@ -570,7 +570,7 @@ mod tests {
 
     #[test]
     fn test_bottleneck_identification() {
-        let analyzer = ResourceUtilizationAnalyzer::new();
+        let _analyzer = ResourceUtilizationAnalyzer::new();
 
         // Create a measurement that should trigger bottleneck detection
         let high_utilization_measurement = ResourceMeasurement {

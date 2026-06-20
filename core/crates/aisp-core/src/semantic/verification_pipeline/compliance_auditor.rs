@@ -194,7 +194,7 @@ impl ComplianceAuditor {
     fn audit_framework(
         &self,
         framework_name: &str,
-        document: &AispDocument,
+        _document: &AispDocument,
         semantic: &crate::semantic::deep_verifier::DeepVerificationResult,
         behavioral: &crate::semantic::behavioral_verifier::BehavioralVerificationResult,
         security: &EnterpriseSecurityAssessment,

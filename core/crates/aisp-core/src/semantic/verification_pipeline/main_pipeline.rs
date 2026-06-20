@@ -179,7 +179,7 @@ impl MultiLayerVerificationPipeline {
         security_assessment: EnterpriseSecurityAssessment,
         compliance_status: ComplianceStatus,
         performance_analysis: PerformanceAnalysis,
-        verification_time: Duration,
+        _verification_time: Duration,
     ) -> AispResult<ComprehensiveVerificationResult> {
         // Calculate weighted security scores
         let overall_security_score = self.calculate_overall_security_score(

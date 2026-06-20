@@ -2,7 +2,6 @@
 //!
 //! Core type definitions for resource utilization analysis.
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 

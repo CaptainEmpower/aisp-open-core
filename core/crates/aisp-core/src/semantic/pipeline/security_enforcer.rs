@@ -133,7 +133,7 @@ impl SecurityEnforcer {
 
     /// Handle security violation
     pub fn handle_violation(&self, violation_type: SecurityViolationType) -> AispResult<()> {
-        if let Some(handler) = self.violation_handlers.get(&violation_type) {
+        if let Some(_handler) = self.violation_handlers.get(&violation_type) {
             match violation_type {
                 SecurityViolationType::UnauthorizedAccess => {
                     self.handle_unauthorized_access()?;

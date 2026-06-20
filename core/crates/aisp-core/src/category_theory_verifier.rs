@@ -5,13 +5,13 @@
 //! natural transformations, adjunctions, and categorical composition laws.
 
 use crate::{
-    advanced_theorem_prover::{AdvancedTheoremProver, AdvancedTheoremResult, ProofMethod},
-    error::{AispError, AispResult},
+    advanced_theorem_prover::AdvancedTheoremProver,
+    error::AispResult,
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    z3_verification::{PropertyResult, Z3VerificationFacade},
+    z3_verification::Z3VerificationFacade,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 
@@ -410,7 +410,7 @@ impl CategoryTheoryVerifier {
         &mut self,
         morphism1: &str,
         morphism2: &str,
-        composition_type: &str,
+        _composition_type: &str,
     ) -> AispResult<CompositionResult> {
         let composition_name = format!("{}∘{}", morphism1, morphism2);
 

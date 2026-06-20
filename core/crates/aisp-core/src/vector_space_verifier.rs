@@ -5,8 +5,8 @@
 //! V_H ∩ V_S ≡ ∅ when both spaces contain the zero vector.
 
 use crate::{
-    error::{AispError, AispResult},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    error::AispResult,
+    mathematical_evaluator::MathEvaluator,
     tri_vector_validation::{
         OrthogonalityCounterexample, OrthogonalityProof, OrthogonalityProofMethod,
         OrthogonalityResult, OrthogonalityType, Vector as TriVector,
@@ -162,15 +162,15 @@ impl VectorSpaceVerifier {
         // Create the vector spaces claimed in reference.md
         let v_h = VectorSpace::new("V_H (semantic vectors)".to_string(), 768);
         let v_s = VectorSpace::new("V_S (safety vectors)".to_string(), 256);
-        let v_l = VectorSpace::new("V_L (learning vectors)".to_string(), 512);
+        let _v_l = VectorSpace::new("V_L (learning vectors)".to_string(), 512);
 
         // Check the fundamental mathematical error
-        let zero_vector_locations = ["V_H contains zero vector (768 dimensions)".to_string(),
+        let _zero_vector_locations = ["V_H contains zero vector (768 dimensions)".to_string(),
             "V_S contains zero vector (256 dimensions)".to_string(),
             "V_L contains zero vector (512 dimensions)".to_string()];
 
         // The claim V_H ∩ V_S ≡ ∅ is false because both contain zero vectors
-        let intersection_is_empty = false;
+        let _intersection_is_empty = false;
         let spaces_are_orthogonal = false;
 
         error_conditions.push(

@@ -4,7 +4,7 @@
 //! invariant checking for behavioral verification.
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 
 /// Result of invariant violation check
@@ -539,7 +539,7 @@ impl ComplianceValidator {
     }
 
     pub fn validate_compliance(&self, _function_code: &str) -> AispResult<ComplianceResult> {
-        let mut violations = Vec::new();
+        let violations = Vec::new();
         let mut passed_rules = Vec::new();
 
         for rule in &self.compliance_rules {

@@ -5,8 +5,7 @@
 
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
-    DocumentMetadata, EvidenceBlock, FunctionDefinition, FunctionsBlock, LambdaExpression,
-    LogicalExpression, MetaBlock, MetaEntry, MetaValue, RulesBlock, TypeDefinition, TypeExpression,
+    DocumentMetadata, EvidenceBlock, FunctionDefinition, FunctionsBlock, MetaBlock, MetaEntry, RulesBlock, TypeDefinition,
     TypesBlock,
 };
 use crate::error::{AispError, AispResult};
@@ -1555,7 +1554,7 @@ mod tests {
 
     #[test]
     fn test_parse_result_methods() {
-        let mut result = ParseResult::new();
+        let result = ParseResult::new();
         assert!(!result.is_success());
 
         let doc = AispDocument {

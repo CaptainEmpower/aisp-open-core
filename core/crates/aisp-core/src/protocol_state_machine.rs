@@ -8,7 +8,7 @@ use crate::{
         BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
         DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
     },
-    error::{AispError, AispResult},
+    error::AispResult,
     formal_verification::verifier::FormalVerifier,
     property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
     temporal_logic_solver::TemporalLogicSolver,
@@ -638,8 +638,8 @@ impl ProtocolStateMachineAnalyzer {
         _reachability: &ReachabilityAnalysis,
     ) -> AispResult<LivenessAnalysis> {
         let mut deadlock_states = HashSet::new();
-        let mut livelock_cycles = Vec::new();
-        let mut safety_violations = Vec::new();
+        let livelock_cycles = Vec::new();
+        let safety_violations = Vec::new();
         let mut liveness_properties = Vec::new();
 
         for machine in machines {
@@ -719,7 +719,7 @@ impl ProtocolStateMachineAnalyzer {
     ) -> AispResult<ProtocolCompliance> {
         let mut violations = Vec::new();
         let mut supported_features = Vec::new();
-        let mut missing_features = Vec::new();
+        let missing_features = Vec::new();
 
         // Check basic protocol requirements
         supported_features.push("state_machines".to_string());

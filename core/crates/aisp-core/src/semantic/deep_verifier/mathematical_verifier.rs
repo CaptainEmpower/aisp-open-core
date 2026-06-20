@@ -7,7 +7,7 @@ use super::types::*;
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
 };
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 
 /// Mathematical correctness engine with SMT integration

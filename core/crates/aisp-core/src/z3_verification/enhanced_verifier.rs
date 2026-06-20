@@ -7,11 +7,8 @@ use super::{canonical_types::*, environment::AispZ3Environment, properties::Prop
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument, error::*, tri_vector_validation::*,
 };
-use std::collections::HashMap;
 use std::time::Instant;
 
-#[cfg(feature = "z3-verification")]
-use z3::*;
 
 /// Enhanced Z3 verifier with advanced AISP-specific capabilities
 pub struct EnhancedZ3Verifier {

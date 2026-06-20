@@ -11,7 +11,7 @@
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *,
 };
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 
 // Re-export all public types from sub-modules
 pub use self::sandbox::SafeExecutionSandbox;
@@ -319,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_behavioral_verifier_creation() {
-        let verifier = BehavioralVerifier::new();
+        let _verifier = BehavioralVerifier::new();
         // Module structure test - ensure components are initialized
         assert!(true); // Placeholder assertion for successful creation
     }
@@ -356,7 +356,7 @@ mod tests {
 
     #[test]
     fn test_strict_verifier_creation() {
-        let verifier = BehavioralVerifier::new_strict();
+        let _verifier = BehavioralVerifier::new_strict();
         // Test that strict verifier uses strict security policies
         assert!(true); // Placeholder assertion for successful creation
     }

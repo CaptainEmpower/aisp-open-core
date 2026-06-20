@@ -230,8 +230,8 @@ impl DeepSemanticVerifier {
         &self,
         type_analysis: &TypeAnalysisResult,
         logic_analysis: &LogicAnalysisResult,
-        dependency_analysis: &DependencyAnalysisResult,
-        mathematical_analysis: &MathematicalAnalysisResult,
+        _dependency_analysis: &DependencyAnalysisResult,
+        _mathematical_analysis: &MathematicalAnalysisResult,
         deception_analysis: &DeceptionAnalysisResult,
         verification_time: std::time::Duration,
     ) -> VerificationDetails {

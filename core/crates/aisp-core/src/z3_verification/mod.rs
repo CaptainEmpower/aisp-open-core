@@ -79,7 +79,7 @@ mod tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    use crate::ast::Position;
+    
 
     fn create_minimal_document() -> AispDocument {
         AispDocument {

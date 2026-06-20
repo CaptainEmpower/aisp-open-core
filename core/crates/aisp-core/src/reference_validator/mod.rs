@@ -9,17 +9,14 @@ pub mod feature_verification;
 pub mod pipeline_verification;
 pub mod trivector_verification;
 
-use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-};
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::AispResult;
 use crate::incompleteness_handler::{
     IncompletenessHandler, IncompletenessResult, TruthValue, UndecidabilityReason,
 };
 use crate::semantic::DeepVerificationResult;
-use crate::z3_verification::{PropertyResult, Z3VerificationFacade};
+use crate::z3_verification::Z3VerificationFacade;
 
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 pub use ambiguity_verification::*;
@@ -142,7 +139,7 @@ impl ReferenceValidator {
 impl ReferenceValidator {
     fn verify_mathematical_foundations(
         &mut self,
-        document: &AispDocument,
+        _document: &AispDocument,
         semantic_result: &DeepVerificationResult,
     ) -> AispResult<MathematicalFoundationsResult> {
         let mut ambiguity_verifier = AmbiguityVerifier::new(&mut self.z3_verifier);

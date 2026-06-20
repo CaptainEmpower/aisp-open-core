@@ -738,7 +738,7 @@ impl crate::testing::adversarial_framework::AdversarialTestSuite {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
     use crate::ast::canonical::create_document;
 
     #[test]

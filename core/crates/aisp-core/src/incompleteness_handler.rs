@@ -5,7 +5,7 @@
 //! be proven or disproven within the system.
 
 use crate::error::{AispError, AispResult};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt;
 use thiserror::Error;
 

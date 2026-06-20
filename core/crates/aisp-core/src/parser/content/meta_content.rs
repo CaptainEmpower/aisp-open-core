@@ -3,7 +3,7 @@
 //! Focused parser for meta block content following SRP.
 //! Handles parsing of key-value pairs, logical constraints, and metadata.
 
-use crate::ast::canonical::{ConstantValue, LogicalExpression, MetaValue};
+use crate::ast::canonical::{LogicalExpression, MetaValue};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 

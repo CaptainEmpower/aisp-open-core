@@ -539,7 +539,7 @@ impl FormalVerifier {
     }
 
     /// Extract proof steps from proof tree
-    fn extract_proof_steps(&self, proof_tree: &crate::proof_types::ProofTree) -> Vec<ProofStep> {
+    fn extract_proof_steps(&self, _proof_tree: &crate::proof_types::ProofTree) -> Vec<ProofStep> {
         // Implementation would extract actual steps from proof tree
         vec![ProofStep {
             step_number: 1,
@@ -574,8 +574,8 @@ impl PropertyVerifier {
     /// Apply verification strategy to property
     fn apply_strategy(
         &mut self,
-        strategy: &VerificationStrategy,
-        property: &PropertyFormula,
+        _strategy: &VerificationStrategy,
+        _property: &PropertyFormula,
     ) -> AispResult<VerifiedInvariant> {
         // Strategy application would be implemented here
         Err(AispError::validation_error(
@@ -628,7 +628,7 @@ impl StrategySelector {
     pub fn select_strategy(
         &self,
         strategies: &[VerificationStrategy],
-        property: &PropertyFormula,
+        _property: &PropertyFormula,
     ) -> AispResult<VerificationStrategy> {
         if strategies.is_empty() {
             return Err(AispError::validation_error("No strategies available"));
@@ -671,7 +671,7 @@ impl ProofGenerator {
     }
 
     /// Generate proof for property
-    pub fn generate_proof(&mut self, property: &PropertyFormula) -> AispResult<FormalProof> {
+    pub fn generate_proof(&mut self, _property: &PropertyFormula) -> AispResult<FormalProof> {
         // Proof generation would be implemented here
         Err(AispError::validation_error(
             "Proof generation not implemented",
@@ -705,7 +705,7 @@ impl ProofValidator {
     }
 
     /// Validate formal proof
-    pub fn validate_proof(&self, proof: &FormalProof) -> AispResult<ProofValidation> {
+    pub fn validate_proof(&self, _proof: &FormalProof) -> AispResult<ProofValidation> {
         // Proof validation would be implemented here
         Ok(ProofValidation::Valid)
     }

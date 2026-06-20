@@ -9,7 +9,7 @@ use crate::{
     error::*,
     // z3_integration::*, // Temporarily disabled
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 /// Tri-vector signal representation
 #[derive(Debug, Clone, PartialEq)]

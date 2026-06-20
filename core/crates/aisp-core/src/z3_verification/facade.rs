@@ -6,7 +6,7 @@
 use super::canonical_types::*;
 use super::smt_interface::SmtInterface;
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, *},
+    ast::canonical::CanonicalAispDocument as AispDocument,
     error::*,
     tri_vector_validation::*,
 };
@@ -87,9 +87,9 @@ impl Z3VerificationFacade {
         self.verification_stats.document_verifications += 1;
 
         let mut properties = Vec::new();
-        let mut proofs: Vec<Z3FormalProof> = Vec::new();
-        let mut counterexamples: Vec<Z3CounterexampleModel> = Vec::new();
-        let mut diagnostics: Vec<Z3Diagnostic> = Vec::new();
+        let _proofs: Vec<Z3FormalProof> = Vec::new();
+        let _counterexamples: Vec<Z3CounterexampleModel> = Vec::new();
+        let diagnostics: Vec<Z3Diagnostic> = Vec::new();
 
         // Verify basic document structure
         properties.extend(self.verify_document_structure(document)?);

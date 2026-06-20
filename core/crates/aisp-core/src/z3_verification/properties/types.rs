@@ -15,7 +15,6 @@ pub use crate::z3_verification::canonical_types::{
     Z3VerificationStatus as VerificationStatus, Z3VerifiedProperty as VerifiedProperty,
 };
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::Duration;
 

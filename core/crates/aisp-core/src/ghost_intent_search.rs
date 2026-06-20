@@ -9,14 +9,13 @@
 //! - Optimality: argmax_{b∈search(...)}μ_f(b)
 
 use crate::{
-    error::{AispError, AispResult},
+    error::AispResult,
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
-    pocket_architecture::{ContentHash, Pocket, SignalVector},
-    z3_verification::PropertyResult,
+    mathematical_evaluator::MathEvaluator,
+    pocket_architecture::{ContentHash, Pocket},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Ghost Intent representation: what's missing to achieve goal

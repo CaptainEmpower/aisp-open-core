@@ -26,22 +26,16 @@
 // IMPORTS AND RE-EXPORTS
 //
 
-use crate::{
-    ast::*,
-    error::{AispError, AispResult},
-    mathematical_semantics::*,
-};
-use std::collections::{HashMap, HashSet};
+use crate::error::{AispError, AispResult};
+use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 // Re-export all public items from modular implementation
-pub use coq_legacy::*;
 pub use proof_automation::*;
 pub use proof_foundations::*;
-pub use rocq_integration::*;
 pub use theorem_library::*;
 
 //

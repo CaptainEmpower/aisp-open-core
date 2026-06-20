@@ -3,7 +3,7 @@
 //! Focused parser for lambda expressions following SRP.
 //! Handles parsing of λx.body syntax and function definitions.
 
-use crate::ast::canonical::{FunctionDefinition, LambdaExpression, LogicalExpression};
+use crate::ast::canonical::{LambdaExpression, LogicalExpression};
 use crate::error::{AispError, AispResult};
 
 /// SRP-focused parser for lambda expression content

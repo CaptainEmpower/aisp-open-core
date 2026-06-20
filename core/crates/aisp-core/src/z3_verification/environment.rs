@@ -6,7 +6,7 @@
 use crate::{
     ast::canonical::{
         BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-        FunctionDefinition, TypeDefinition, TypeExpression,
+        FunctionDefinition, TypeExpression,
     },
     error::*,
 };

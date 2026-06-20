@@ -4,10 +4,9 @@
 //! discovered from AISP documents, including SMT-based solving and model generation.
 
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     invariant_types::DiscoveredInvariant,
-    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    property_types::{FormulaStructure, PropertyFormula, Term},
     smt_types::{SmtCommand, SmtFormula, SmtSort},
 };
 use std::collections::{HashMap, HashSet};
