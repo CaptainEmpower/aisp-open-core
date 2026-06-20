@@ -14,6 +14,10 @@ env:
   # config-file rustflags.
   RUSTFLAGS: -C target-cpu=x86-64
 
+# Every job below is strict: its command exits non-zero on failure and the job
+# goes red. There is no advisory/exit-0 masking — a green check means the check
+# genuinely passed. Mark these jobs as required in branch protection to block
+# merges on failure.
 jobs:
   # Z3 proving is part of the default build (maintainer decision, see ROADMAP R-02),
   # so every Rust job provisions system Z3.
@@ -29,11 +33,8 @@ jobs:
       - name: Check workspace
         run: cargo check --workspace --all-targets
 
-  # Advisory job: compiles the workspace with every feature enabled so
-  # feature-gated code (e.g. the property-testing test suite) cannot bit-rot
-  # invisibly. Flip to strict once it is green on all open branches.
   all-features-check:
-    name: Build all-features (advisory until R-13)
+    name: Build (all features)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -41,14 +42,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Check workspace (all features, advisory)
-        run: |
-          if cargo check --workspace --all-targets --all-features; then
-            echo "✅ All-features check passed — consider making this job strict (R-13)." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::warning title=All-features check (advisory)::Feature-gated code fails to compile (ROADMAP R-13). Advisory until the fix lands on this branch."
-            echo "⚠️ Feature-gated code fails to compile under --all-features (ROADMAP R-13). Advisory only." >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: Check workspace (all features)
+        run: cargo check --workspace --all-targets --all-features
 
   unit-tests:
     name: Unit tests (lib targets)
@@ -62,11 +57,8 @@ jobs:
       - name: Run lib unit tests
         run: cargo test --workspace --lib
 
-  # Advisory job: several integration suites have known pre-existing failures
-  # (see ROADMAP R-05/R-13). Reports a warning instead of failing; flip to a
-  # plain `cargo test` (strict) once R-05/R-13 land.
   integration-tests:
-    name: Integration tests (advisory until R-05/R-13)
+    name: Integration tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -74,19 +66,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libz3-dev z3
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Run all tests (no fail fast, advisory)
-        run: |
-          if cargo test --workspace --no-fail-fast; then
-            echo "✅ Full test suite passed — R-05/R-13 may be done; make this job strict." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::warning title=Integration tests (advisory)::Known pre-existing failures (ROADMAP R-05/R-13). This job does not block merges until those items land."
-            echo "⚠️ Integration suites have known pre-existing failures (ROADMAP R-05/R-13). Advisory only — see the log above for the failing targets." >> "$GITHUB_STEP_SUMMARY"
-          fi
+      # --no-fail-fast so every failing target is reported in one run, but the
+      # job still exits non-zero if any test fails.
+      - name: Run all tests
+        run: cargo test --workspace --no-fail-fast
 
-  # Advisory job: ~337 existing warnings plus rustfmt drift; ratchet down before
-  # making this strict (ROADMAP R-12).
   lint:
-    name: Lint (advisory until R-12)
+    name: Lint (rustfmt + clippy)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -96,26 +82,13 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - name: rustfmt (advisory)
-        run: |
-          if cargo fmt --all -- --check; then
-            echo "✅ rustfmt clean." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::warning title=rustfmt (advisory)::Formatting drift present (ROADMAP R-12). Advisory until the cleanup lands."
-            echo "⚠️ rustfmt reports formatting drift (ROADMAP R-12). Advisory only." >> "$GITHUB_STEP_SUMMARY"
-          fi
-      - name: clippy (advisory)
-        run: |
-          if cargo clippy --workspace --all-targets -- -D warnings; then
-            echo "✅ clippy clean." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::warning title=clippy (advisory)::Existing warnings (ROADMAP R-12). Advisory until the warning ratchet lands."
-            echo "⚠️ clippy reports existing warnings (ROADMAP R-12). Advisory only." >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
-  # Advisory until the npm harness fix (ROADMAP R-03) merges; flip to strict after.
   npm-validator:
-    name: npm validator (advisory until R-03)
+    name: npm validator
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -127,11 +100,5 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Run tests (advisory)
-        run: |
-          if npm test; then
-            echo "✅ npm validator tests passed — R-03 is in; make this job strict." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::warning title=npm validator (advisory)::Test harness broken on this branch (ROADMAP R-03). Advisory until the fix merges."
-            echo "⚠️ npm validator harness fails (ROADMAP R-03). Advisory only." >> "$GITHUB_STEP_SUMMARY"
-          fi
+      - name: Run tests
+        run: npm test
