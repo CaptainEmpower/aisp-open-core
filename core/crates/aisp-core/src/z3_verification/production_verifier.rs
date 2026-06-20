@@ -300,55 +300,55 @@ impl ProductionZ3Verifier {
         // Parse and assert formula
         let result: AispResult<Z3PropertyResult> =
             match self.parse_and_assert_formula(&context, &solver, formula) {
-            Ok(_) => {
-                // Check satisfiability
-                let start_time = Instant::now();
-                match solver.check() {
-                    SatResult::Unsat => {
-                        let verification_time = start_time.elapsed();
+                Ok(_) => {
+                    // Check satisfiability
+                    let start_time = Instant::now();
+                    match solver.check() {
+                        SatResult::Unsat => {
+                            let verification_time = start_time.elapsed();
 
-                        // Generate proof if requested
-                        let proof_certificate = if self.config.generate_proofs {
-                            "Proof available (Z3 proof object)".to_string()
-                        } else {
-                            "Proof generation disabled".to_string()
-                        };
+                            // Generate proof if requested
+                            let proof_certificate = if self.config.generate_proofs {
+                                "Proof available (Z3 proof object)".to_string()
+                            } else {
+                                "Proof generation disabled".to_string()
+                            };
 
-                        Ok(Z3PropertyResult::Proven {
-                            proof_certificate,
-                            verification_time,
-                        })
-                    }
-                    SatResult::Sat => {
-                        let verification_time = start_time.elapsed();
+                            Ok(Z3PropertyResult::Proven {
+                                proof_certificate,
+                                verification_time,
+                            })
+                        }
+                        SatResult::Sat => {
+                            let verification_time = start_time.elapsed();
 
-                        // Generate counterexample if requested
-                        let counterexample = if self.config.generate_models {
-                            solver
-                                .get_model()
-                                .map(|m| m.to_string())
-                                .unwrap_or_default()
-                        } else {
-                            "Model generation disabled".to_string()
-                        };
+                            // Generate counterexample if requested
+                            let counterexample = if self.config.generate_models {
+                                solver
+                                    .get_model()
+                                    .map(|m| m.to_string())
+                                    .unwrap_or_default()
+                            } else {
+                                "Model generation disabled".to_string()
+                            };
 
-                        Ok(Z3PropertyResult::Disproven {
-                            counterexample,
-                            verification_time,
-                        })
-                    }
-                    SatResult::Unknown => {
-                        Ok(Z3PropertyResult::Unknown {
-                            reason: "Z3 solver returned unknown".to_string(),
-                            partial_progress: 0.5, // Estimate
-                        })
+                            Ok(Z3PropertyResult::Disproven {
+                                counterexample,
+                                verification_time,
+                            })
+                        }
+                        SatResult::Unknown => {
+                            Ok(Z3PropertyResult::Unknown {
+                                reason: "Z3 solver returned unknown".to_string(),
+                                partial_progress: 0.5, // Estimate
+                            })
+                        }
                     }
                 }
-            }
-            Err(e) => Ok(Z3PropertyResult::Error {
-                error_message: format!("Formula parsing error: {}", e),
-                error_code: -2,
-            }),
+                Err(e) => Ok(Z3PropertyResult::Error {
+                    error_message: format!("Formula parsing error: {}", e),
+                    error_code: -2,
+                }),
             };
 
         // Return the context to the pool so it can be reused by later queries

@@ -14,7 +14,7 @@ test-all-silent = "test --workspace --exclude aisp --all-features --quiet -- --t
 # Development commands  
 check-all = "check --workspace --all-targets --all-features"
 fmt-all = "fmt --all"
-clippy-all = "clippy --workspace --all-targets --all-features -- -D warnings"
+clippy-all = "clippy --workspace --exclude aisp --all-targets --all-features -- -D warnings"
 build-release = "build --workspace --release --all-features"
 
 # Documentation commands

@@ -7,7 +7,6 @@
 //! - Memory usage: <100MB baseline
 //! - Concurrent throughput: >10 validations/sec
 
-use std::path::Path;
 use std::time::{Duration, Instant};
 
 const PERFORMANCE_TIMEOUT: Duration = Duration::from_secs(60);
@@ -78,7 +77,7 @@ fn benchmark_simple_validation() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Create simple test content
     let simple_content = r#"𝔸5.1.SimpleTest@2026-01-28
@@ -169,7 +168,7 @@ fn benchmark_throughput() {
     let handles: Vec<_> = (0..concurrent_threads)
         .map(|_| {
             let validator_clone = Arc::clone(&validator);
-            let config_clone = Arc::clone(&config);
+            let _config_clone = Arc::clone(&config);
             let content_clone = file_content.clone();
 
             thread::spawn(move || {
@@ -222,17 +221,17 @@ fn benchmark_memory_usage() {
     // Note: This is a simplified memory test
     // In production, use proper memory profiling tools
 
-    let validator = AispValidator::new();
+    let _validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test memory doesn't grow excessively with repeated operations
     for _i in 0..100 {
         let _validator2 = AispValidator::new();
         let _config2 = ValidationConfig::default();
 
-        // Create temporary validator to test cleanup
-        drop(_validator2);
+        // Temporary validator/config are created and dropped at end of scope to
+        // exercise allocation/cleanup across iterations.
     }
 
     println!("✓ Memory usage baseline test completed");
@@ -298,7 +297,7 @@ fn benchmark_validation_levels() {
         ),
     ];
 
-    for (level, config) in test_configs {
+    for (level, _config) in test_configs {
         let start = Instant::now();
 
         let validation = validator.validate(&file_content);
@@ -337,9 +336,9 @@ fn benchmark_regression_detection() {
 
     // This test establishes performance baselines to detect regressions
 
-    let validator = AispValidator::new();
+    let _validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Baseline measurements (these should not regress significantly)
     let baselines = vec![

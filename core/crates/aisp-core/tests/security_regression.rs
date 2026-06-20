@@ -7,7 +7,6 @@
 //! - Input validation and sanitization
 //! - Known vulnerability regression prevention
 
-use std::path::Path;
 use std::time::{Duration, Instant};
 
 /// Test that adversarial inputs are properly blocked
@@ -18,7 +17,7 @@ fn test_adversarial_resistance() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Known adversarial patterns that should be blocked
     let adversarial_inputs = vec![
@@ -116,7 +115,7 @@ fn test_resource_exhaustion_protection() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig {
+    let _config = ValidationConfig {
         max_document_size: 50_000, // 50KB limit for test
         ..ValidationConfig::default()
     };
@@ -161,7 +160,7 @@ fn test_input_validation() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test various invalid inputs
     let invalid_inputs = vec![
@@ -206,7 +205,7 @@ fn test_known_vulnerability_regression() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test cases for previously discovered and fixed vulnerabilities
     // (These are examples - actual test cases would come from security audits)
@@ -271,7 +270,7 @@ fn test_concurrent_security() {
 
     let handles: Vec<_> = (0..concurrent_threads).map(|thread_id| {
         let validator_clone = Arc::clone(&validator);
-        let config_clone = Arc::clone(&config);
+        let _config_clone = Arc::clone(&config);
 
         thread::spawn(move || {
             let mut blocked = 0;
@@ -334,7 +333,7 @@ fn test_timing_attack_resistance() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test that processing time doesn't leak sensitive information
     let test_cases = vec![

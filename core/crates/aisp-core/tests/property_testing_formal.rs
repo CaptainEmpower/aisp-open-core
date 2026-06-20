@@ -24,6 +24,8 @@ use proptest::prelude::*;
 use std::time::Duration;
 
 /// Strategy for generating property types
+// TODO: not yet wired into a proptest (no property-type generation is exercised).
+#[allow(dead_code)]
 fn property_type_strategy() -> impl Strategy<Value = PropertyType> {
     prop_oneof![
         Just(PropertyType::TypeSafety),
@@ -240,10 +242,6 @@ proptest! {
                     prop_assert!(property.complexity.quantifier_depth <= 10,
                                "Quantifier depth should be bounded");
 
-                    // Logical connectives should be non-negative
-                    prop_assert!(property.complexity.logical_connectives >= 0,
-                               "Logical connectives count should be non-negative");
-
                     // Variable count should be reasonable
                     prop_assert!(property.complexity.variable_count <= 20,
                                "Variable count should be bounded");
@@ -252,10 +250,6 @@ proptest! {
                     prop_assert!(property.complexity.difficulty_score >= 1 &&
                                property.complexity.difficulty_score <= 20,
                                "Difficulty score should be in [1,20]");
-
-                    // Function applications should be non-negative
-                    prop_assert!(property.complexity.function_applications >= 0,
-                               "Function applications should be non-negative");
                 }
             }
         }
@@ -539,7 +533,7 @@ proptest! {
                     // Type definitions in context should match document types
                     for block in &parsed_doc.blocks {
                         if let AispBlock::Types(types_block) = block {
-                            for (type_name, _type_def) in &types_block.definitions {
+                            for type_name in types_block.definitions.keys() {
                                 if context.type_definitions.contains_key(type_name) {
                                     // Context should have this type
                                     prop_assert!(true, "Type context should include document types");

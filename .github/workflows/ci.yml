@@ -68,8 +68,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       # --no-fail-fast so every failing target is reported in one run, but the
       # job still exits non-zero if any test fails.
+      # --test-threads=1: aisp-core enables Z3 by default and Z3 tests can
+      # contend when run in parallel (see .cargo/config.toml aliases and the
+      # crate metadata), which would make this strict job nondeterministic.
+      # --exclude aisp: the archived crate is excluded from workspace tests
+      # (matches the canonical cargo aliases).
       - name: Run all tests
-        run: cargo test --workspace --no-fail-fast
+        run: cargo test --workspace --exclude aisp --no-fail-fast -- --test-threads=1
 
   lint:
     name: Lint (rustfmt + clippy)
@@ -84,8 +89,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: rustfmt
         run: cargo fmt --all -- --check
+      # --all-features so feature-gated code (e.g. property-testing, security) is
+      # linted too — matching the canonical `clippy-all` alias. --exclude aisp
+      # skips the archived crate (consistent with the test/lint aliases).
       - name: clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --exclude aisp --all-targets --all-features -- -D warnings
 
   npm-validator:
     name: npm validator
