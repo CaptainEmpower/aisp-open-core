@@ -641,14 +641,14 @@ impl PerformanceGuaranteeVerifier {
         // Simulate prose pipeline with noise
         let base_rate = 0.62;
         let noise = 0.02 * (rand::random::<f64>() - 0.5); // ±1% noise
-        (base_rate + noise).powi(length as i32).max(0.0).min(1.0)
+        (base_rate + noise).powi(length as i32).clamp(0.0, 1.0)
     }
 
     fn simulate_aisp_pipeline_success(&self, length: usize) -> f64 {
         // Simulate AISP pipeline with noise
         let base_rate = 0.98;
         let noise = 0.01 * (rand::random::<f64>() - 0.5); // ±0.5% noise
-        (base_rate + noise).powi(length as i32).max(0.0).min(1.0)
+        (base_rate + noise).powi(length as i32).clamp(0.0, 1.0)
     }
 
     fn generate_test_documents(&self) -> AispResult<Vec<String>> {

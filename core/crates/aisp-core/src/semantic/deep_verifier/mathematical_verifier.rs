@@ -50,7 +50,7 @@ impl MathematicalCorrectnessEngine {
     ) -> AispResult<MathematicalAnalysisResult> {
         let mut proof_violations = Vec::new();
         let mut mathematical_errors = Vec::new();
-        let mut correctness_score = 1.0;
+        let mut correctness_score: f64 = 1.0;
 
         // Verify mathematical properties across all blocks
         for block in &document.blocks {
@@ -94,7 +94,7 @@ impl MathematicalCorrectnessEngine {
             correctness_score -= 0.1;
         }
 
-        let correctness_score = (correctness_score as f64).max(0.0).min(1.0);
+        let correctness_score = correctness_score.clamp(0.0, 1.0);
 
         Ok(MathematicalAnalysisResult {
             correctness_score,

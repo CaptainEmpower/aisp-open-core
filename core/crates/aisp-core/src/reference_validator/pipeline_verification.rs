@@ -66,8 +66,8 @@ impl<'a> PipelineVerifier<'a> {
         let mut proofs = Vec::new();
 
         for steps in test_cases {
-            let prose_rate = 0.62_f64.powi(steps as i32);
-            let aisp_rate = 0.98_f64.powi(steps as i32);
+            let prose_rate = 0.62_f64.powi(steps);
+            let aisp_rate = 0.98_f64.powi(steps);
             let improvement_factor = if prose_rate > 0.0 {
                 aisp_rate / prose_rate
             } else {

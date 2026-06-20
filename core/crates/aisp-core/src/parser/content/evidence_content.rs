@@ -170,7 +170,7 @@ impl EvidenceContentParser {
             confidence *= category_weight;
         }
 
-        confidence.min(1.0).max(0.0)
+        confidence.clamp(0.0, 1.0)
     }
 }
 

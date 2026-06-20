@@ -352,7 +352,7 @@ impl RelationalAnalyzer {
         // Penalize conflicts
         score *= (1.0 - (conflict_analysis.conflicts.len() as f64 * 0.1)).max(0.0);
 
-        score.min(1.0).max(0.0)
+        score.clamp(0.0, 1.0)
     }
 
     /// Determine if analysis result is valid

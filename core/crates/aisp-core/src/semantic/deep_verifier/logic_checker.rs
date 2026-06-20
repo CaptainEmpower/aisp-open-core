@@ -47,7 +47,7 @@ impl LogicConsistencyChecker {
     pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<LogicAnalysisResult> {
         let mut contradictions = Vec::new();
         let mut axiom_violations = Vec::new();
-        let mut consistency_score = 1.0;
+        let mut consistency_score: f64 = 1.0;
 
         // Check logical consistency across all blocks
         for block in &document.blocks {
@@ -91,7 +91,7 @@ impl LogicConsistencyChecker {
             consistency_score -= 0.1;
         }
 
-        let consistency_score = (consistency_score as f64).max(0.0).min(1.0);
+        let consistency_score = consistency_score.clamp(0.0, 1.0);
 
         Ok(LogicAnalysisResult {
             consistency_score,

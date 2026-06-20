@@ -573,7 +573,7 @@ impl PocketArchitectureVerifier {
         let new_affinity = current_affinity + learning_rate * affinity_delta;
 
         // Apply bounds [-100, 100] to prevent overflow
-        let bounded_affinity = new_affinity.max(-100.0).min(100.0);
+        let bounded_affinity = new_affinity.clamp(-100.0, 100.0);
 
         pocket
             .membrane

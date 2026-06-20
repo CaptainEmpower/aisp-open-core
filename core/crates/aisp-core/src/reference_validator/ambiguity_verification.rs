@@ -206,7 +206,7 @@ pub fn verify_token_efficiency(semantic_result: &DeepVerificationResult) -> Toke
     // Calculate efficiency based on ambiguity and coherence
     let base_efficiency = semantic_result.overall_confidence; // Use overall_confidence instead of missing coherence_score
     let ambiguity_penalty = semantic_result.ambiguity() * 2.0; // Penalty factor
-    let efficiency_score = (base_efficiency - ambiguity_penalty).max(0.0).min(1.0);
+    let efficiency_score = (base_efficiency - ambiguity_penalty).clamp(0.0, 1.0);
 
     let meets_spec = efficiency_score > 0.80 && semantic_result.ambiguity() < 0.02;
     let compression_ratio =

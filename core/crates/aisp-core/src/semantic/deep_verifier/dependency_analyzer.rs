@@ -58,7 +58,7 @@ impl DependencyGraphAnalyzer {
     ) -> AispResult<DependencyAnalysisResult> {
         let mut circular_dependencies = Vec::new();
         let mut dependency_violations = Vec::new();
-        let mut impact_score = 1.0;
+        let mut impact_score: f64 = 1.0;
 
         // Build dependency graph from document
         self.build_dependency_graph(document)?;
@@ -91,7 +91,7 @@ impl DependencyGraphAnalyzer {
             impact_score -= 0.1;
         }
 
-        let impact_score = (impact_score as f64).max(0.0).min(1.0);
+        let impact_score = impact_score.clamp(0.0, 1.0);
 
         Ok(DependencyAnalysisResult {
             circular_dependencies,

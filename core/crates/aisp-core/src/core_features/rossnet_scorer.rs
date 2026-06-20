@@ -181,12 +181,12 @@ impl RossNetScorer {
     pub fn update_weights(&mut self, weight_adjustments: &HashMap<String, f64>) {
         for (component, adjustment) in weight_adjustments {
             match component.as_str() {
-                "similarity" => self.weights.similarity_weight = (*adjustment).max(0.0).min(1.0),
-                "fitness" => self.weights.fitness_weight = (*adjustment).max(0.0).min(1.0),
-                "affinity" => self.weights.affinity_weight = (*adjustment).max(0.0).min(1.0),
-                "diversity_bonus" => self.weights.diversity_bonus = (*adjustment).max(0.0).min(1.0),
+                "similarity" => self.weights.similarity_weight = (*adjustment).clamp(0.0, 1.0),
+                "fitness" => self.weights.fitness_weight = (*adjustment).clamp(0.0, 1.0),
+                "affinity" => self.weights.affinity_weight = (*adjustment).clamp(0.0, 1.0),
+                "diversity_bonus" => self.weights.diversity_bonus = (*adjustment).clamp(0.0, 1.0),
                 "consistency_penalty" => {
-                    self.weights.consistency_penalty = (*adjustment).max(0.0).min(1.0)
+                    self.weights.consistency_penalty = (*adjustment).clamp(0.0, 1.0)
                 }
                 _ => {} // Ignore unknown components
             }
@@ -305,7 +305,7 @@ impl RossNetScorer {
     fn calculate_confidence_level(&self, components: &HashMap<String, f64>) -> f64 {
         let variance = self.calculate_component_variance(components);
         
-        (1.0 / (1.0 + variance)).max(0.1).min(1.0)
+        (1.0 / (1.0 + variance)).clamp(0.1, 1.0)
     }
 
     /// Calculate variance in score components
@@ -361,8 +361,8 @@ impl RossNetScorer {
         }
 
         // Ensure diversity bonus and consistency penalty stay within reasonable bounds
-        self.weights.diversity_bonus = self.weights.diversity_bonus.max(0.0).min(1.0);
-        self.weights.consistency_penalty = self.weights.consistency_penalty.max(0.0).min(1.0);
+        self.weights.diversity_bonus = self.weights.diversity_bonus.clamp(0.0, 1.0);
+        self.weights.consistency_penalty = self.weights.consistency_penalty.clamp(0.0, 1.0);
     }
 }
 
@@ -394,7 +394,7 @@ impl SimilarityEngine {
 
         // Weighted combination of similarity measures
         let combined_similarity = 0.4 * vector_sim + 0.4 * semantic_sim + 0.2 * structural_sim;
-        Ok(combined_similarity.max(0.0).min(1.0))
+        Ok(combined_similarity.clamp(0.0, 1.0))
     }
 }
 
@@ -455,7 +455,7 @@ impl SemanticSimilarityCalculator {
         ]);
         let semantic_distance = ((hash_a.wrapping_sub(hash_b)) as f64).abs() / u64::MAX as f64;
         let similarity = 1.0 - semantic_distance;
-        Ok(similarity.max(0.0).min(1.0))
+        Ok(similarity.clamp(0.0, 1.0))
     }
 }
 
@@ -529,13 +529,13 @@ impl FitnessEvaluator {
             0.5 // Default neutral fitness
         };
 
-        Ok(fitness.max(0.0).min(1.0))
+        Ok(fitness.clamp(0.0, 1.0))
     }
 
     /// Update criterion weight
     pub fn update_criterion_weight(&mut self, criterion: String, weight: f64) {
         self.criteria_weights
-            .insert(criterion, weight.max(0.0).min(1.0));
+            .insert(criterion, weight.clamp(0.0, 1.0));
     }
 }
 
