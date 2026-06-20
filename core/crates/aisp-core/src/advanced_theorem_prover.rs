@@ -87,6 +87,8 @@ pub enum ProofMethod {
 }
 
 /// Advanced theorem prover with sophisticated mathematical reasoning
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedTheoremProver {
     /// Z3 verification facade for SMT solving
     z3_verifier: Z3VerificationFacade,

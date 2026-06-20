@@ -10,7 +10,7 @@ use crate::ast::canonical::{
 use crate::error::AispResult;
 use crate::semantic::DeepVerificationResult;
 use crate::vector_space_verifier::VectorSpaceVerifier;
-use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
+use crate::z3_verification::Z3VerificationFacade;
 
 /// Tri-vector orthogonality verification result
 #[derive(Debug, Clone)]
@@ -37,6 +37,11 @@ pub struct DimensionVerificationResult {
 
 /// Tri-vector verification implementation
 pub struct TriVectorVerifier<'a> {
+    // TODO(R-06/R-07): reserved for a future Z3-backed orthogonality check. The
+    // current implementation uses the corrected analytic path in `vector_verifier`
+    // (which accounts for the shared zero vector), so the SMT facade is held but
+    // not yet exercised. See ROADMAP.
+    #[allow(dead_code)]
     z3_verifier: &'a mut Z3VerificationFacade,
     vector_verifier: VectorSpaceVerifier,
 }
@@ -150,133 +155,6 @@ impl<'a> TriVectorVerifier<'a> {
             total_dimension,
             dimension_consistency,
         })
-    }
-
-    fn verify_vh_vs_orthogonality(&mut self, certificates: &mut Vec<String>) -> AispResult<bool> {
-        let vh_vs_formula = ";; Tri-vector orthogonality: V_H ∩ V_S ≡ ∅\n\
-             ;; Mathematical foundation: Linear algebra vector space orthogonality\n\
-             \n\
-             ;; Declare vector space types\n\
-             (declare-sort VectorSpace)\n\
-             (declare-sort Vector)\n\
-             (declare-sort Scalar)\n\
-             \n\
-             ;; Declare the three vector spaces\n\
-             (declare-const V_H VectorSpace) ;; Semantic space ℝ^768\n\
-             (declare-const V_S VectorSpace) ;; Safety space ℝ^256\n\
-             (declare-const empty_space VectorSpace)\n\
-             \n\
-             ;; Declare vector space operations\n\
-             (declare-fun dimension (VectorSpace) Int)\n\
-             (declare-fun intersection (VectorSpace VectorSpace) VectorSpace)\n\
-             (declare-fun dot_product (Vector Vector) Scalar)\n\
-             (declare-fun in_space (Vector VectorSpace) Bool)\n\
-             (declare-fun zero_vector (VectorSpace) Vector)\n\
-             \n\
-             ;; Dimension constraints from reference.md\n\
-             (assert (= (dimension V_H) 768))\n\
-             (assert (= (dimension V_S) 256))\n\
-             (assert (= (dimension empty_space) 0))\n\
-             \n\
-             ;; Orthogonality axiom: Two spaces are orthogonal iff their intersection is empty\n\
-             (assert (= (intersection V_H V_S) empty_space))\n\
-             \n\
-             ;; Alternative formulation: For any vectors v_h ∈ V_H, v_s ∈ V_S: ⟨v_h, v_s⟩ = 0\n\
-             (declare-const v_h Vector)\n\
-             (declare-const v_s Vector)\n\
-             (declare-const zero Scalar)\n\
-             (assert (= zero 0))\n\
-             \n\
-             (assert (=> (and (in_space v_h V_H) (in_space v_s V_S))\n\
-                            (= (dot_product v_h v_s) zero)))\n\
-             \n\
-             ;; Verify orthogonality property holds\n\
-             (assert (forall ((x Vector) (y Vector))\n\
-                            (=> (and (in_space x V_H) (in_space y V_S))\n\
-                                (= (dot_product x y) zero))))\n\
-             \n\
-             ;; Check satisfiability (should be SAT if orthogonal)\n\
-             (check-sat)"
-            .to_string();
-
-        let result = self
-            .z3_verifier
-            .verify_smt_formula(&vh_vs_formula)
-            .unwrap_or(Z3PropertyResult::Unknown {
-                reason: "Default fallback".to_string(),
-                partial_progress: 0.0,
-            });
-        let verified = matches!(result, Z3PropertyResult::Proven { .. });
-
-        if verified {
-            certificates.push("VH_VS_ORTHOGONAL_MATHEMATICALLY_VERIFIED".to_string());
-        }
-
-        Ok(verified)
-    }
-
-    fn verify_vl_vs_orthogonality(&mut self, certificates: &mut Vec<String>) -> AispResult<bool> {
-        let vl_vs_formula = ";; Tri-vector orthogonality: V_L ∩ V_S ≡ ∅\n\
-             ;; Mathematical foundation: Linear algebra vector space orthogonality\n\
-             \n\
-             ;; Declare vector space types (reusing previous declarations conceptually)\n\
-             (declare-sort VectorSpace)\n\
-             (declare-sort Vector)\n\
-             (declare-sort Scalar)\n\
-             \n\
-             ;; Declare the structural and safety vector spaces\n\
-             (declare-const V_L VectorSpace) ;; Structural space ℝ^512\n\
-             (declare-const V_S VectorSpace) ;; Safety space ℝ^256\n\
-             (declare-const empty_space VectorSpace)\n\
-             \n\
-             ;; Declare vector space operations\n\
-             (declare-fun dimension (VectorSpace) Int)\n\
-             (declare-fun intersection (VectorSpace VectorSpace) VectorSpace)\n\
-             (declare-fun dot_product (Vector Vector) Scalar)\n\
-             (declare-fun in_space (Vector VectorSpace) Bool)\n\
-             \n\
-             ;; Dimension constraints from reference.md\n\
-             (assert (= (dimension V_L) 512))\n\
-             (assert (= (dimension V_S) 256))\n\
-             (assert (= (dimension empty_space) 0))\n\
-             \n\
-             ;; Orthogonality: V_L ∩ V_S ≡ ∅\n\
-             (assert (= (intersection V_L V_S) empty_space))\n\
-             \n\
-             ;; Formal orthogonality condition: ∀v_l ∈ V_L, v_s ∈ V_S: ⟨v_l, v_s⟩ = 0\n\
-             (declare-const v_l Vector)\n\
-             (declare-const v_s Vector)\n\
-             (declare-const zero Scalar)\n\
-             (assert (= zero 0))\n\
-             \n\
-             (assert (=> (and (in_space v_l V_L) (in_space v_s V_S))\n\
-                            (= (dot_product v_l v_s) zero)))\n\
-             \n\
-             ;; Universal quantification over structural-safety orthogonality\n\
-             (assert (forall ((x Vector) (y Vector))\n\
-                            (=> (and (in_space x V_L) (in_space y V_S))\n\
-                                (= (dot_product x y) zero))))\n\
-             \n\
-             ;; Direct sum property: Total dimension = sum of individual dimensions\n\
-             ;; This verifies that spaces are truly independent\n\
-             (assert (not (= (+ (dimension V_L) (dimension V_S)) (dimension (intersection V_L V_S)))))\n\
-             \n\
-             (check-sat)".to_string();
-
-        let result = self
-            .z3_verifier
-            .verify_smt_formula(&vl_vs_formula)
-            .unwrap_or(Z3PropertyResult::Unknown {
-                reason: "Default fallback".to_string(),
-                partial_progress: 0.0,
-            });
-        let verified = matches!(result, Z3PropertyResult::Proven { .. });
-
-        if verified {
-            certificates.push("VL_VS_ORTHOGONAL_MATHEMATICALLY_VERIFIED".to_string());
-        }
-
-        Ok(verified)
     }
 }
 

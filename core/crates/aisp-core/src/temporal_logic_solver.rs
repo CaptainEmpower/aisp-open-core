@@ -749,6 +749,8 @@ mod tests {
     use super::*;
     use crate::temporal_operator_analyzer::OperatorContext;
 
+    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_operator(op: TemporalOperator) -> OperatorInstance {
         OperatorInstance {
             operator: op,

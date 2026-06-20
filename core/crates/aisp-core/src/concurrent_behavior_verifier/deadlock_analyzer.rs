@@ -8,6 +8,8 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Deadlock analysis engine
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct DeadlockAnalyzer {
     /// Detection strategies
     strategies: Vec<DeadlockDetectionStrategy>,
@@ -64,6 +66,8 @@ pub enum ComplexityClass {
 
 /// Resource graph construction engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ResourceGraphBuilder {
     /// Current graph
     current_graph: ResourceGraph,
@@ -264,6 +268,8 @@ pub struct GraphBuilderConfig {
 
 /// Deadlock prevention analyzer
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PreventionAnalyzer {
     /// Prevention strategies
     strategies: Vec<PreventionStrategy>,
@@ -386,6 +392,8 @@ pub struct EffectivenessMetrics {
 
 /// Deadlock recovery analyzer
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct RecoveryAnalyzer {
     /// Recovery strategies
     strategies: Vec<RecoveryStrategy>,
@@ -444,6 +452,8 @@ pub struct RecoveryCost {
 
 /// Recovery cost calculator
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct RecoveryCostCalculator {
     /// Cost models
     cost_models: HashMap<RecoveryMethod, CostModel>,

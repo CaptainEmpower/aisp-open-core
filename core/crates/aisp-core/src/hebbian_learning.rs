@@ -189,6 +189,8 @@ impl Default for HebbianConfig {
 }
 
 /// Hebbian learning validator implementing 10:1 penalty ratio analysis
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct HebbianValidator {
     /// Validation configuration
     config: HebbianConfig,
@@ -749,6 +751,8 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{DocumentHeader, DocumentMetadata, Span};
 
+    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document() -> AispDocument {
         AispDocument {
             header: DocumentHeader {
@@ -766,6 +770,8 @@ mod tests {
         }
     }
 
+    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_semantic_result() -> DeepVerificationResult {
         DeepVerificationResult::test_default()
     }

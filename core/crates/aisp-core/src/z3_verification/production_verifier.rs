@@ -49,6 +49,8 @@ struct VerificationCache {
 
 /// Cached verification result
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CachedResult {
     result: Z3PropertyResult,
     timestamp: SystemTime,
@@ -296,7 +298,8 @@ impl ProductionZ3Verifier {
         solver.set_params(&params);
 
         // Parse and assert formula
-        match self.parse_and_assert_formula(&context, &solver, formula) {
+        let result: AispResult<Z3PropertyResult> =
+            match self.parse_and_assert_formula(&context, &solver, formula) {
             Ok(_) => {
                 // Check satisfiability
                 let start_time = Instant::now();
@@ -346,7 +349,13 @@ impl ProductionZ3Verifier {
                 error_message: format!("Formula parsing error: {}", e),
                 error_code: -2,
             }),
-        }
+            };
+
+        // Return the context to the pool so it can be reused by later queries
+        // instead of being dropped (which would slowly drain the pool).
+        self.return_context_to_pool(context);
+
+        result
     }
 
     /// Fallback verification for non-Z3 builds
@@ -615,6 +624,8 @@ impl ProductionZ3Verifier {
 
 /// Property information for verification
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct PropertyInfo {
     category: Z3PropertyCategory,
     description: String,

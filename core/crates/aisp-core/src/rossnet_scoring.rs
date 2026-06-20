@@ -484,12 +484,10 @@ impl RossNetValidator {
             if let AispBlock::Rules(rules_block) = block {
                 for rule in &rules_block.rules {
                     total_expressions += 1;
-                    // Note: canonical rules are strings, not structured expressions
-                    // Use simple heuristic for temporal operators
-                    if rule.raw_text.contains('□')
-                        || rule.raw_text.contains('◊')
-                        || rule.raw_text.contains('X')
-                    {
+                    // Note: canonical rules are strings, not structured expressions.
+                    // Use the shared temporal-operator heuristic, which also recognizes
+                    // the word forms ("always"/"eventually"/"next").
+                    if self.rule_has_temporal_operators(&rule.raw_text) {
                         temporal_operators += 1;
                     }
                 }

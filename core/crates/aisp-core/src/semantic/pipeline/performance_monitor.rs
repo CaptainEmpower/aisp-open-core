@@ -26,6 +26,8 @@ pub struct ProfilingData {
 }
 
 /// Performance monitor for tracking verification pipeline metrics
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PerformanceMonitor {
     stage_timings: HashMap<VerificationStage, Duration>,
     resource_usage: ResourceUsage,

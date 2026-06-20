@@ -2,6 +2,7 @@
 //!
 //! This test suite verifies that our implementation changes actually work.
 
+use aisp_core::semantic::QualityTier;
 use aisp_core::validator::AispValidator;
 
 /// Test that our enumeration parser fix works
@@ -97,8 +98,8 @@ fn test_formal_verification_system() {
 
     // Should not crash and should provide meaningful output
     assert!(
-        result.tier.value() >= 0,
-        "Quality tier should have valid value"
+        result.tier.value() <= QualityTier::Platinum.value(),
+        "Quality tier should have a valid value (Reject..=Platinum)"
     );
     assert!(
         result.delta >= 0.0 && result.delta <= 1.0,

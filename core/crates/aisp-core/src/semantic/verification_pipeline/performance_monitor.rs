@@ -41,6 +41,8 @@ struct StagePerformance {
 
 /// Resource usage snapshot
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct ResourceSnapshot {
     timestamp: SystemTime,
     cpu_percent: f64,
@@ -50,6 +52,8 @@ struct ResourceSnapshot {
 
 /// Performance alert
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct PerformanceAlert {
     alert_type: AlertType,
     description: String,
@@ -59,6 +63,8 @@ struct PerformanceAlert {
 
 /// Alert types for performance monitoring
 #[derive(Debug, Clone, Copy, PartialEq)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 enum AlertType {
     HighCpuUsage,
     HighMemoryUsage,
@@ -69,6 +75,8 @@ enum AlertType {
 
 /// Alert severity levels
 #[derive(Debug, Clone, PartialEq)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 enum AlertSeverity {
     Info,
     Warning,
@@ -77,6 +85,8 @@ enum AlertSeverity {
 
 /// Baseline performance metrics
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct BaselineMetrics {
     average_verification_time_ms: f64,
     average_cpu_usage: f64,

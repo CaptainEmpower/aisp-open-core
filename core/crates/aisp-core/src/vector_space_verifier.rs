@@ -59,6 +59,8 @@ pub struct VectorSpaceInput {
 }
 
 /// Vector space verifier with proper mathematical handling
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct VectorSpaceVerifier {
     math_evaluator: MathEvaluator,
     tolerance: f64,

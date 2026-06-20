@@ -8,6 +8,8 @@ use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Pipeline orchestrator for managing verification workflow
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PipelineOrchestrator {
     verification_stages: Vec<VerificationStage>,
     stage_dependencies: HashMap<VerificationStage, Vec<VerificationStage>>,

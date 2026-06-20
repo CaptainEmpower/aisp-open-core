@@ -82,6 +82,8 @@ pub struct ParsingMetrics {
 }
 
 /// Multi-format parser orchestrator
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct MultiFormatParser {
     /// Content extractor for mixed formats
     extractor: AispCodeBlockExtractor,

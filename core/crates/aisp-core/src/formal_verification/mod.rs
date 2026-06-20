@@ -14,6 +14,8 @@ pub use verifier::FormalVerifier;
 use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 
 /// Main formal verification system facade
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormalVerificationSystem {
     /// Core formal verifier
     verifier: FormalVerifier,

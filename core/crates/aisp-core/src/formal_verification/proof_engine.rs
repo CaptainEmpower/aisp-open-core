@@ -73,6 +73,8 @@ pub struct GeneratorRequirements {
 
 /// Advanced proof validation system
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedProofValidator {
     /// Validation strategies
     strategies: Vec<ValidationStrategy>,
@@ -346,6 +348,8 @@ pub enum ExpertiseLevel {
 
 /// Advanced proof optimization system
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedProofOptimizer {
     /// Optimization algorithms
     algorithms: Vec<OptimizationAlgorithm>,
@@ -545,6 +549,8 @@ pub enum OptimizationEventType {
 
 /// Proof repository for storage and retrieval
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofRepository {
     /// Stored proofs
     proofs: HashMap<String, StoredProof>,

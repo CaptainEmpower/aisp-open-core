@@ -7,6 +7,8 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Temporal logic property verification engine
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalPropertyVerifier {
     /// Temporal logic operators
     operators: Vec<TemporalOperator>,
@@ -103,6 +105,8 @@ pub enum TemporalDifficulty {
 
 /// Temporal model checker
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalModelChecker {
     /// Model checking algorithm
     algorithm: ModelCheckingAlgorithm,
@@ -133,6 +137,8 @@ pub enum ModelCheckingAlgorithm {
 
 /// State space representation
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct StateSpace {
     /// State variables
     variables: Vec<StateVariable>,
@@ -267,6 +273,8 @@ pub struct StateSpaceSize {
 
 /// Transition system definition
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TransitionSystem {
     /// System transitions
     transitions: Vec<Transition>,
@@ -364,6 +372,8 @@ pub struct AlgorithmPerformance {
 
 /// Property synthesizer for automatic generation
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PropertySynthesizer {
     /// Synthesis templates
     templates: Vec<PropertyTemplate>,
@@ -414,6 +424,8 @@ pub enum ParameterType {
 
 /// Database of temporal patterns
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PatternDatabase {
     /// Common patterns
     patterns: HashMap<String, TemporalPattern>,
@@ -504,6 +516,8 @@ pub struct SynthesisStatistics {
 
 /// Temporal verification cache
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalVerificationCache {
     /// Cached verification results
     results: HashMap<String, CachedTemporalResult>,

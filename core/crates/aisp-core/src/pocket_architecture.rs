@@ -164,6 +164,8 @@ pub struct VerificationCertificate {
 }
 
 /// Pocket Architecture Verifier - enforces AISP Layer 1 invariants
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PocketArchitectureVerifier {
     math_evaluator: MathEvaluator,
     incompleteness_handler: IncompletenessHandler,
@@ -173,6 +175,8 @@ pub struct PocketArchitectureVerifier {
 
 /// Cache entry for verified pockets
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CacheEntry {
     verification_result: PocketVerificationResult,
     verified_at: u64,

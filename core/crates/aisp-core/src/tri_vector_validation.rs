@@ -248,6 +248,8 @@ pub enum TriVectorError {
 }
 
 /// Tri-vector validator
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TriVectorValidator {
     /// Z3 integration for formal verification
     z3_verifier: Option<Z3TriVectorVerifier>,
@@ -867,6 +869,8 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{AispDocument, DocumentHeader, DocumentMetadata};
 
+    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document_with_trivector() -> AispDocument {
         // Create a test document with proper tri-vector definitions
         AispDocument {

@@ -8,6 +8,8 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 /// Race condition detection engine
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct RaceConditionDetector {
     /// Detection algorithms
     algorithms: Vec<DetectionAlgorithm>,

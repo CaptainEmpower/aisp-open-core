@@ -440,6 +440,8 @@ mod tests {
     };
     use crate::z3_verification::Z3VerificationFacade;
 
+    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document() -> AispDocument {
         AispDocument {
             header: DocumentHeader {

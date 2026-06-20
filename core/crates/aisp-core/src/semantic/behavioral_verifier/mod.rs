@@ -26,6 +26,8 @@ pub mod testing;
 pub mod types;
 
 /// Main behavioral verification engine coordinating all verification components
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct BehavioralVerifier {
     sandbox: SafeExecutionSandbox,
     property_tester: PropertyBasedTester,
@@ -132,6 +134,10 @@ impl BehavioralVerifier {
             / 4.0;
 
         // Generate security assessment
+        // TODO(R-06/R-07): wire in `assess_behavioral_security` /
+        // `generate_behavioral_recommendations` once they are updated from the legacy
+        // string-based model (`&[String]` -> `Vec<String>`) to the structured
+        // `BehavioralViolation` / `BehavioralRecommendation` types used here.
         let security_assessment = BehavioralSecurityAssessment {
             threat_level: ThreatLevel::Low,
             attack_surface_size: 0.3,
@@ -211,6 +217,10 @@ impl BehavioralVerifier {
         authentic_implementations as f64 / results.len() as f64
     }
 
+    // TODO(R-06/R-07): legacy string-based assessment; update to structured types and
+    // wire into `verify_behavior` (see note at the call site). Currently exercised
+    // only by tests.
+    #[allow(dead_code)]
     fn assess_behavioral_security(
         &self,
         results: &[ExecutionResult],
@@ -267,6 +277,9 @@ impl BehavioralVerifier {
         })
     }
 
+    // TODO(R-06/R-07): legacy string-based recommendations; update to return
+    // `Vec<BehavioralRecommendation>` and wire into `verify_behavior` (see call-site note).
+    #[allow(dead_code)]
     fn generate_behavioral_recommendations(
         &self,
         violations: &[String],

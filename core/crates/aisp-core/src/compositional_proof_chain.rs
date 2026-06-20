@@ -21,6 +21,8 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Complete compositional proof system for AISP layer integration
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct CompositionalProofChain {
     /// Layer 0 verifier
     l0_verifier: VectorSpaceVerifier,
@@ -37,6 +39,8 @@ pub struct CompositionalProofChain {
 }
 
 /// Mathematical proof engine for formal verification
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofEngine {
     /// Mathematical evaluator for calculations
     math_evaluator: MathEvaluator,
@@ -51,6 +55,8 @@ pub struct ProofEngine {
 }
 
 /// Theorem database for foundational proofs
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TheoremDatabase {
     /// Layer 0 theorems (signal theory)
     l0_theorems: Vec<LayerTheorem>,
@@ -352,6 +358,8 @@ struct ProofKey {
 
 /// Cached proof result
 #[derive(Debug, Clone)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CachedProof {
     verification_result: VerificationResult,
     cached_at: std::time::SystemTime,

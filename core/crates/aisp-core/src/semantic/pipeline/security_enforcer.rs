@@ -8,6 +8,8 @@ use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Security enforcer for enterprise-grade security compliance
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SecurityEnforcer {
     security_policies: Vec<SecurityPolicy>,
     enforcement_rules: Vec<EnforcementRule>,

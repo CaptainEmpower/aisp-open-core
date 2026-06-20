@@ -396,19 +396,6 @@ mod utils {
             format!("{:x}", seed % 0xFFFFFFFF)
         }
     }
-
-    pub fn random_u64() -> u64 {
-        // Simple PRNG for demo purposes
-        let seed = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos() as u64;
-        seed % 1000000
-    }
-
-    pub fn random_f64() -> f64 {
-        (random_u64() % 1000) as f64 / 1000.0
-    }
 }
 
 impl SandboxSecurityPolicy {

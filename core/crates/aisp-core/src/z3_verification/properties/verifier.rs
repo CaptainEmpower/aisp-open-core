@@ -11,6 +11,8 @@ use std::time::Instant;
 use z3::*;
 
 /// Property verifier for AISP documents
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PropertyVerifier {
     /// Verification statistics
     stats: EnhancedVerificationStats,
@@ -66,6 +68,8 @@ pub struct CacheStatistics {
 
 /// SMT formula verification engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SmtFormulaVerifier {
     /// Solver configuration
     solver_config: SolverConfiguration,
@@ -92,6 +96,8 @@ pub struct SolverConfiguration {
 
 /// Pool of SMT solvers
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SolverPool {
     /// Available solvers
     solvers: Vec<SolverInstance>,
@@ -169,6 +175,8 @@ pub struct PoolConfiguration {
 
 /// Load balancer for solver pool
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct LoadBalancer {
     /// Balancing strategy
     strategy: LoadBalancingStrategy,
@@ -180,6 +188,8 @@ pub struct LoadBalancer {
 
 /// Workload prediction engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct WorkloadPredictor {
     /// Historical workload data
     history: Vec<WorkloadDataPoint>,
@@ -224,6 +234,8 @@ pub struct PredictionAccuracy {
 
 /// Formula preprocessing engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaPreprocessor {
     /// Preprocessing rules
     rules: Vec<PreprocessingRule>,
@@ -250,6 +262,8 @@ pub struct PreprocessingRule {
 
 /// Formula simplification engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaSimplifier {
     /// Simplification strategies
     strategies: Vec<SimplificationStrategy>,
@@ -298,6 +312,8 @@ pub struct SimplificationMetrics {
 
 /// Formula optimization engine
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaOptimizer {
     /// Optimization passes
     passes: Vec<OptimizationPass>,
@@ -345,6 +361,8 @@ pub struct OptimizationMetrics {
 
 /// Cost-benefit analysis for optimizations
 #[derive(Debug)]
+// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct CostBenefitAnalyzer {
     /// Cost models
     cost_models: HashMap<OptimizationPassType, CostModel>,
