@@ -198,7 +198,7 @@ impl PipelineOrchestrator {
     /// Check for circular dependencies in stage graph
     fn has_circular_dependencies(&self) -> bool {
         // Simplified cycle detection - in production would use proper graph algorithms
-        for (stage, _deps) in &self.stage_dependencies {
+        for stage in self.stage_dependencies.keys() {
             if self.has_transitive_dependency(stage, stage, &mut Vec::new()) {
                 return true;
             }

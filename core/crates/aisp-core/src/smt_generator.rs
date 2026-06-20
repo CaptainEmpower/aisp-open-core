@@ -225,11 +225,11 @@ impl SMTGenerator {
 
         // Declare functions
         for func_name in functions {
-            if !self.function_env.contains_key(&func_name) {
+            if let std::collections::hash_map::Entry::Vacant(e) = self.function_env.entry(func_name.clone()) {
                 // Generate simple uninterpreted function declaration
                 let declaration = format!("(declare-fun {} (Int) Bool)", func_name);
                 writeln!(script, "{}", declaration)?;
-                self.function_env.insert(func_name, declaration);
+                e.insert(declaration);
             }
         }
 
