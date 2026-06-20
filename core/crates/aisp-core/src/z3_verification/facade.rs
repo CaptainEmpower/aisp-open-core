@@ -9,7 +9,7 @@ use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument, error::*, tri_vector_validation::*,
 };
 use std::collections::HashMap;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 /// Z3 verification facade with genuine verification requirements
 pub struct Z3VerificationFacade {
@@ -300,6 +300,7 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{self, CanonicalAispDocument as AispDocument};
     use std::collections::HashMap;
+    use std::time::Duration;
 
     fn create_test_document() -> AispDocument {
         canonical::create_document("test", "5.1", "2026-01-26")

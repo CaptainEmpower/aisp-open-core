@@ -54,9 +54,6 @@ impl ParserSecurityTestSuite {
         let mut total_tests = 0;
         let mut passed_tests = 0;
         let mut failed_tests = 0;
-        let mut critical_failures = 0;
-        let mut bypass_attempts = 0;
-        let mut successful_bypasses = 0;
         let mut recommendations = Vec::new();
 
         // Run basic security tests
@@ -75,9 +72,9 @@ impl ParserSecurityTestSuite {
         let adversarial_report =
             crate::testing::adversarial_framework::run_adversarial_security_assessment();
         total_tests += adversarial_report.total_attacks;
-        bypass_attempts = adversarial_report.total_attacks;
-        successful_bypasses = adversarial_report.bypasses_achieved;
-        critical_failures = adversarial_report.critical_vulnerabilities;
+        let bypass_attempts = adversarial_report.total_attacks;
+        let successful_bypasses = adversarial_report.bypasses_achieved;
+        let critical_failures = adversarial_report.critical_vulnerabilities;
 
         // Calculate security score
         let security_score = self.calculate_security_score(

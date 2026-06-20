@@ -444,7 +444,6 @@ impl RossNetValidator {
     fn calculate_resource_utilization(&self, document: &AispDocument) -> AispResult<f64> {
         // Estimate resource usage based on complexity
         let mut complexity_score = 0.0;
-        let mut utilization_components = 0;
 
         for block in &document.blocks {
             let block_complexity = match block {
@@ -458,7 +457,6 @@ impl RossNetValidator {
             };
 
             complexity_score += block_complexity;
-            utilization_components += 1;
         }
 
         // Normalize to 0-1 range

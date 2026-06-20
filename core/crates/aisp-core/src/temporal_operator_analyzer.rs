@@ -159,7 +159,6 @@ impl TemporalOperatorAnalyzer {
 
         let mut errors = Vec::new();
         let mut warnings = Vec::new();
-        let mut path_quantifiers = Vec::new();
 
         // Analyze each block for temporal operators
         for block in &document.blocks {
@@ -181,7 +180,7 @@ impl TemporalOperatorAnalyzer {
         }
 
         // Detect path quantifiers for CTL analysis
-        path_quantifiers = self.detect_path_quantifiers();
+        let path_quantifiers = self.detect_path_quantifiers();
 
         // Calculate complexity metrics
         let complexity = self.calculate_complexity();

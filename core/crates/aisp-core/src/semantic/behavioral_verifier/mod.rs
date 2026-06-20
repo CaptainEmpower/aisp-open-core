@@ -9,7 +9,7 @@
 //! - `testing`: Property-based testing and validation components
 
 use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *,
+    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
 };
 use crate::error::AispResult;
 
@@ -328,7 +328,7 @@ impl Default for BehavioralVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::canonical::{DocumentHeader, DocumentMetadata};
+    use crate::ast::canonical::{DocumentHeader, DocumentMetadata, FunctionsBlock, Span};
 
     #[test]
     fn test_behavioral_verifier_creation() {

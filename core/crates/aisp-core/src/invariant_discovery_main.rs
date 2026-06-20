@@ -4,10 +4,7 @@
 //! orchestrating the various components (analyzer, formulas, exporters).
 
 use crate::{
-    ast::canonical::{
-        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-        DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
-    },
+    ast::canonical::CanonicalAispDocument as AispDocument,
     error::AispResult,
     invariant_analyzer::InvariantAnalyzer,
     invariant_exporters,
@@ -148,7 +145,10 @@ impl Default for InvariantDiscovery {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use crate::ast::canonical::{
+        BasicType, CanonicalAispBlock as AispBlock, DocumentHeader, DocumentMetadata, Span,
+        TypeDefinition, TypeExpression, TypesBlock,
+    };
     use std::collections::HashMap;
 
     fn create_test_document() -> AispDocument {

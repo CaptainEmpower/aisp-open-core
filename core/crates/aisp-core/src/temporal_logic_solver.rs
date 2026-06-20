@@ -4,7 +4,6 @@
 //! and Computation Tree Logic (CTL) formulas, including satisfiability checking,
 //! formula evaluation, and constraint solving.
 
-use crate::ast::canonical::Span;
 use crate::error::*;
 use crate::temporal_operator_analyzer::{OperatorInstance, TemporalOperator};
 use crate::temporal_pattern_detector::{PatternType, TemporalPattern};
@@ -287,7 +286,6 @@ impl TemporalLogicSolver {
         let start_time = std::time::Instant::now();
         let mut analyzed_formulas = Vec::new();
         let mut warnings = Vec::new();
-        let mut dependencies = HashMap::new();
         let mut timeouts = 0;
 
         // Extract formulas from operators and patterns
@@ -356,7 +354,7 @@ impl TemporalLogicSolver {
         let overall_status = self.determine_overall_status(&analyzed_formulas);
 
         // Extract dependencies
-        dependencies = self.extract_formula_dependencies(&analyzed_formulas);
+        let dependencies = self.extract_formula_dependencies(&analyzed_formulas);
 
         let total_time = start_time.elapsed().as_millis() as u64;
         let performance_summary = PerformanceSummary {
@@ -432,12 +430,10 @@ impl TemporalLogicSolver {
     /// Solve a single temporal logic formula
     fn solve_single_formula(&mut self, formula: &AnalyzedFormula) -> AispResult<SolverResult> {
         let start_time = std::time::Instant::now();
-        let mut states_explored = 0;
-        let mut transitions_evaluated = 0;
 
         // Build state space for the formula
         let state_space = self.build_state_space(&formula.formula)?;
-        states_explored = state_space.states.len();
+        let states_explored = state_space.states.len();
 
         // Perform satisfiability checking based on formula type
         let (satisfiable, witness, counterexample) = match formula.formula_type {
@@ -452,7 +448,7 @@ impl TemporalLogicSolver {
             }
         };
 
-        transitions_evaluated = state_space.transitions.len();
+        let transitions_evaluated = state_space.transitions.len();
         let solving_time = start_time.elapsed().as_millis() as u64;
 
         // Simplify formula if enabled
@@ -747,6 +743,7 @@ impl SolverResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::canonical::Span;
     use crate::temporal_operator_analyzer::OperatorContext;
 
     // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.

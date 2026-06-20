@@ -5,9 +5,11 @@
 use super::types::*;
 use crate::{
     error::AispResult,
-    pocket_architecture::content_hash,
     pocket_architecture::{ContentHash, InteractionResult},
 };
+// Used only by tests (as `content_hash::from_u64`); gated to avoid a lib-build warning.
+#[cfg(test)]
+use crate::pocket_architecture::content_hash;
 use std::collections::HashMap;
 
 /// F₇: Enhanced Hebbian Learning System

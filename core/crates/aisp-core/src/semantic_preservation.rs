@@ -25,7 +25,6 @@ use crate::{
     formal_semantics::*,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 /// Semantic preservation verification result
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -645,6 +644,7 @@ through carefully verified transformation rules. □
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashSet;
 
     #[test]
     fn test_preservation_verification() {

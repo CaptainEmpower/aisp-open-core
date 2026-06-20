@@ -6,7 +6,6 @@ use super::types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    protocol_state_machine::ProtocolStateMachine,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
@@ -699,6 +698,7 @@ impl Default for AnalysisConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::protocol_state_machine::ProtocolStateMachine;
 
     #[test]
     fn test_analyzer_creation() {

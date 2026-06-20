@@ -30,8 +30,11 @@ pub use types::*;
 
 use crate::{
     error::{AispError, AispResult},
-    pocket_architecture::{content_hash, ContentHash, InteractionResult},
+    pocket_architecture::{ContentHash, InteractionResult},
 };
+// Used only by tests (as `content_hash::from_u64`); gated to avoid a lib-build warning.
+#[cfg(test)]
+use crate::pocket_architecture::content_hash;
 use std::collections::HashMap;
 use std::time::Instant;
 

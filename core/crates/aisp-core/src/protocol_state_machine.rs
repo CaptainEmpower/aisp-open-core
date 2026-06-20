@@ -4,10 +4,7 @@
 //! including state transition validation, reachability analysis, and behavioral property verification.
 
 use crate::{
-    ast::canonical::{
-        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-        DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
-    },
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument},
     error::AispResult,
     formal_verification::verifier::FormalVerifier,
     property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
@@ -15,6 +12,13 @@ use crate::{
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
+
+// Canonical document-construction types used only by tests (the inline `#[test]`
+// functions and `mod tests`); gated to avoid lib-build unused-import warnings.
+#[cfg(test)]
+use crate::ast::canonical::{
+    BasicType, DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
+};
 
 /// Comprehensive state machine analysis result
 #[derive(Debug, Clone)]

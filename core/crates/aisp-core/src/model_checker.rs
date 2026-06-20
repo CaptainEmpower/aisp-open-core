@@ -6,7 +6,7 @@
 use crate::ast::canonical::*;
 use crate::error::*;
 use std::collections::{HashMap, HashSet};
-use std::hash::{Hash, Hasher};
+use std::hash::Hash;
 use std::time::{Duration, Instant};
 
 /// Model checker for temporal logic properties

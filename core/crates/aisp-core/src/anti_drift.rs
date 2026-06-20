@@ -508,13 +508,8 @@ impl AntiDriftValidator {
         for block in &document.blocks {
             match block {
                 AispBlock::Functions(functions_block) => {
-                    let mut complexity_sum = 0.0;
-                    let mut function_count = 0;
-
                     for (i, function) in functions_block.functions.iter().enumerate() {
                         let complexity = self.calculate_function_complexity(function);
-                        complexity_sum += complexity;
-                        function_count += 1;
 
                         // Detect overly complex or overly simple functions
                         if complexity > 0.8 {

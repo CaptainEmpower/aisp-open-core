@@ -60,7 +60,6 @@ impl TypeSystemAnalyzer {
     /// Analyze document for comprehensive type information
     pub fn analyze_document(&mut self, document: &AispDocument) -> AispResult<TypeAnalysisResult> {
         let mut type_violations = Vec::new();
-        let mut type_recommendations = Vec::new();
         let mut safety_score: f64 = 1.0;
 
         // Analyze each block for type information
@@ -104,7 +103,7 @@ impl TypeSystemAnalyzer {
         }
 
         // Generate type safety recommendations
-        type_recommendations = self.generate_type_recommendations(&type_violations);
+        let type_recommendations = self.generate_type_recommendations(&type_violations);
 
         let type_safety_score = safety_score.clamp(0.0, 1.0);
 

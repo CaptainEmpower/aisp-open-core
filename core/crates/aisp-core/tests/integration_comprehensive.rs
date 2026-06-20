@@ -36,8 +36,8 @@ fn test_validator_instantiation() {
     // Test configuration creation
     let config = ValidationConfig::default();
     assert!(
-        !config.strict_mode || config.strict_mode,
-        "Config should be valid boolean"
+        !config.strict_mode,
+        "Default config should not be in strict mode"
     );
 
     println!("✓ Validator instantiation successful");
