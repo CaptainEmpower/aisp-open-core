@@ -151,8 +151,7 @@ pub enum TrendDirection {
 }
 
 /// Severity distribution of breaches
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct SeverityDistribution {
     /// Minor breaches count
     pub minor_breaches: usize,
@@ -312,7 +311,6 @@ impl Default for TimePeriod {
         }
     }
 }
-
 
 impl Default for BreachAnalysis {
     fn default() -> Self {

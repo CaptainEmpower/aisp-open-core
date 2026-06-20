@@ -526,7 +526,6 @@ mod tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    
 
     // Inline test utility - replaced test_fixtures
     fn create_minimal_valid_document() -> AispDocument {

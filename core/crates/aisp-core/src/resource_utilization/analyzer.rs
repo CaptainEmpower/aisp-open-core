@@ -3,10 +3,7 @@
 //! Core analyzer implementation for resource utilization analysis.
 
 use super::types::*;
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::AispResult,
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 

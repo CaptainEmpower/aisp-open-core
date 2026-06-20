@@ -165,9 +165,11 @@ impl VectorSpaceVerifier {
         let _v_l = VectorSpace::new("V_L (learning vectors)".to_string(), 512);
 
         // Check the fundamental mathematical error
-        let _zero_vector_locations = ["V_H contains zero vector (768 dimensions)".to_string(),
+        let _zero_vector_locations = [
+            "V_H contains zero vector (768 dimensions)".to_string(),
             "V_S contains zero vector (256 dimensions)".to_string(),
-            "V_L contains zero vector (512 dimensions)".to_string()];
+            "V_L contains zero vector (512 dimensions)".to_string(),
+        ];
 
         // The claim V_H ∩ V_S ≡ ∅ is false because both contain zero vectors
         let _intersection_is_empty = false;
@@ -195,7 +197,8 @@ impl VectorSpaceVerifier {
         };
 
         // Provide mathematical proof of the contradiction
-        let mathematical_proof = Some("Proof that V_H ∩ V_S ≠ ∅:\n\
+        let mathematical_proof = Some(
+            "Proof that V_H ∩ V_S ≠ ∅:\n\
              1. V_H = ℝ^768 contains zero vector 0⃗_768 = (0,0,...,0) ∈ ℝ^768\n\
              2. V_S = ℝ^256 contains zero vector 0⃗_256 = (0,0,...,0) ∈ ℝ^256\n\
              3. When embedded in common space ℝ^max(768,256) = ℝ^768:\n\
@@ -203,7 +206,9 @@ impl VectorSpaceVerifier {
                 - 0⃗_768 ∈ embedded(V_S) (with padding)\n\
              4. Therefore 0⃗_768 ∈ V_H ∩ embedded(V_S)\n\
              5. Since {0⃗_768} ⊆ V_H ∩ embedded(V_S), we have V_H ∩ V_S ≢ ∅\n\
-             QED: The claim V_H ∩ V_S ≡ ∅ is mathematically false.".to_string());
+             QED: The claim V_H ∩ V_S ≡ ∅ is mathematically false."
+                .to_string(),
+        );
 
         // Provide counterexample
         let counterexample = Some(

@@ -196,7 +196,8 @@ impl<'a> TriVectorVerifier<'a> {
                                 (= (dot_product x y) zero))))\n\
              \n\
              ;; Check satisfiability (should be SAT if orthogonal)\n\
-             (check-sat)".to_string();
+             (check-sat)"
+            .to_string();
 
         let result = self
             .z3_verifier
@@ -318,7 +319,6 @@ mod tests {
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
     use crate::z3_verification::Z3VerificationFacade;
-    
 
     fn create_test_document() -> AispDocument {
         AispDocument {

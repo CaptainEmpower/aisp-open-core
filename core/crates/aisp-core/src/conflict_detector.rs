@@ -215,8 +215,6 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        
-
         // Simplified implementation - production would do deeper analysis
         // This would involve:
         // 1. Pairwise constraint contradiction checking
@@ -233,8 +231,6 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        
-
         // Simplified implementation - production would do type inference
         // This would involve:
         // 1. Type inference for all constraint variables
@@ -326,7 +322,6 @@ impl Default for ConflictDetector {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_conflict_detector_creation() {

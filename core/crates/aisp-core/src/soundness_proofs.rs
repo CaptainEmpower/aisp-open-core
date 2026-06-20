@@ -21,11 +21,7 @@
 //!
 //! Each phase includes invariant preservation proofs and compositional reasoning.
 
-use crate::{
-    ast::*,
-    error::AispResult,
-    formal_semantics::*,
-};
+use crate::{ast::*, error::AispResult, formal_semantics::*};
 use serde::{Deserialize, Serialize};
 
 /// Soundness proof state for tracking validation correctness
@@ -518,7 +514,6 @@ impl SoundnessVerifier for ReferenceSoundnessVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_soundness_proof_generation() {

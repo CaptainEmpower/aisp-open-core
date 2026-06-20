@@ -260,7 +260,6 @@ impl Default for PipelineOrchestrator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     fn create_test_document() -> AispDocument {
         crate::ast::canonical::create_document("test_doc", "5.1", "2026-01-27")

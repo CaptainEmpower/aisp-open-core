@@ -1093,9 +1093,11 @@ mod tests {
 
     #[test]
     fn test_proof_method_classification() {
-        let methods = [ProofMethod::DirectProof,
+        let methods = [
+            ProofMethod::DirectProof,
             ProofMethod::ProofByContradiction,
-            ProofMethod::ProofByInduction];
+            ProofMethod::ProofByInduction,
+        ];
         assert_eq!(methods.len(), 3);
     }
 

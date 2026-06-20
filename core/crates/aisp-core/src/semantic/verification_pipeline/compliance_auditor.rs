@@ -125,11 +125,11 @@ impl ComplianceAuditor {
 
         // Streamline audit checklist
         auditor.audit_checklist.retain(|checkpoint| {
-                matches!(
-                    checkpoint.checkpoint_id.as_str(),
-                    "PARSE_SECURITY" | "TYPE_SAFETY" | "ADVERSARIAL_RESISTANCE"
-                )
-            });
+            matches!(
+                checkpoint.checkpoint_id.as_str(),
+                "PARSE_SECURITY" | "TYPE_SAFETY" | "ADVERSARIAL_RESISTANCE"
+            )
+        });
 
         auditor
     }

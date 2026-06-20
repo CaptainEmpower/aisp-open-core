@@ -117,7 +117,6 @@ impl Tier {
     }
 }
 
-
 impl core::fmt::Display for Tier {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{} {}", self.symbol(), self.name())

@@ -205,9 +205,7 @@ impl DeceptionDetector {
                 if self.matches_pattern(&block_str, &pattern.detection_regex) {
                     violations.push(format!(
                         "Placeholder detected ({}): {} - {}",
-                        pattern.risk_level,
-                        pattern.pattern_name,
-                        pattern.description
+                        pattern.risk_level, pattern.pattern_name, pattern.description
                     ));
                 }
             }

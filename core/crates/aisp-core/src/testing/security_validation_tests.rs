@@ -368,10 +368,12 @@ impl ParserSecurityTestSuite {
 
     /// Simulate injection attacks
     fn simulate_injection_attacks(&self) -> Vec<bool> {
-        let injection_payloads = ["Vision≜\"<script>alert('xss')</script>\"",
+        let injection_payloads = [
+            "Vision≜\"<script>alert('xss')</script>\"",
             "Vision≜\"'; DROP TABLE docs; --\"",
             "Vision≜\"$(rm -rf /)\"",
-            "Vision≜\"\\\"; system('malicious'); \\\"\""];
+            "Vision≜\"\\\"; system('malicious'); \\\"\"",
+        ];
 
         injection_payloads
             .iter()
@@ -540,16 +542,8 @@ impl std::fmt::Display for SecurityComplianceReport {
         writeln!(f, "=====================================")?;
         writeln!(f, "Timestamp: {}", self.timestamp)?;
         writeln!(f, "Compliance Status: {:?}", self.compliance_status)?;
-        writeln!(
-            f,
-            "Overall Score: {:.1}/100",
-            self.overall_compliance_score
-        )?;
-        writeln!(
-            f,
-            "Parser Security: {:.1}/100",
-            self.parser_security_score
-        )?;
+        writeln!(f, "Overall Score: {:.1}/100", self.overall_compliance_score)?;
+        writeln!(f, "Parser Security: {:.1}/100", self.parser_security_score)?;
         writeln!(
             f,
             "Adversarial Resistance: {:.1}/100",

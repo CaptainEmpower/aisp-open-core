@@ -28,13 +28,8 @@
 
 use crate::ast::canonical::CanonicalAispDocument as AispDocument;
 use crate::error::AispResult;
-use crate::semantic::behavioral_verifier::{
-    BehavioralVerificationResult, BehavioralVerifier,
-};
-use crate::semantic::deep_verifier::{
-    DeepSemanticVerifier, DeepVerificationResult,
-    ThreatLevel,
-};
+use crate::semantic::behavioral_verifier::{BehavioralVerificationResult, BehavioralVerifier};
+use crate::semantic::deep_verifier::{DeepSemanticVerifier, DeepVerificationResult, ThreatLevel};
 use std::collections::HashMap;
 use std::fmt;
 use std::time::Instant;
@@ -225,8 +220,7 @@ mod validation_types {
         pub vulnerability_type: String,
         pub validated_by: Vec<VerificationLayer>,
     }
-    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-    #[derive(Default)]
+    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
     pub struct ComplianceVerification {
         pub compliant: bool,
         pub verified_requirements: Vec<String>,
@@ -285,8 +279,6 @@ mod validation_types {
             }
         }
     }
-
-    
 
     impl Default for CrossValidationResult {
         fn default() -> Self {
@@ -2200,7 +2192,6 @@ impl fmt::Display for CrossValidationResult {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    
 
     #[test]
     fn test_cross_validation_checker_creation() {

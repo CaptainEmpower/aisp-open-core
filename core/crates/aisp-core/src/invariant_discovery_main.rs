@@ -148,7 +148,7 @@ impl Default for InvariantDiscovery {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     use std::collections::HashMap;
 
     fn create_test_document() -> AispDocument {

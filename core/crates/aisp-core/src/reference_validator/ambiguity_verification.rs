@@ -236,7 +236,6 @@ pub fn generate_ambiguity_test_cases() -> Vec<(f64, f64, bool)> {
 mod tests {
     use super::*;
     use crate::z3_verification::Z3VerificationFacade;
-    
 
     fn create_test_semantic_result(ambiguity: f64, coherence: f64) -> DeepVerificationResult {
         let mut result = DeepVerificationResult::test_default();

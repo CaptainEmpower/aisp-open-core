@@ -197,12 +197,7 @@ impl AispValidator {
             };
 
         // Merge warnings from semantic analysis
-        all_warnings.extend(
-            analysis
-                .warnings()
-                .into_iter()
-                .map(AispWarning::warning),
-        );
+        all_warnings.extend(analysis.warnings().into_iter().map(AispWarning::warning));
 
         // Apply strict mode checks
         if self.config.strict_mode {

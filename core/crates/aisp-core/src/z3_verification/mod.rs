@@ -79,7 +79,6 @@ mod tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    
 
     fn create_minimal_document() -> AispDocument {
         AispDocument {

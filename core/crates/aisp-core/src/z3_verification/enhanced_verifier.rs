@@ -9,7 +9,6 @@ use crate::{
 };
 use std::time::Instant;
 
-
 /// Enhanced Z3 verifier with advanced AISP-specific capabilities
 pub struct EnhancedZ3Verifier {
     /// AISP type environment

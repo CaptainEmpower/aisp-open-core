@@ -3,8 +3,7 @@
 //! Focused module for QoS metrics and service quality analysis.
 
 /// Quality of Service analysis
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct QoSAnalysis {
     /// Service availability metrics
     pub availability: AvailabilityMetrics,
@@ -167,7 +166,6 @@ pub enum AlertLevel {
     /// Critical alert
     Critical,
 }
-
 
 impl Default for AvailabilityMetrics {
     fn default() -> Self {

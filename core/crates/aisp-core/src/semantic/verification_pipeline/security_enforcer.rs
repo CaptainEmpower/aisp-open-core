@@ -199,7 +199,9 @@ impl SecurityEnforcer {
         }
 
         // Validate compliance level
-        if results.security_assessment.compliance_level == crate::semantic::behavioral_verifier::ComplianceLevel::NonCompliant {
+        if results.security_assessment.compliance_level
+            == crate::semantic::behavioral_verifier::ComplianceLevel::NonCompliant
+        {
             return self.handle_security_violation(
                 SecurityViolationType::ComplianceViolation,
                 "Behavioral verification compliance failure",

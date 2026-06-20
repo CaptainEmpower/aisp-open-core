@@ -2,10 +2,7 @@
 //!
 //! Specialized verification engine for temporal logic properties in AISP documents.
 
-use crate::{
-    error::AispResult,
-    property_types::*,
-};
+use crate::{error::AispResult, property_types::*};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 

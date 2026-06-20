@@ -48,12 +48,8 @@ impl DensityMetrics {
         let assignments = source.matches('≔').count() as u16;
         let quantifiers = source.matches(['∀', '∃']).count() as u16;
         let lambdas = source.matches('λ').count() as u16;
-        let implications = source
-            .matches(['⇒', '⇔', '→', '↔'])
-            .count() as u16;
-        let set_ops = source
-            .matches(['∈', '⊆', '∩', '∪', '∅'])
-            .count() as u16;
+        let implications = source.matches(['⇒', '⇔', '→', '↔']).count() as u16;
+        let set_ops = source.matches(['∈', '⊆', '∩', '∪', '∅']).count() as u16;
 
         Self {
             blocks_found,

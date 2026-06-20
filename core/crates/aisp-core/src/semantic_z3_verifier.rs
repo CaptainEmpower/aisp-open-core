@@ -423,7 +423,8 @@ impl SemanticZ3Verifier {
              \n\
              ;; Check satisfiability\n\
              (check-sat)\n\
-             (get-model)".to_string()
+             (get-model)"
+            .to_string()
     }
 
     /// Generate Z3 formula for semantic verification
@@ -444,12 +445,14 @@ impl SemanticZ3Verifier {
                  (assert (not (and (= v2_x 0) (= v2_y 0))))\n\
                  \n\
                  (check-sat)\n\
-                 (get-model)".to_string()
+                 (get-model)"
+                .to_string()
         } else {
             ";; Generic semantic verification\n\
                  (declare-const claim_valid Bool)\n\
                  (assert claim_valid)\n\
-                 (check-sat)".to_string()
+                 (check-sat)"
+                .to_string()
         }
     }
 

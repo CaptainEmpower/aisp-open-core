@@ -12,8 +12,7 @@ use std::time::Duration;
 /// - Each strategy defines deterministic execution ordering
 /// - Adaptive strategies maintain performance > Sequential baseline
 /// - Priority-based ensures critical verifications execute first
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum ExecutionStrategy {
     Sequential,
     Parallel,
@@ -23,8 +22,7 @@ pub enum ExecutionStrategy {
 }
 
 /// Failure handling strategies for verification pipeline
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum FailureHandlingStrategy {
     FailFast,
     #[default]
@@ -140,8 +138,6 @@ pub struct ResourceManager {
     pub resource_pools: HashMap<String, usize>,
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -168,9 +164,11 @@ mod tests {
 
     #[test]
     fn test_security_violation_types() {
-        let violations = [SecurityViolationType::UnauthorizedAccess,
+        let violations = [
+            SecurityViolationType::UnauthorizedAccess,
             SecurityViolationType::DataLeakage,
-            SecurityViolationType::IntegrityBreach];
+            SecurityViolationType::IntegrityBreach,
+        ];
         assert_eq!(violations.len(), 3);
     }
 

@@ -21,9 +21,10 @@ fn test_enumeration_parsing_fix() {
     let result1 = validator.validate(doc_spaces);
     // Should not fail with parsing error
     assert!(
-        !result1.error.as_ref().map_or(false, |e| e
-            .to_string()
-            .contains("Expected ',' or '}' in enumeration")),
+        !result1
+            .error
+            .as_ref()
+            .is_some_and(|e| e.to_string().contains("Expected ',' or '}' in enumeration")),
         "Space-separated enumerations should parse without comma errors"
     );
 
@@ -38,9 +39,10 @@ fn test_enumeration_parsing_fix() {
     let result2 = validator.validate(doc_commas);
     // Should not fail with parsing error
     assert!(
-        !result2.error.as_ref().map_or(false, |e| e
-            .to_string()
-            .contains("Expected ',' or '}' in enumeration")),
+        !result2
+            .error
+            .as_ref()
+            .is_some_and(|e| e.to_string().contains("Expected ',' or '}' in enumeration")),
         "Comma-separated enumerations should still parse correctly"
     );
 }

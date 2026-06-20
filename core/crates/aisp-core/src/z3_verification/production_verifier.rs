@@ -5,8 +5,7 @@
 
 use super::canonical_types::*;
 use crate::{
-    ast::canonical::CanonicalAispDocument,
-    error::AispResult,
+    ast::canonical::CanonicalAispDocument, error::AispResult,
     tri_vector_validation::TriVectorValidationResult,
 };
 use std::collections::HashMap;
@@ -447,7 +446,9 @@ impl ProductionZ3Verifier {
         _document: &CanonicalAispDocument,
     ) -> AispResult<String> {
         // Generate SMT-LIB formula for document structure validity
-        let formula = "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))".to_string();
+        let formula =
+            "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))"
+                .to_string();
         Ok(formula)
     }
 

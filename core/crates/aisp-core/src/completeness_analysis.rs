@@ -20,10 +20,7 @@
 //! - **Undecidable Fragments**: Inherent theoretical limitations
 //! - **Approximation Quality**: Bounds on false negatives
 
-use crate::{
-    error::AispResult,
-    formal_semantics::*,
-};
+use crate::{error::AispResult, formal_semantics::*};
 use serde::{Deserialize, Serialize};
 
 /// Completeness analysis result characterizing validator capabilities
@@ -612,7 +609,6 @@ impl CompletenessAnalyzer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_completeness_analysis() {

@@ -168,7 +168,8 @@ impl<'a> PipelineVerifier<'a> {
              (assert (= steps 20.0))\n\
              (assert (> improvement_factor 97.0))\n\
              \n\
-             (check-sat)".to_string();
+             (check-sat)"
+            .to_string();
 
         let exponential_verified = self
             .z3_verifier
@@ -202,7 +203,6 @@ impl<'a> PipelineVerifier<'a> {
 
 /// Utility functions for pipeline verification
 pub mod utils {
-    
 
     /// Calculate expected success rate for prose pipeline
     pub fn calculate_prose_success_rate(steps: u32) -> f64 {

@@ -7,8 +7,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Comprehensive concurrent behavior analysis result
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ConcurrentBehaviorAnalysis {
     /// Identified concurrent processes
     pub concurrent_processes: Vec<ConcurrentProcess>,
@@ -428,7 +427,6 @@ pub struct ResourceContentionAnalysis {
     /// Mitigation recommendations
     pub mitigations: Vec<String>,
 }
-
 
 // Continued type definitions for remaining structs...
 #[derive(Debug, Clone)]

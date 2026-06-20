@@ -956,9 +956,11 @@ mod tests {
 
     #[test]
     fn test_complexity_functions() {
-        let functions = [ComplexityFunction::Constant,
+        let functions = [
+            ComplexityFunction::Constant,
             ComplexityFunction::Linear,
-            ComplexityFunction::Quadratic];
+            ComplexityFunction::Quadratic,
+        ];
 
         assert_eq!(functions.len(), 3);
         assert!(matches!(functions[0], ComplexityFunction::Constant));

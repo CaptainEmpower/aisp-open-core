@@ -2,10 +2,8 @@
 //!
 //! Focused module for throughput-related performance metrics and analysis.
 
-
 /// Throughput analysis results
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ThroughputAnalysis {
     /// Current throughput
     pub current_throughput: ThroughputMetrics,
@@ -144,7 +142,6 @@ pub enum BottleneckType {
     /// Configuration bottleneck
     Configuration,
 }
-
 
 impl Default for ThroughputMetrics {
     fn default() -> Self {

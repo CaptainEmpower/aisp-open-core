@@ -263,11 +263,13 @@ mod tests {
 
     #[test]
     fn test_resource_type_variants() {
-        let resources = [ResourceType::Memory,
+        let resources = [
+            ResourceType::Memory,
             ResourceType::CPU,
             ResourceType::NetworkBandwidth,
             ResourceType::DiskIO,
-            ResourceType::Custom("TestResource".to_string())];
+            ResourceType::Custom("TestResource".to_string()),
+        ];
 
         assert_eq!(resources.len(), 5);
         assert_eq!(resources[0], ResourceType::Memory);
@@ -297,11 +299,13 @@ mod tests {
 
     #[test]
     fn test_utilization_trend_variants() {
-        let trends = [UtilizationTrend::Increasing(0.1),
+        let trends = [
+            UtilizationTrend::Increasing(0.1),
             UtilizationTrend::Decreasing(0.05),
             UtilizationTrend::Stable(0.02),
             UtilizationTrend::Volatile(0.5),
-            UtilizationTrend::Cyclical(Duration::from_secs(3600))];
+            UtilizationTrend::Cyclical(Duration::from_secs(3600)),
+        ];
 
         assert_eq!(trends.len(), 5);
         assert!(matches!(trends[0], UtilizationTrend::Increasing(_)));

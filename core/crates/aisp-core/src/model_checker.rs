@@ -581,10 +581,11 @@ impl ModelChecker {
 
             for (state_id, transitions) in &self.state_space.transitions {
                 if !current.contains(state_id)
-                    && transitions.iter().any(|t| current.contains(&t.to)) {
-                        new_states.insert(*state_id);
-                        changed = true;
-                    }
+                    && transitions.iter().any(|t| current.contains(&t.to))
+                {
+                    new_states.insert(*state_id);
+                    changed = true;
+                }
             }
 
             current = new_states;
@@ -606,11 +607,13 @@ impl ModelChecker {
             let mut new_states = current.clone();
 
             for (state_id, transitions) in &self.state_space.transitions {
-                if !current.contains(state_id) && !transitions.is_empty()
-                    && transitions.iter().all(|t| current.contains(&t.to)) {
-                        new_states.insert(*state_id);
-                        changed = true;
-                    }
+                if !current.contains(state_id)
+                    && !transitions.is_empty()
+                    && transitions.iter().all(|t| current.contains(&t.to))
+                {
+                    new_states.insert(*state_id);
+                    changed = true;
+                }
             }
 
             current = new_states;

@@ -572,13 +572,7 @@ impl LogicalStructure {
 
         self.cartesian_power(&domain_vec, var_vec.len())
             .into_iter()
-            .map(|assignment_vec| {
-                var_vec
-                    .iter()
-                    .cloned()
-                    .zip(assignment_vec)
-                    .collect()
-            })
+            .map(|assignment_vec| var_vec.iter().cloned().zip(assignment_vec).collect())
             .collect()
     }
 

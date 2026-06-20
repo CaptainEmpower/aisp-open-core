@@ -8,10 +8,7 @@ use super::{
     resources::ResourceBoundAnalysis, sla::SLACompliance, throughput::ThroughputAnalysis,
     timing::TimingConstraintAnalysis, types::*,
 };
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::AispResult,
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 use std::time::Instant;
 
 /// Performance constraint verifier

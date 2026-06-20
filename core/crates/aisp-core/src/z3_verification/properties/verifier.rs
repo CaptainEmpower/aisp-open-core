@@ -3,10 +3,7 @@
 //! Main verification engine for AISP properties using Z3 SMT solver.
 
 use super::types::*;
-use crate::{
-    error::AispResult,
-    tri_vector_validation::*,
-};
+use crate::{error::AispResult, tri_vector_validation::*};
 use std::collections::HashMap;
 use std::time::Instant;
 

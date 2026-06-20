@@ -748,7 +748,6 @@ impl HebbianValidator {
 mod tests {
     use super::*;
     use crate::ast::canonical::{DocumentHeader, DocumentMetadata, Span};
-    
 
     fn create_test_document() -> AispDocument {
         AispDocument {

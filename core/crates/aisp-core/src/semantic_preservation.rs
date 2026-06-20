@@ -645,7 +645,6 @@ through carefully verified transformation rules. □
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_preservation_verification() {

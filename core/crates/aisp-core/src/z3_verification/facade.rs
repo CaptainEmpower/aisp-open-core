@@ -6,9 +6,7 @@
 use super::canonical_types::*;
 use super::smt_interface::SmtInterface;
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::*,
-    tri_vector_validation::*,
+    ast::canonical::CanonicalAispDocument as AispDocument, error::*, tri_vector_validation::*,
 };
 use std::collections::HashMap;
 use std::time::{Duration, SystemTime};

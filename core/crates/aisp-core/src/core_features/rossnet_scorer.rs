@@ -3,10 +3,7 @@
 //! Implements the RossNet scoring algorithm: μ_f≜σ(θ·sim+fit+aff)
 
 use super::types::*;
-use crate::{
-    error::AispResult,
-    pocket_architecture::ContentHash,
-};
+use crate::{error::AispResult, pocket_architecture::ContentHash};
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -304,7 +301,7 @@ impl RossNetScorer {
     /// Calculate confidence level
     fn calculate_confidence_level(&self, components: &HashMap<String, f64>) -> f64 {
         let variance = self.calculate_component_variance(components);
-        
+
         (1.0 / (1.0 + variance)).clamp(0.1, 1.0)
     }
 

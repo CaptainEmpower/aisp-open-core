@@ -5,8 +5,8 @@
 
 use crate::ast::canonical::{
     CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, DocumentHeader,
-    DocumentMetadata, EvidenceBlock, FunctionDefinition, FunctionsBlock, MetaBlock, MetaEntry, RulesBlock, TypeDefinition,
-    TypesBlock,
+    DocumentMetadata, EvidenceBlock, FunctionDefinition, FunctionsBlock, MetaBlock, MetaEntry,
+    RulesBlock, TypeDefinition, TypesBlock,
 };
 use crate::error::{AispError, AispResult};
 use pest::Parser;
@@ -479,7 +479,6 @@ pub struct RobustAispParser {
     config: RobustParserConfig,
 }
 
-
 impl RobustAispParser {
     pub fn new() -> Self {
         Self::default()
@@ -813,8 +812,7 @@ impl RobustAispParser {
                     let evidence_text = evidence.as_str().to_string();
                     raw_evidence.push(evidence_text.clone());
 
-                    if let Some(entry) =
-                        EvidenceContentParser::parse_evidence_entry(&evidence_text)
+                    if let Some(entry) = EvidenceContentParser::parse_evidence_entry(&evidence_text)
                     {
                         match entry {
                             super::content::evidence_content::EvidenceEntry::Delta(d) => {

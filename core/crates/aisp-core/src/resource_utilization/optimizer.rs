@@ -576,7 +576,8 @@ mod tests {
         };
 
         // Add some test recommendations
-        let recommendations = [OptimizationRecommendation {
+        let recommendations = [
+            OptimizationRecommendation {
                 resource_type: ResourceType::Memory,
                 optimization_type: OptimizationType::Caching,
                 estimated_improvement: 0.2,
@@ -591,7 +592,8 @@ mod tests {
                 difficulty: ImplementationDifficulty::Hard,
                 description: "Test recommendation 2".to_string(),
                 priority: RecommendationPriority::Medium,
-            }];
+            },
+        ];
 
         plan.resource_optimizations
             .insert(ResourceType::Memory, vec![recommendations[0].clone()]);

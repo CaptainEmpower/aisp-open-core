@@ -5,7 +5,8 @@
 
 use crate::{
     ast::canonical::{
-        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, TypeExpression,
+        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
+        TypeExpression,
     },
     error::AispResult,
     invariant_types::{

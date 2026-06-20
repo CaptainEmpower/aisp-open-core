@@ -324,7 +324,8 @@ impl<'a> FeatureVerifier<'a> {
              (assert (= (dim V_S) 256))\n\
              (assert (= (dim Signal) (+ (+ (dim V_H) (dim V_L)) (dim V_S))))\n\
              \n\
-             (check-sat)".to_string()
+             (check-sat)"
+            .to_string()
     }
 
     fn generate_ambiguity_smt_formula(&self) -> String {
@@ -345,7 +346,8 @@ impl<'a> FeatureVerifier<'a> {
              (assert (>= (- 1.0 ambiguity) 0.98))\n\
              (assert (< ambiguity 0.02))\n\
              \n\
-             (check-sat)".to_string()
+             (check-sat)"
+            .to_string()
     }
 
     fn generate_ghost_intent_smt_formula(&self) -> String {
@@ -368,7 +370,8 @@ impl<'a> FeatureVerifier<'a> {
              (assert (>= (intent_size psi_ghost) 0))\n\
              (assert (<= (intent_size psi_ghost) (intent_size psi_target)))\n\
              \n\
-             (check-sat)".to_string()
+             (check-sat)"
+            .to_string()
     }
 
     // Analysis functions

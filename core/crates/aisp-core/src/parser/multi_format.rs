@@ -134,7 +134,6 @@ impl MultiFormatParser {
         }
 
         // Phase 2: Format-specific parsing
-        
 
         match analysis.format {
             DocumentFormat::PureAisp => self.parse_pure_aisp(content, detection_time_us),
@@ -151,7 +150,11 @@ impl MultiFormatParser {
     }
 
     /// Parse pure AISP document using existing parser
-    fn parse_pure_aisp(&self, content: &str, _detection_time_us: u64) -> AispResult<ParsedDocument> {
+    fn parse_pure_aisp(
+        &self,
+        content: &str,
+        _detection_time_us: u64,
+    ) -> AispResult<ParsedDocument> {
         let parsing_start = std::time::Instant::now();
 
         let parser = RobustAispParser::new();
