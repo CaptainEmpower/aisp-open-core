@@ -315,7 +315,8 @@ impl SmtInterface {
                         if let (Some(lhs), Ok(rhs_val)) =
                             (constants.get(parts[1]), parts[2].parse::<f64>())
                         {
-                            let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
+                            let rhs =
+                                ast::Real::from_rational((rhs_val * 1000000.0) as i64, 1000000);
                             return Ok(lhs.lt(&rhs));
                         }
                     }
@@ -323,7 +324,8 @@ impl SmtInterface {
                         if let (Some(lhs), Ok(rhs_val)) =
                             (constants.get(parts[1]), parts[2].parse::<f64>())
                         {
-                            let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
+                            let rhs =
+                                ast::Real::from_rational((rhs_val * 1000000.0) as i64, 1000000);
                             return Ok(lhs.gt(&rhs));
                         }
                     }

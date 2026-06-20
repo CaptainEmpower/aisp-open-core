@@ -34,3 +34,5 @@ assert_cmd.workspace = true
 predicates = "3.0"
 
 # Lint configuration handled in .cargo/config.toml
+[lints]
+workspace = true

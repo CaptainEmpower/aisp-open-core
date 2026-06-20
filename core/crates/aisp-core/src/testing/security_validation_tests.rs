@@ -472,8 +472,7 @@ impl Default for ParserSecurityTestSuite {
     }
 }
 
-// Add chrono for timestamp (conditional compilation)
-#[cfg(not(feature = "chrono"))]
+// Minimal local stand-in for chrono's timestamp API (no chrono dependency).
 mod chrono {
     pub struct Utc;
     impl Utc {
@@ -489,9 +488,6 @@ mod chrono {
         }
     }
 }
-
-#[cfg(feature = "chrono")]
-use chrono;
 
 impl std::fmt::Display for SecurityTestResults {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

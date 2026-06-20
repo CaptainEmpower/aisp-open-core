@@ -21,7 +21,12 @@ use std::time::{Duration, Instant};
 
 pub use ambiguity_verification::*;
 pub use feature_verification::*;
+// Both `pipeline_verification` and `trivector_verification` expose a `utils`
+// helper module; they are not meant to be reached via this aggregated re-export,
+// so the (harmless) glob collision on the `utils` name is allowed here.
+#[allow(ambiguous_glob_reexports)]
 pub use pipeline_verification::*;
+#[allow(ambiguous_glob_reexports)]
 pub use trivector_verification::*;
 
 /// Main reference.md validator that coordinates all verification modules

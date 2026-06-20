@@ -480,7 +480,7 @@ impl AttackExecutionEngine {
             .any(|r| r.attack_category == AttackCategory::UnicodeConfusion && r.success)
         {
             recommendations.push(SecurityRecommendation {
-                priority: RecommendationPriority::Short_term,
+                priority: RecommendationPriority::ShortTerm,
                 category: "Unicode Security".to_string(),
                 description: "Implement Unicode normalization and character validation".to_string(),
                 implementation_effort: ImplementationEffort::High,

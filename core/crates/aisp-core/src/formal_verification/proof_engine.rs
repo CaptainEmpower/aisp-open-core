@@ -854,7 +854,7 @@ impl AdvancedProofValidator {
                 review_requirements: ReviewRequirements {
                     reviewer_count: 2,
                     expertise_levels: vec![ExpertiseLevel::Advanced],
-                    timeline: Duration::from_days(7),
+                    timeline: Duration::from_secs(7 * 24 * 60 * 60),
                     consensus_threshold: 0.8,
                 },
                 documentation: DocumentationRequirements {
@@ -1019,17 +1019,6 @@ impl Default for ProofEngineConfig {
                 max_complexity: 100.0,
             },
         }
-    }
-}
-
-// Extension for Duration to support days
-trait DurationExt {
-    fn from_days(days: u64) -> Duration;
-}
-
-impl DurationExt for Duration {
-    fn from_days(days: u64) -> Duration {
-        Duration::from_secs(days * 24 * 60 * 60)
     }
 }
 
