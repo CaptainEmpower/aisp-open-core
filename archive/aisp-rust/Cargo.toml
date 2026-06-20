@@ -40,6 +40,3 @@ inherits = "release"
 opt-level = "z"
 strip = true
 panic = "abort"
-
-[lints]
-workspace = true
