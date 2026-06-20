@@ -336,7 +336,7 @@ impl Default for StateMachineConfig {
 }
 
 /// Main protocol state machine analyzer
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProtocolStateMachineAnalyzer {
     config: StateMachineConfig,
@@ -625,7 +625,7 @@ impl ProtocolStateMachineAnalyzer {
         &self,
         machines: &[ProtocolStateMachine],
     ) -> Vec<Vec<String>> {
-        // Simplified implementation - would use Tarjan's algorithm
+        // Simplified implementation - would use Tarjan's algorithm (tracked in #10)
         let mut components = Vec::new();
 
         for machine in machines {
@@ -883,7 +883,7 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
-    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    // TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
     #[allow(dead_code)]
     fn create_test_document() -> AispDocument {
         let mut types = HashMap::new();

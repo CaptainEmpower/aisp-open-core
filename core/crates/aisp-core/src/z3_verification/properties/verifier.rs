@@ -11,7 +11,7 @@ use std::time::Instant;
 use z3::*;
 
 /// Property verifier for AISP documents
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PropertyVerifier {
     /// Verification statistics
@@ -68,7 +68,7 @@ pub struct CacheStatistics {
 
 /// SMT formula verification engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SmtFormulaVerifier {
     /// Solver configuration
@@ -96,7 +96,7 @@ pub struct SolverConfiguration {
 
 /// Pool of SMT solvers
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SolverPool {
     /// Available solvers
@@ -175,7 +175,7 @@ pub struct PoolConfiguration {
 
 /// Load balancer for solver pool
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct LoadBalancer {
     /// Balancing strategy
@@ -188,7 +188,7 @@ pub struct LoadBalancer {
 
 /// Workload prediction engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct WorkloadPredictor {
     /// Historical workload data
@@ -234,7 +234,7 @@ pub struct PredictionAccuracy {
 
 /// Formula preprocessing engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct FormulaPreprocessor {
     /// Preprocessing rules
@@ -262,7 +262,7 @@ pub struct PreprocessingRule {
 
 /// Formula simplification engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct FormulaSimplifier {
     /// Simplification strategies
@@ -312,7 +312,7 @@ pub struct SimplificationMetrics {
 
 /// Formula optimization engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct FormulaOptimizer {
     /// Optimization passes
@@ -361,7 +361,7 @@ pub struct OptimizationMetrics {
 
 /// Cost-benefit analysis for optimizations
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct CostBenefitAnalyzer {
     /// Cost models
@@ -662,7 +662,7 @@ impl PropertyVerifier {
         let _solver = Solver::new();
 
         // For now, return a placeholder result due to Z3 API compatibility issues
-        // TODO: Implement proper Z3 verification once API is stable
+        // TODO(#12): Implement proper Z3 verification once API is stable
         Ok(PropertyResult::Unknown {
             reason: "Z3 verification not yet implemented".to_string(),
             partial_progress: 0.0,

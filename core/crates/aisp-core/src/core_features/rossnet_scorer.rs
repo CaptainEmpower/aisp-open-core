@@ -429,7 +429,7 @@ impl VectorSimilarityCalculator {
 impl SemanticSimilarityCalculator {
     /// Calculate semantic similarity
     pub fn calculate(&self, content_a: &ContentHash, content_b: &ContentHash) -> AispResult<f64> {
-        // Placeholder semantic similarity - in real implementation would use embeddings
+        // Placeholder semantic similarity - would use embeddings (tracked in #17)
         let hash_a = u64::from_le_bytes([
             content_a[0],
             content_a[1],

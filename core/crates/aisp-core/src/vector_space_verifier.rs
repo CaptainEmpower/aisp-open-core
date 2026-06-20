@@ -59,7 +59,7 @@ pub struct VectorSpaceInput {
 }
 
 /// Vector space verifier with proper mathematical handling
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct VectorSpaceVerifier {
     math_evaluator: MathEvaluator,
@@ -142,7 +142,7 @@ impl VectorSpace {
 
     /// Check if a vector is in this space
     pub fn contains_vector(&self, _vector: &Vector) -> bool {
-        // Simplified: for this demonstration, assume we can check membership
+        // Simplified: for this demonstration, assume we can check membership (tracked in #16)
         // In a full implementation, this would solve the linear system
         true
     }

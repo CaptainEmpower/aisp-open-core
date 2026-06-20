@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Deadlock analysis engine
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct DeadlockAnalyzer {
     /// Detection strategies
@@ -66,7 +66,7 @@ pub enum ComplexityClass {
 
 /// Resource graph construction engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ResourceGraphBuilder {
     /// Current graph
@@ -268,7 +268,7 @@ pub struct GraphBuilderConfig {
 
 /// Deadlock prevention analyzer
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PreventionAnalyzer {
     /// Prevention strategies
@@ -392,7 +392,7 @@ pub struct EffectivenessMetrics {
 
 /// Deadlock recovery analyzer
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct RecoveryAnalyzer {
     /// Recovery strategies
@@ -452,7 +452,7 @@ pub struct RecoveryCost {
 
 /// Recovery cost calculator
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct RecoveryCostCalculator {
     /// Cost models

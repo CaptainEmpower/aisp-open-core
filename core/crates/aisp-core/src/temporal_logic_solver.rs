@@ -746,7 +746,7 @@ mod tests {
     use crate::ast::canonical::Span;
     use crate::temporal_operator_analyzer::OperatorContext;
 
-    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    // TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
     #[allow(dead_code)]
     fn create_test_operator(op: TemporalOperator) -> OperatorInstance {
         OperatorInstance {

@@ -21,7 +21,7 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Complete compositional proof system for AISP layer integration
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct CompositionalProofChain {
     /// Layer 0 verifier
@@ -39,7 +39,7 @@ pub struct CompositionalProofChain {
 }
 
 /// Mathematical proof engine for formal verification
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProofEngine {
     /// Mathematical evaluator for calculations
@@ -55,7 +55,7 @@ pub struct ProofEngine {
 }
 
 /// Theorem database for foundational proofs
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TheoremDatabase {
     /// Layer 0 theorems (signal theory)
@@ -358,7 +358,7 @@ struct ProofKey {
 
 /// Cached proof result
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct CachedProof {
     verification_result: VerificationResult,
@@ -952,7 +952,7 @@ impl CompositionalProofChain {
             / properties.len() as f64
     }
 
-    // Placeholder implementations for proof certificate generation
+    // Placeholder implementations for proof certificate generation (tracked in #11)
     fn generate_stability_proof_certificate(
         &self,
         _result: &OrthogonalityResult,

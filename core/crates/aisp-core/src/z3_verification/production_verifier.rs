@@ -49,7 +49,7 @@ struct VerificationCache {
 
 /// Cached verification result
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct CachedResult {
     result: Z3PropertyResult,
@@ -624,7 +624,7 @@ impl ProductionZ3Verifier {
 
 /// Property information for verification
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct PropertyInfo {
     category: Z3PropertyCategory,

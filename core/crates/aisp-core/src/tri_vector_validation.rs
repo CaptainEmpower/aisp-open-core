@@ -248,7 +248,7 @@ pub enum TriVectorError {
 }
 
 /// Tri-vector validator
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TriVectorValidator {
     /// Z3 integration for formal verification
@@ -733,14 +733,14 @@ impl TriVectorValidator {
     fn verify_semantic_safety_isolation(&self, _signal: &TriVectorSignal) -> AispResult<bool> {
         // Mathematical verification that V_H ⊥ V_S implies
         // optimization in semantic space cannot affect safety constraints
-        Ok(true) // Placeholder - would use formal verification
+        Ok(true) // Placeholder - would use formal verification (tracked in #16)
     }
 
     /// Verify structural space doesn't affect safety
     fn verify_structural_safety_isolation(&self, _signal: &TriVectorSignal) -> AispResult<bool> {
         // Mathematical verification that V_L ⊥ V_S implies
         // structural modifications cannot affect safety constraints
-        Ok(true) // Placeholder - would use formal verification
+        Ok(true) // Placeholder - would use formal verification (tracked in #16)
     }
 
     /// Generate proof of safety isolation
@@ -869,7 +869,7 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{AispDocument, DocumentHeader, DocumentMetadata};
 
-    // TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+    // TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
     #[allow(dead_code)]
     fn create_test_document_with_trivector() -> AispDocument {
         // Create a test document with proper tri-vector definitions

@@ -24,7 +24,7 @@ use proptest::prelude::*;
 use std::time::Duration;
 
 /// Strategy for generating property types
-// TODO: not yet wired into a proptest (no property-type generation is exercised).
+// TODO(#18): not yet wired into a proptest (no property-type generation is exercised).
 #[allow(dead_code)]
 fn property_type_strategy() -> impl Strategy<Value = PropertyType> {
     prop_oneof![

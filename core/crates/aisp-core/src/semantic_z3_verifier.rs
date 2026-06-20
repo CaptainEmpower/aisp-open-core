@@ -104,7 +104,7 @@ pub struct VerificationMetrics {
 }
 
 /// Enhanced semantic Z3 verifier
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SemanticZ3Verifier {
     z3_facade: Z3VerificationFacade,

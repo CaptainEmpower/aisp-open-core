@@ -21,7 +21,7 @@ use std::{
 };
 
 /// Batch verification engine for processing multiple documents efficiently
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct BatchVerificationEngine {
     /// Worker thread pool for parallel processing
@@ -243,7 +243,7 @@ pub struct TimingBreakdown {
 }
 
 /// Worker pool for parallel processing
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct WorkerPool {
     workers: Vec<Worker>,
@@ -252,7 +252,7 @@ pub struct WorkerPool {
 }
 
 /// Individual worker for document processing
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct Worker {
     id: usize,
@@ -276,7 +276,7 @@ pub struct TaskResult {
 }
 
 /// Verification cache for storing results
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct VerificationCache {
     parsed_documents: HashMap<String, (AispDocument, Instant)>,

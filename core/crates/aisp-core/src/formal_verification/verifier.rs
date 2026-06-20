@@ -16,7 +16,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 /// Main formal verification engine
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct FormalVerifier {
     /// Verification configuration
@@ -33,7 +33,7 @@ pub struct FormalVerifier {
 
 /// Property verification engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PropertyVerifier {
     /// Verification strategies
@@ -118,7 +118,7 @@ pub enum ConditionPredicate {
 
 /// Strategy selection engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct StrategySelector {
     /// Selection criteria
@@ -153,7 +153,7 @@ pub enum CriterionEvaluator {
 
 /// Proof generation engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProofGenerator {
     /// Proof construction strategies
@@ -205,7 +205,7 @@ pub struct ComplexityBounds {
 
 /// Proof validation engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProofValidator {
     /// Validation rules
@@ -305,7 +305,7 @@ pub enum CompletenessAlgorithm {
 
 /// Proof optimization engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProofOptimizer {
     /// Optimization strategies

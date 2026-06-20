@@ -7,7 +7,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Temporal logic property verification engine
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TemporalPropertyVerifier {
     /// Temporal logic operators
@@ -105,7 +105,7 @@ pub enum TemporalDifficulty {
 
 /// Temporal model checker
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TemporalModelChecker {
     /// Model checking algorithm
@@ -137,7 +137,7 @@ pub enum ModelCheckingAlgorithm {
 
 /// State space representation
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct StateSpace {
     /// State variables
@@ -273,7 +273,7 @@ pub struct StateSpaceSize {
 
 /// Transition system definition
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TransitionSystem {
     /// System transitions
@@ -372,7 +372,7 @@ pub struct AlgorithmPerformance {
 
 /// Property synthesizer for automatic generation
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PropertySynthesizer {
     /// Synthesis templates
@@ -424,7 +424,7 @@ pub enum ParameterType {
 
 /// Database of temporal patterns
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PatternDatabase {
     /// Common patterns
@@ -516,7 +516,7 @@ pub struct SynthesisStatistics {
 
 /// Temporal verification cache
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct TemporalVerificationCache {
     /// Cached verification results

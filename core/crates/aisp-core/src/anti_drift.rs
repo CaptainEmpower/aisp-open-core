@@ -727,7 +727,7 @@ impl AntiDriftValidator {
             1.0
         };
 
-        // Baseline deviation (simplified calculation)
+        // Baseline deviation (simplified calculation — tracked in #15)
         let baseline_deviation = drift_patterns.classification.average_severity;
 
         Ok(StabilityMetrics {

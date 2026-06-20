@@ -99,7 +99,7 @@ impl Default for SatisfiabilityConfig {
 }
 
 /// Main satisfiability checker for constraint systems
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SatisfiabilityChecker {
     config: SatisfiabilityConfig,
@@ -487,7 +487,7 @@ enum ConstraintTerm {
 }
 
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct ConstraintSystem {
     constraints: Vec<Constraint>,

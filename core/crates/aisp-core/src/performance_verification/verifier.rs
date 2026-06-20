@@ -209,7 +209,7 @@ impl PerformanceConstraintVerifier {
         })
     }
 
-    /// Create placeholder timing analysis when disabled
+    /// Create placeholder timing analysis when disabled (tracked in #13)
     fn create_placeholder_timing_analysis(&self) -> TimingConstraintAnalysis {
         TimingConstraintAnalysis {
             response_time_analysis: super::timing::ResponseTimeAnalysis {

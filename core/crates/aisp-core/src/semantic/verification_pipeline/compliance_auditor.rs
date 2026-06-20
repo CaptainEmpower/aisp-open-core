@@ -19,7 +19,7 @@ pub struct ComplianceAuditor {
 
 /// Active audit session tracking
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct AuditSession {
     session_id: String,

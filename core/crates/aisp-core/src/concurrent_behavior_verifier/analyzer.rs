@@ -11,7 +11,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
 
 /// Concurrent behavior analysis engine
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ConcurrentBehaviorAnalyzer {
     /// Configuration
@@ -39,7 +39,7 @@ pub struct AnalysisConfig {
 
 /// Process discovery engine
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ProcessDiscoveryEngine {
     /// Discovered processes
@@ -52,7 +52,7 @@ pub struct ProcessDiscoveryEngine {
 
 /// Resource tracking system
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ResourceTracker {
     /// Tracked resources
@@ -65,7 +65,7 @@ pub struct ResourceTracker {
 
 /// Analysis result cache
 #[derive(Debug)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct AnalysisCache {
     /// Cached analyses

@@ -215,7 +215,7 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        // Simplified implementation - production would do deeper analysis
+        // Simplified implementation - production would do deeper analysis (tracked in #17)
         // This would involve:
         // 1. Pairwise constraint contradiction checking
         // 2. Transitive consistency verification

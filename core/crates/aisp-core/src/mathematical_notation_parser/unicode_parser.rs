@@ -9,7 +9,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 /// Unicode mathematical symbol parser
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#14): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct UnicodeParser {
     /// Symbol registry

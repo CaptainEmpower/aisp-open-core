@@ -69,7 +69,7 @@ pub struct SearchBeam {
 
 /// DPP (Determinantal Point Process) initialization for diverse beams
 /// ‖*init≜argmax_{S⊂ℛ,|S|=K}det(Ker(S))
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct DeterminantalPointProcess {
     /// Kernel matrix for diversity calculation
@@ -82,7 +82,7 @@ pub struct DeterminantalPointProcess {
 
 /// Ghost Intent Search Engine
 /// Implements formal search with provable termination and optimality
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct GhostIntentSearchEngine {
     /// Mathematical evaluator for formal verification
@@ -102,7 +102,7 @@ pub struct GhostIntentSearchEngine {
 }
 
 /// Pocket repository for content-addressable search
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PocketRepository {
     /// Indexed pockets by content hash
@@ -116,7 +116,7 @@ pub struct PocketRepository {
 }
 
 /// Signal vector index for O(log n) similarity search
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SignalVectorIndex {
     /// Hierarchical spatial index (k-d tree structure)
@@ -129,7 +129,7 @@ pub struct SignalVectorIndex {
 
 /// Spatial tree for exact nearest neighbor search
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SpatialTree {
     /// Tree nodes for hierarchical search
@@ -141,7 +141,7 @@ pub struct SpatialTree {
 }
 
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct SpatialNode {
     /// Splitting dimension
@@ -157,7 +157,7 @@ pub struct SpatialNode {
 }
 
 /// Affinity graph for relationship-based search
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct AffinityGraph {
     /// Adjacency list representation
@@ -804,7 +804,7 @@ impl GhostIntentSearchEngine {
         values.windows(2).all(|w| w[1] <= w[0])
     }
 
-    // Placeholder implementations for complex methods
+    // Placeholder implementations for complex methods (tracked in #15)
     fn build_diversity_kernel_matrix(
         &self,
         _candidates: &[ContentHash],

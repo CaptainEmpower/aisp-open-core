@@ -10,7 +10,7 @@ use crate::{
 use std::time::Instant;
 
 /// Enhanced Z3 verifier with advanced AISP-specific capabilities
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct EnhancedZ3Verifier {
     /// AISP type environment

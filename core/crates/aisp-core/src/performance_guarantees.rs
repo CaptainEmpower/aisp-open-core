@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 
 /// Performance guarantee verification system
 /// Verifies mathematical claims about AISP system performance
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PerformanceGuaranteeVerifier {
     /// Mathematical evaluator for performance calculations
@@ -35,7 +35,7 @@ pub struct PerformanceGuaranteeVerifier {
 }
 
 /// Benchmark data repository for empirical validation
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct BenchmarkRepository {
     /// Historical pipeline success rates
@@ -49,7 +49,7 @@ pub struct BenchmarkRepository {
 }
 
 /// Mathematical performance model
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PerformanceModel {
     /// Pipeline success probability function: P(n) = r^n
@@ -63,7 +63,7 @@ pub struct PerformanceModel {
 }
 
 /// Statistical analysis engine for empirical validation
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct StatisticalAnalyzer {
     /// Hypothesis testing framework
@@ -79,7 +79,7 @@ pub struct StatisticalAnalyzer {
 /// Pipeline success rate model
 /// Models: P_prose(n) = (0.62)^n, P_aisp(n) = (0.98)^n
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct PipelineSuccessModel {
     /// Base success rate for prose instructions
@@ -113,7 +113,7 @@ pub struct PipelineValidationPoint {
 /// Ambiguity measurement model
 /// Models: Ambig(D) = 1 - |Parse_u(D)|/|Parse_t(D)|
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct AmbiguityModel {
     /// Parsing ambiguity calculator
@@ -129,7 +129,7 @@ pub struct AmbiguityModel {
 /// Resource complexity model
 /// Models: Time = O(f(n)), Space = O(g(n))
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct ComplexityModel {
     /// Time complexity bounds

@@ -37,7 +37,7 @@ pub struct DimensionVerificationResult {
 
 /// Tri-vector verification implementation
 pub struct TriVectorVerifier<'a> {
-    // TODO(R-06/R-07): reserved for a future Z3-backed orthogonality check. The
+    // TODO(#16): reserved for a future Z3-backed orthogonality check. The
     // current implementation uses the corrected analytic path in `vector_verifier`
     // (which accounts for the shared zero vector), so the SMT facade is held but
     // not yet exercised. See ROADMAP.

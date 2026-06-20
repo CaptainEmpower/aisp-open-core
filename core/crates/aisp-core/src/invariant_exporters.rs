@@ -83,7 +83,7 @@ pub fn export_smt_lib(invariants: &[DiscoveredInvariant]) -> String {
             "; {}: {} (confidence: {:.2})\n",
             inv.id, inv.name, inv.confidence
         ));
-        smt.push_str("(assert true) ; Simplified formula\n\n");
+        smt.push_str("(assert true) ; Simplified formula — tracked in #12\n\n");
     }
 
     smt.push_str("(check-sat)\n");

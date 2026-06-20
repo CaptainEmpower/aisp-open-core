@@ -94,6 +94,28 @@ The path from "interesting hypothesis" to "peer-reviewed result".
 
 ---
 
+## Stub / TODO audit (2026-06)
+
+A sweep of `simplified` / `placeholder` / `for now` / `TODO` markers, plus the
+dead-code audit, was grouped into GitHub tracking issues by subsystem and mapped
+to the roadmap items above. In-code markers reference these issue numbers
+(`// TODO(#N)` and `(tracked in #N)`), so each stubbed/simplified site links to
+its issue.
+
+| Issue | Subsystem | Roadmap |
+|-------|-----------|---------|
+| [#10](https://github.com/CaptainEmpower/aisp-open-core/issues/10) | Concurrent & protocol behavior analysis is stubbed | R-21 |
+| [#11](https://github.com/CaptainEmpower/aisp-open-core/issues/11) | Formal proof engine & proof search are placeholder | R-21 → R-15 |
+| [#12](https://github.com/CaptainEmpower/aisp-open-core/issues/12) | SMT/Z3 verification incomplete (stubs presented as `Proven`) | R-15, R-16 |
+| [#13](https://github.com/CaptainEmpower/aisp-open-core/issues/13) | Performance & resource verification return placeholders | R-21 |
+| [#14](https://github.com/CaptainEmpower/aisp-open-core/issues/14) | Parser simplifications & placeholder recovery blocks | R-11 |
+| [#15](https://github.com/CaptainEmpower/aisp-open-core/issues/15) | Experimental research modules stubbed / unsupported | R-10 |
+| [#16](https://github.com/CaptainEmpower/aisp-open-core/issues/16) | Reference validator & tri-vector return placeholder results | R-08 |
+| [#17](https://github.com/CaptainEmpower/aisp-open-core/issues/17) | Semantic verification pipeline simplifications | R-21 (R-09) |
+| [#18](https://github.com/CaptainEmpower/aisp-open-core/issues/18) | Known-failing & unwired tests | R-13, R-05 |
+
+---
+
 ## Relevant prior work
 
 - Mishra et al., *Prompting with Pseudo-Code Instructions*, EMNLP 2023 — structured prompts can outperform NL (supports the premise)

@@ -20,7 +20,7 @@ pub struct SecurityEnforcer {
 
 /// Active security session tracking
 #[derive(Debug, Clone)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 struct SecuritySession {
     session_id: String,
@@ -32,7 +32,7 @@ struct SecuritySession {
 
 /// Security level enumeration
 #[derive(Debug, Clone, PartialEq)]
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 enum SecurityLevel {
     Low,

@@ -90,7 +90,7 @@ impl MetaContentParser {
 
     /// Parse simple logical expression (basic implementation)
     fn parse_simple_logical_expression(text: &str) -> LogicalExpression {
-        // For now, treat complex logical expressions as raw text
+        // For now, treat complex logical expressions as raw text (tracked in #14)
         // This can be enhanced with proper logical expression parsing
         LogicalExpression::Raw(text.to_string())
     }

@@ -82,7 +82,7 @@ pub struct ParsingMetrics {
 }
 
 /// Multi-format parser orchestrator
-// TODO(R-06/R-07): reserved for not-yet-implemented logic; see ROADMAP.
+// TODO(#14): reserved for not-yet-implemented logic; see ROADMAP.
 #[allow(dead_code)]
 pub struct MultiFormatParser {
     /// Content extractor for mixed formats
@@ -269,7 +269,7 @@ impl MultiFormatParser {
         analysis: FormatAnalysis,
         detection_time_us: u64,
     ) -> AispResult<ParsedDocument> {
-        // For now, treat mixed format like markdown with AISP
+        // For now, treat mixed format like markdown with AISP (tracked in #14)
         // This could be enhanced to handle more complex mixed formats
         self.parse_markdown_with_aisp(content, analysis, detection_time_us)
     }

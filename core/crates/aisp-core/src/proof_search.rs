@@ -491,7 +491,7 @@ impl ProofSearchEngine {
     }
 
     fn resolve_clauses(&self, _clause1: &[String], _clause2: &[String]) -> Option<Vec<String>> {
-        // Simplified resolution
+        // Simplified resolution (tracked in #11)
         None
     }
 

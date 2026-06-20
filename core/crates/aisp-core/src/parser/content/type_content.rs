@@ -122,7 +122,7 @@ impl TypeContentParser {
             "ℕ" => BasicType::Natural,
             "ℤ" => BasicType::Integer,
             "ℝ" => BasicType::Real,
-            "ℂ" => BasicType::Real, // Complex numbers mapped to Real for now
+            "ℂ" => BasicType::Real, // Complex numbers mapped to Real for now (tracked in #14)
             "ℚ" => BasicType::Real, // Rationals mapped to Real for now
             "𝔹" => BasicType::Boolean,
             "𝕊" => BasicType::String,

@@ -186,7 +186,7 @@ impl LambdaContentParser {
         }
     }
 
-    /// Parse mathematical expression (simplified)
+    /// Parse mathematical expression (simplified — tracked in #14)
     fn parse_mathematical_expression(expr: &str) -> LogicalExpression {
         // For now, treat as a function application
         // This could be enhanced with proper expression parsing
@@ -196,7 +196,7 @@ impl LambdaContentParser {
         }
     }
 
-    /// Parse comparison expression (simplified)
+    /// Parse comparison expression (simplified — tracked in #14)
     fn parse_comparison_expression(expr: &str) -> LogicalExpression {
         // For now, treat as raw logical expression
         LogicalExpression::Raw(expr.to_string())
