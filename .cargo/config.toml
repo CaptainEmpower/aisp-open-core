@@ -1,17 +1,18 @@
 # Canonical Cargo configuration for AISP Core
 [alias]
-# Production testing commands - exclude deprecated archive crate
-test-all = "test --workspace --exclude aisp --all-features -- --test-threads=1"
-test-fast = "test --workspace --exclude aisp --lib"
-test-integration = "test --workspace --exclude aisp --test integration_comprehensive --all-features"
-test-perf = "test --workspace --exclude aisp --test performance_benchmarks --all-features --release"
-test-security = "test --workspace --exclude aisp --test security_regression --features security"
+# Production testing commands. The deprecated `aisp` archive crate is excluded
+# from the workspace (see root Cargo.toml `exclude`), so `--workspace` skips it.
+test-all = "test --workspace --all-features -- --test-threads=1"
+test-fast = "test --workspace --lib"
+test-integration = "test --workspace --test integration_comprehensive --all-features"
+test-perf = "test --workspace --test performance_benchmarks --all-features --release"
+test-security = "test --workspace --test security_regression --features security"
 
 # Silent test commands (suppress unused code warnings)
-test-silent = "test --workspace --exclude aisp --lib --quiet"
-test-all-silent = "test --workspace --exclude aisp --all-features --quiet -- --test-threads=1"
+test-silent = "test --workspace --lib --quiet"
+test-all-silent = "test --workspace --all-features --quiet -- --test-threads=1"
 
-# Development commands  
+# Development commands
 check-all = "check --workspace --all-targets --all-features"
 fmt-all = "fmt --all"
 clippy-all = "clippy --workspace --all-targets --all-features -- -D warnings"

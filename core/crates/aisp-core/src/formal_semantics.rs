@@ -447,7 +447,7 @@ impl AispSemantics {
     /// Interpret document metadata
     fn interpret_document(
         &self,
-        document: &CanonicalAispDocument,
+        _document: &CanonicalAispDocument,
     ) -> AispResult<DocumentSemantics> {
         // Extract metadata from Meta block
         let version = SemanticVersion {
@@ -466,7 +466,7 @@ impl AispSemantics {
     }
 
     /// Interpret type system
-    fn interpret_types(&self, document: &CanonicalAispDocument) -> AispResult<TypeSystem> {
+    fn interpret_types(&self, _document: &CanonicalAispDocument) -> AispResult<TypeSystem> {
         let mut base_types = HashSet::new();
         base_types.insert(BaseType::Natural);
         base_types.insert(BaseType::Boolean);
@@ -480,7 +480,7 @@ impl AispSemantics {
     }
 
     /// Interpret logical system
-    fn interpret_logic(&self, document: &CanonicalAispDocument) -> AispResult<LogicalSystem> {
+    fn interpret_logic(&self, _document: &CanonicalAispDocument) -> AispResult<LogicalSystem> {
         Ok(LogicalSystem {
             formulas: vec![],
             quantifier_domains: HashMap::new(),
@@ -490,7 +490,7 @@ impl AispSemantics {
     }
 
     /// Interpret function system
-    fn interpret_functions(&self, document: &CanonicalAispDocument) -> AispResult<FunctionSystem> {
+    fn interpret_functions(&self, _document: &CanonicalAispDocument) -> AispResult<FunctionSystem> {
         Ok(FunctionSystem {
             functions: HashMap::new(),
             type_inference: HashMap::new(),
@@ -499,7 +499,7 @@ impl AispSemantics {
     }
 
     /// Interpret evidence system
-    fn interpret_evidence(&self, document: &CanonicalAispDocument) -> AispResult<EvidenceSystem> {
+    fn interpret_evidence(&self, _document: &CanonicalAispDocument) -> AispResult<EvidenceSystem> {
         Ok(EvidenceSystem {
             quality_metrics: QualityMetrics {
                 delta: 0.85,
@@ -526,7 +526,6 @@ mod tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    use std::collections::HashMap;
 
     // Inline test utility - replaced test_fixtures
     fn create_minimal_valid_document() -> AispDocument {

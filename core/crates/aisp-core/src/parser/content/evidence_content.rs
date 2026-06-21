@@ -105,7 +105,7 @@ impl EvidenceContentParser {
         if Self::is_time_format(tau) || Self::is_category_format(tau) {
             Ok(())
         } else {
-            Err(AispError::validation_error(&format!(
+            Err(AispError::validation_error(format!(
                 "Invalid tau (τ) format: '{}'. Expected time format or category",
                 tau
             )))
@@ -170,7 +170,7 @@ impl EvidenceContentParser {
             confidence *= category_weight;
         }
 
-        confidence.min(1.0).max(0.0)
+        confidence.clamp(0.0, 1.0)
     }
 }
 

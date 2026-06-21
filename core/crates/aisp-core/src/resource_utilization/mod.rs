@@ -28,6 +28,5 @@ mod tests {
         let _forecaster = ResourceForecaster::new();
 
         // Basic smoke test
-        assert!(true);
     }
 }

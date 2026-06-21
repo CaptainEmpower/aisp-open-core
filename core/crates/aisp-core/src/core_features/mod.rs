@@ -29,12 +29,14 @@ pub use rossnet_scorer::RossNetScorer;
 pub use types::*;
 
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    pocket_architecture::{content_hash, ContentHash, InteractionResult},
+    pocket_architecture::{ContentHash, InteractionResult},
 };
+// Used only by tests (as `content_hash::from_u64`); gated to avoid a lib-build warning.
+#[cfg(test)]
+use crate::pocket_architecture::content_hash;
 use std::collections::HashMap;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 /// Comprehensive core features manager
 /// Coordinates all AISP 5.1 core features in a unified interface

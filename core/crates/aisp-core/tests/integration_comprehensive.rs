@@ -36,8 +36,8 @@ fn test_validator_instantiation() {
     // Test configuration creation
     let config = ValidationConfig::default();
     assert!(
-        !config.strict_mode || config.strict_mode,
-        "Config should be valid boolean"
+        !config.strict_mode,
+        "Default config should not be in strict mode"
     );
 
     println!("✓ Validator instantiation successful");
@@ -98,7 +98,7 @@ fn test_file_validation_with_fixtures() {
 /// Test with minimal AISP content created in memory
 fn test_with_minimal_content(
     validator: &aisp_core::validator::AispValidator,
-    config: &aisp_core::validator::types::ValidationConfig,
+    _config: &aisp_core::validator::types::ValidationConfig,
 ) {
     use std::fs;
 
@@ -142,10 +142,10 @@ fn test_error_handling() {
     // AispValidator::new() returns Self directly, not a Result
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test with invalid content (validate takes &str content)
-    let result = validator.validate("invalid aisp content");
+    let _result = validator.validate("invalid aisp content");
     // Note: The actual result depends on implementation - this test just ensures it runs
 
     println!("✓ Error handling validation successful");
@@ -169,7 +169,7 @@ fn test_performance_baseline() {
     use aisp_core::validator::AispValidator;
 
     // AispValidator::new() returns Self directly, not a Result
-    let validator = AispValidator::new();
+    let _validator = AispValidator::new();
 
     // Test validator creation performance
     let start = Instant::now();
@@ -232,7 +232,7 @@ fn test_concurrent_safety() {
     let handles: Vec<_> = (0..3)
         .map(|i| {
             let validator_clone = Arc::clone(&validator);
-            let config_clone = Arc::clone(&config);
+            let _config_clone = Arc::clone(&config);
 
             thread::spawn(move || {
                 // Each thread creates its own temporary test
@@ -270,7 +270,7 @@ fn test_concurrent_safety() {
 #[test]
 fn test_api_stability() {
     use aisp_core::semantic::QualityTier;
-    use aisp_core::validator::types::{ValidationConfig, ValidationResult};
+    use aisp_core::validator::types::ValidationConfig;
 
     // Test that key types are accessible and have expected properties
     let config = ValidationConfig::default();

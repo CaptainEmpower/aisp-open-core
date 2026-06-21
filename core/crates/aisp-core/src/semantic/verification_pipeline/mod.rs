@@ -12,7 +12,6 @@ pub mod pipeline_orchestrator;
 pub mod security_enforcer;
 
 // Re-export all public items
-pub use adversarial_testing::*;
 pub use compliance_auditor::*;
 pub use core_types::*;
 pub use main_pipeline::*;

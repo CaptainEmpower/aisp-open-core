@@ -8,6 +8,8 @@ use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Pipeline orchestrator for managing verification workflow
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PipelineOrchestrator {
     verification_stages: Vec<VerificationStage>,
     stage_dependencies: HashMap<VerificationStage, Vec<VerificationStage>>,
@@ -156,7 +158,7 @@ impl PipelineOrchestrator {
 
     /// Get priority-based execution order
     fn get_priority_order(&self) -> Vec<VerificationStage> {
-        let mut priority_stages = vec![
+        let priority_stages = vec![
             VerificationStage::SecurityEnforcement,
             VerificationStage::ParseValidation,
             VerificationStage::SemanticAnalysis,

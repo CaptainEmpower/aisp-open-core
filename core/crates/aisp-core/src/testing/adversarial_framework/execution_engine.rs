@@ -300,7 +300,7 @@ impl AttackExecutionEngine {
             }
             PayloadGenerator::CyclicReference => {
                 // Simplified cyclic pattern
-                format!("𝔸5.1.test@2026-01-27⟦Γ:Rules⟧{{∀x:T:x∈T∧T⊆x}}")
+                "𝔸5.1.test@2026-01-27⟦Γ:Rules⟧{∀x:T:x∈T∧T⊆x}".to_string()
             }
         }
     }
@@ -480,7 +480,7 @@ impl AttackExecutionEngine {
             .any(|r| r.attack_category == AttackCategory::UnicodeConfusion && r.success)
         {
             recommendations.push(SecurityRecommendation {
-                priority: RecommendationPriority::Short_term,
+                priority: RecommendationPriority::ShortTerm,
                 category: "Unicode Security".to_string(),
                 description: "Implement Unicode normalization and character validation".to_string(),
                 implementation_effort: ImplementationEffort::High,
@@ -524,9 +524,8 @@ mod tests {
 
     #[test]
     fn test_execution_engine_creation() {
-        let engine = AttackExecutionEngine::new();
+        let _engine = AttackExecutionEngine::new();
         // Test that engine can be created without panicking
-        assert!(true);
     }
 
     #[test]

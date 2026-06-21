@@ -3,9 +3,9 @@
 //! This module defines the fundamental types, configurations, and results
 //! used throughout the Z3 verification system.
 
-use crate::{ast::*, error::*, tri_vector_validation::*};
+use crate::tri_vector_validation::*;
 use std::collections::HashMap;
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, SystemTime};
 
 /// Enhanced verification configuration for production Z3 integration
 ///
@@ -433,7 +433,7 @@ mod tests {
         );
 
         match prop.result {
-            PropertyResult::Proven => assert!(true),
+            PropertyResult::Proven => (),
             _ => panic!("Expected proven result"),
         }
     }

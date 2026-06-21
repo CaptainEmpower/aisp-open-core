@@ -8,7 +8,7 @@
 //! ## Semantic Preservation Theorem
 //!
 //! **Theorem (Semantic Preservation)**: For all transformations T and documents D,
-//! ```
+//! ```text
 //! semantics(D) ≡ semantics(T(D))
 //! ```
 //!
@@ -21,13 +21,10 @@
 //! 4. **Optimization Passes**: Prove optimizations preserve behavioral equivalence
 
 use crate::{
-    ast::canonical::*,
     error::{AispError, AispResult},
     formal_semantics::*,
-    soundness_proofs::*,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 
 /// Semantic preservation verification result
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -505,7 +502,7 @@ through carefully verified transformation rules. □
     /// Search for counterexamples to preservation
     fn find_counterexamples(
         &self,
-        transformations: &[TransformationProof],
+        _transformations: &[TransformationProof],
     ) -> AispResult<Vec<PreservationCounterexample>> {
         // In a complete implementation, this would:
         // 1. Generate test cases systematically
@@ -647,7 +644,7 @@ through carefully verified transformation rules. □
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::*;
+    use std::collections::HashSet;
 
     #[test]
     fn test_preservation_verification() {

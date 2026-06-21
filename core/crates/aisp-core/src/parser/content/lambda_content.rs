@@ -3,7 +3,7 @@
 //! Focused parser for lambda expressions following SRP.
 //! Handles parsing of λx.body syntax and function definitions.
 
-use crate::ast::canonical::{FunctionDefinition, LambdaExpression, LogicalExpression};
+use crate::ast::canonical::{LambdaExpression, LogicalExpression};
 use crate::error::{AispError, AispResult};
 
 /// SRP-focused parser for lambda expression content
@@ -58,7 +58,8 @@ impl LambdaContentParser {
                 &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..dot_pos]
             } else {
                 &text[1..dot_pos]
-            }.trim();
+            }
+            .trim();
             let body_part = text[dot_pos + 1..].trim();
 
             let parameters = Self::parse_parameters(param_part);
@@ -185,7 +186,7 @@ impl LambdaContentParser {
         }
     }
 
-    /// Parse mathematical expression (simplified)
+    /// Parse mathematical expression (simplified — tracked in #14)
     fn parse_mathematical_expression(expr: &str) -> LogicalExpression {
         // For now, treat as a function application
         // This could be enhanced with proper expression parsing
@@ -195,7 +196,7 @@ impl LambdaContentParser {
         }
     }
 
-    /// Parse comparison expression (simplified)
+    /// Parse comparison expression (simplified — tracked in #14)
     fn parse_comparison_expression(expr: &str) -> LogicalExpression {
         // For now, treat as raw logical expression
         LogicalExpression::Raw(expr.to_string())
@@ -217,7 +218,7 @@ impl LambdaContentParser {
             }
 
             if !Self::is_valid_identifier(param) {
-                return Err(AispError::validation_error(&format!(
+                return Err(AispError::validation_error(format!(
                     "Invalid lambda parameter: '{}'. Must be valid identifier",
                     param
                 )));

@@ -263,11 +263,9 @@ impl TheoremProver {
         };
 
         let total_steps_explored: usize = results.iter().map(|r| r.steps_explored).sum();
-        let avg_steps_explored = if total_properties > 0 {
-            total_steps_explored / total_properties
-        } else {
-            0
-        };
+        let avg_steps_explored = total_steps_explored
+            .checked_div(total_properties)
+            .unwrap_or(0);
 
         ProofSummary {
             total_properties,
@@ -385,7 +383,6 @@ impl ProofSummary {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashSet;
 
     #[test]
     fn test_theorem_prover_creation() {

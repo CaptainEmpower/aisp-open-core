@@ -15,7 +15,6 @@ pub use crate::z3_verification::canonical_types::{
     Z3VerificationStatus as VerificationStatus, Z3VerifiedProperty as VerifiedProperty,
 };
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -121,22 +120,17 @@ impl Default for OptimizationConfig {
 }
 
 /// Load balancing strategies for parallel verification
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum LoadBalancingStrategy {
     /// Round-robin assignment
     RoundRobin,
     /// Assign based on current load
+    #[default]
     LoadBased,
     /// Assign based on property complexity
     ComplexityBased,
     /// Work-stealing approach
     WorkStealing,
-}
-
-impl Default for LoadBalancingStrategy {
-    fn default() -> Self {
-        LoadBalancingStrategy::LoadBased
-    }
 }
 
 /// Property verification context
@@ -311,7 +305,7 @@ mod tests {
         assert!(ComplexityLevel::Simple < ComplexityLevel::Complex);
         assert!(ComplexityLevel::Complex < ComplexityLevel::Extreme);
 
-        let mut levels = vec![
+        let mut levels = [
             ComplexityLevel::Extreme,
             ComplexityLevel::Simple,
             ComplexityLevel::Complex,

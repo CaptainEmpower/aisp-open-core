@@ -210,7 +210,7 @@ impl PropertyExtractor {
 
     /// Extract meta-level assertions and global constraints
     fn extract_meta_properties(&mut self, meta_block: &MetaBlock) -> AispResult<()> {
-        for (key, _entry) in &meta_block.entries {
+        for key in meta_block.entries.keys() {
             // Simplified: assume logical assertion
             let meta_property = ExtractedProperty {
                 id: self.factory.next_property_id(),

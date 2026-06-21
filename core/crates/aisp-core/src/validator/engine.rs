@@ -197,12 +197,7 @@ impl AispValidator {
             };
 
         // Merge warnings from semantic analysis
-        all_warnings.extend(
-            analysis
-                .warnings()
-                .into_iter()
-                .map(|w| AispWarning::warning(w)),
-        );
+        all_warnings.extend(analysis.warnings().into_iter().map(AispWarning::warning));
 
         // Apply strict mode checks
         if self.config.strict_mode {
@@ -269,7 +264,7 @@ impl AispValidator {
         let parser = RobustAispParser::new();
         let parse_result = parser.parse(source);
 
-        let mut document = match parse_result.document {
+        let document = match parse_result.document {
             Some(robust_doc) => {
                 let mut canonical = robust_doc.into_canonical();
                 canonical.parse_structured_data(); // Convert raw strings to structured data
@@ -316,7 +311,7 @@ impl AispValidator {
     {
         let semantic_start = Instant::now();
         let mut analyzer = SemanticAnalyzer::new();
-        let analysis = match analyzer.analyze(&document) {
+        let analysis = match analyzer.analyze(document) {
             Ok(analysis) => analysis,
             Err(error) => {
                 return Err(ValidationResult::failed(error, document_size));
@@ -349,7 +344,7 @@ impl AispValidator {
         let formal_verification = if self.config.enable_formal_verification {
             match self
                 .verification_methods
-                .perform_formal_verification(&document, &analysis)
+                .perform_formal_verification(document, analysis)
             {
                 Ok(verification_result) => Some(verification_result),
                 Err(_err) => None, // Log warning elsewhere
@@ -362,7 +357,7 @@ impl AispValidator {
         let trivector_validation = if self.config.enable_trivector_validation {
             match self
                 .verification_methods
-                .perform_trivector_validation(&document)
+                .perform_trivector_validation(document)
             {
                 Ok(trivector_result) => Some(trivector_result),
                 Err(_err) => None, // Log warning elsewhere
@@ -375,7 +370,7 @@ impl AispValidator {
         let enhanced_z3_verification = if self.config.enable_enhanced_z3 {
             match self
                 .verification_methods
-                .perform_enhanced_z3_verification(&document, trivector_validation.as_ref())
+                .perform_enhanced_z3_verification(document, trivector_validation.as_ref())
             {
                 Ok(z3_result) => Some(z3_result),
                 Err(err) => {
@@ -400,7 +395,7 @@ impl AispValidator {
         let ghost_intent_validation = if self.config.enable_ghost_intent_validation {
             match self
                 .verification_methods
-                .perform_ghost_intent_validation(&document)
+                .perform_ghost_intent_validation(document)
             {
                 Ok(ghost_result) => Some(ghost_result),
                 Err(err) => {
@@ -424,7 +419,7 @@ impl AispValidator {
         let rossnet_validation = if self.config.enable_rossnet_scoring {
             match self
                 .verification_methods
-                .perform_rossnet_validation(&document, &analysis)
+                .perform_rossnet_validation(document, analysis)
             {
                 Ok(rossnet_result) => Some(rossnet_result),
                 Err(err) => {
@@ -448,7 +443,7 @@ impl AispValidator {
         let hebbian_validation = if self.config.enable_hebbian_learning {
             match self
                 .verification_methods
-                .perform_hebbian_validation(&document, &analysis)
+                .perform_hebbian_validation(document, analysis)
             {
                 Ok(hebbian_result) => Some(hebbian_result),
                 Err(err) => {
@@ -472,7 +467,7 @@ impl AispValidator {
         let anti_drift_validation = if self.config.enable_anti_drift {
             match self
                 .verification_methods
-                .perform_anti_drift_validation(&document, &analysis)
+                .perform_anti_drift_validation(document, analysis)
             {
                 Ok(anti_drift_result) => Some(anti_drift_result),
                 Err(err) => {

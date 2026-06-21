@@ -3,14 +3,13 @@
 //! Core analyzer implementation for resource utilization analysis.
 
 use super::types::*;
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::{AispError, AispResult},
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Main resource utilization analyzer
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ResourceUtilizationAnalyzer {
     /// Configuration for analysis
     config: AnalysisConfig,
@@ -33,6 +32,12 @@ pub struct AnalysisConfig {
     pub bottleneck_threshold: f64,
     /// Enable detailed analysis
     pub detailed_analysis: bool,
+}
+
+impl Default for ResourceUtilizationAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ResourceUtilizationAnalyzer {
@@ -72,7 +77,7 @@ impl ResourceUtilizationAnalyzer {
             let measurement = self.measure_resource(resource_type)?;
             self.metrics
                 .entry(resource_type.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(measurement);
         }
         Ok(())
@@ -90,7 +95,7 @@ impl ResourceUtilizationAnalyzer {
                 let measurement = self.measure_resource(resource_type)?;
                 self.metrics
                     .entry(resource_type.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(measurement);
             }
         }
@@ -570,7 +575,7 @@ mod tests {
 
     #[test]
     fn test_bottleneck_identification() {
-        let analyzer = ResourceUtilizationAnalyzer::new();
+        let _analyzer = ResourceUtilizationAnalyzer::new();
 
         // Create a measurement that should trigger bottleneck detection
         let high_utilization_measurement = ResourceMeasurement {

@@ -14,6 +14,8 @@ pub use verifier::FormalVerifier;
 use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 
 /// Main formal verification system facade
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormalVerificationSystem {
     /// Core formal verifier
     verifier: FormalVerifier,
@@ -95,7 +97,7 @@ mod tests {
         config.parallel_verification = false;
 
         let system = FormalVerificationSystem::with_config(config.clone());
-        assert_eq!(system.config.parallel_verification, false);
+        assert!(!system.config.parallel_verification);
     }
 
     #[test]
@@ -106,6 +108,5 @@ mod tests {
         let _system = FormalVerificationSystem::new();
 
         // Integration smoke test
-        assert!(true);
     }
 }

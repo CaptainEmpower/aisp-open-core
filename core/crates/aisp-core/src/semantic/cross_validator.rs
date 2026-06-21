@@ -26,26 +26,18 @@
 // IMPORTS AND RE-EXPORTS
 //
 
-use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *,
-};
-use crate::error::{AispError, AispResult};
-use crate::semantic::behavioral_verifier::{
-    BehavioralVerificationResult, BehavioralVerifier, SafeExecutionSandbox,
-};
-use crate::semantic::deep_verifier::{
-    DeepSemanticVerifier, DeepVerificationResult, LogicAnalysisResult, SecurityAssessment,
-    ThreatLevel, TypeAnalysisResult,
-};
-use std::collections::{HashMap, HashSet};
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
+use crate::error::AispResult;
+use crate::semantic::behavioral_verifier::{BehavioralVerificationResult, BehavioralVerifier};
+use crate::semantic::deep_verifier::{DeepSemanticVerifier, DeepVerificationResult, ThreatLevel};
+use std::collections::HashMap;
 use std::fmt;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 // Re-export all public items from modular implementation
 pub use conflict_resolver::*;
 pub use consistency_analyzer::*;
 pub use orchestration::*;
-pub use security_assessor::*;
 pub use validation_types::*;
 
 //
@@ -228,7 +220,7 @@ mod validation_types {
         pub vulnerability_type: String,
         pub validated_by: Vec<VerificationLayer>,
     }
-    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+    #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
     pub struct ComplianceVerification {
         pub compliant: bool,
         pub verified_requirements: Vec<String>,
@@ -288,15 +280,6 @@ mod validation_types {
         }
     }
 
-    impl Default for ComplianceVerification {
-        fn default() -> Self {
-            Self {
-                compliant: false,
-                verified_requirements: Vec::new(),
-            }
-        }
-    }
-
     impl Default for CrossValidationResult {
         fn default() -> Self {
             Self {
@@ -313,6 +296,12 @@ mod validation_types {
                 integration_metrics: IntegrationMetrics::default(),
                 final_assessment: FinalSecurityAssessment::default(),
             }
+        }
+    }
+
+    impl Default for ValidationCache {
+        fn default() -> Self {
+            Self::new()
         }
     }
 
@@ -1896,7 +1885,7 @@ impl CrossValidationChecker {
         let validation_start = Instant::now();
 
         // Initialize verification orchestrator
-        let verification_session = self
+        let _verification_session = self
             .verification_orchestrator
             .start_verification_session(document)?;
 
@@ -1994,7 +1983,7 @@ impl CrossValidationChecker {
         &self,
         semantic_results: &DeepVerificationResult,
         behavioral_results: &BehavioralVerificationResult,
-        consistency_analysis: &ConsistencyAnalysis,
+        _consistency_analysis: &ConsistencyAnalysis,
     ) -> AispResult<Vec<VerificationConflict>> {
         let mut conflicts = Vec::new();
 
@@ -2149,31 +2138,31 @@ impl Default for CrossValidationChecker {
 
 impl fmt::Display for CrossValidationResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Cross-Validation Result\n")?;
-        write!(f, "=======================\n")?;
-        write!(
+        writeln!(f, "Cross-Validation Result")?;
+        writeln!(f, "=======================")?;
+        writeln!(
             f,
-            "Overall Consistency: {:.1}%\n",
+            "Overall Consistency: {:.1}%",
             self.overall_consistency_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Semantic-Behavioral Agreement: {:.1}%\n",
+            "Semantic-Behavioral Agreement: {:.1}%",
             self.semantic_behavioral_agreement * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Cross-Validation Confidence: {:.1}%\n",
+            "Cross-Validation Confidence: {:.1}%",
             self.cross_validation_confidence * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Conflict Resolution Score: {:.1}%\n",
+            "Conflict Resolution Score: {:.1}%",
             self.conflict_resolution_score * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Verification Coverage: {:.1}%\n",
+            "Verification Coverage: {:.1}%",
             self.verification_coverage * 100.0
         )?;
         write!(
@@ -2182,14 +2171,14 @@ impl fmt::Display for CrossValidationResult {
             self.conflicts_detected.len(),
             self.resolved_conflicts.len()
         )?;
-        write!(
+        writeln!(
             f,
-            "Final Threat Level: {:?}\n",
+            "Final Threat Level: {:?}",
             self.final_assessment.unified_threat_level
         )?;
-        write!(
+        writeln!(
             f,
-            "Security Confidence: {:.1}%\n",
+            "Security Confidence: {:.1}%",
             self.final_assessment.security_confidence * 100.0
         )?;
         Ok(())
@@ -2203,7 +2192,6 @@ impl fmt::Display for CrossValidationResult {
 #[cfg(test)]
 mod integration_tests {
     use super::*;
-    use crate::ast::canonical::{DocumentHeader, DocumentMetadata, MetaBlock};
 
     #[test]
     fn test_cross_validation_checker_creation() {
@@ -2265,13 +2253,16 @@ mod integration_tests {
         // Verify final assessment has valid confidence score
         assert!(result.final_assessment.security_confidence >= 0.0);
         assert!(result.final_assessment.security_confidence <= 1.0);
-        
+
         // For a comprehensive integration test, we should get either recommendations OR reasonable confidence
         // This ensures the cross-validator is actually doing meaningful analysis without being too strict
         // since 0.5 confidence is acceptable as a middle-ground assessment
-        let has_recommendations = !result.final_assessment.actionable_recommendations.is_empty();
+        let has_recommendations = !result
+            .final_assessment
+            .actionable_recommendations
+            .is_empty();
         let has_reasonable_confidence = result.final_assessment.security_confidence >= 0.5;
-        
+
         assert!(
             has_recommendations || has_reasonable_confidence,
             "Cross-validator should either generate actionable recommendations or achieve reasonable confidence (>=0.5). \

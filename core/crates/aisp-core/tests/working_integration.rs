@@ -74,6 +74,7 @@ impl ValidationAssertion {
         self
     }
 
+    #[allow(dead_code)] // fluent assertion helper, kept for test authors
     pub fn has_warnings(self) -> Self {
         assert!(
             !self.result.warnings.is_empty(),
@@ -90,6 +91,7 @@ impl ValidationAssertion {
         self
     }
 
+    #[allow(dead_code)] // fluent assertion helper, kept for test authors
     pub fn has_formal_verification(self) -> Self {
         assert!(
             self.result.formal_verification.is_some(),

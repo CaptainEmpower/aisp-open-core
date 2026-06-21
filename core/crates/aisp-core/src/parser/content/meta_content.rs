@@ -3,7 +3,7 @@
 //! Focused parser for meta block content following SRP.
 //! Handles parsing of key-value pairs, logical constraints, and metadata.
 
-use crate::ast::canonical::{ConstantValue, LogicalExpression, MetaValue};
+use crate::ast::canonical::{LogicalExpression, MetaValue};
 use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
@@ -90,7 +90,7 @@ impl MetaContentParser {
 
     /// Parse simple logical expression (basic implementation)
     fn parse_simple_logical_expression(text: &str) -> LogicalExpression {
-        // For now, treat complex logical expressions as raw text
+        // For now, treat complex logical expressions as raw text (tracked in #14)
         // This can be enhanced with proper logical expression parsing
         LogicalExpression::Raw(text.to_string())
     }
@@ -105,7 +105,7 @@ impl MetaContentParser {
             .chars()
             .all(|c| c.is_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Invalid meta key format: '{}'. Only alphanumeric, underscore, and dash allowed",
                 key
             )));

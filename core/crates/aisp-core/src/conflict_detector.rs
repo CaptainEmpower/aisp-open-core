@@ -215,9 +215,7 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        let mut conflicts = Vec::new();
-
-        // Simplified implementation - production would do deeper analysis
+        // Simplified implementation - production would do deeper analysis (tracked in #17)
         // This would involve:
         // 1. Pairwise constraint contradiction checking
         // 2. Transitive consistency verification
@@ -225,7 +223,7 @@ impl ConflictDetector {
 
         // Placeholder for production implementation
 
-        conflicts
+        Vec::new()
     }
 
     /// Detect type mismatches in constraint relations
@@ -233,8 +231,6 @@ impl ConflictDetector {
         &mut self,
         _constraint_analysis: &ConstraintAnalysisResult,
     ) -> Vec<Conflict> {
-        let mut conflicts = Vec::new();
-
         // Simplified implementation - production would do type inference
         // This would involve:
         // 1. Type inference for all constraint variables
@@ -243,7 +239,7 @@ impl ConflictDetector {
 
         // Placeholder for production implementation
 
-        conflicts
+        Vec::new()
     }
 
     /// Create resolution for unsatisfiable constraints
@@ -326,7 +322,6 @@ impl Default for ConflictDetector {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
 
     #[test]
     fn test_conflict_detector_creation() {

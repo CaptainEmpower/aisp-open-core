@@ -461,7 +461,7 @@ impl ProofSearchEngine {
         format!("{:?}", formula1) == format!("{:?}", formula2)
     }
 
-    fn rule_concludes(&self, pattern: &FormulaPattern, goal: &FormulaStructure) -> bool {
+    fn rule_concludes(&self, pattern: &FormulaPattern, _goal: &FormulaStructure) -> bool {
         // Simplified pattern matching
         matches!(pattern.pattern, PatternStructure::Variable(_))
     }
@@ -491,7 +491,7 @@ impl ProofSearchEngine {
     }
 
     fn resolve_clauses(&self, _clause1: &[String], _clause2: &[String]) -> Option<Vec<String>> {
-        // Simplified resolution
+        // Simplified resolution (tracked in #11)
         None
     }
 

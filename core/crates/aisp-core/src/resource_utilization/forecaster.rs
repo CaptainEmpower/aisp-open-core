@@ -134,6 +134,12 @@ pub enum ForecastRecommendationType {
     AlertConfiguration,
 }
 
+impl Default for ResourceForecaster {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceForecaster {
     /// Create new forecaster
     pub fn new() -> Self {
@@ -158,7 +164,7 @@ impl ResourceForecaster {
 
         self.historical_data
             .entry(resource_type)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(data_point);
 
         // Keep only recent data points based on configuration
@@ -172,7 +178,7 @@ impl ResourceForecaster {
     /// Generate forecast for specific resource
     pub fn forecast_resource(&self, resource_type: &ResourceType) -> AispResult<ForecastResult> {
         let historical_data = self.historical_data.get(resource_type).ok_or_else(|| {
-            crate::error::AispError::validation_error(&format!(
+            crate::error::AispError::validation_error(format!(
                 "No historical data for resource type: {:?}",
                 resource_type
             ))
@@ -635,7 +641,7 @@ mod tests {
         let mut values = Vec::new();
         for i in 0..48 {
             let hour = i % 24;
-            let value = if hour >= 8 && hour <= 18 {
+            let value = if (8..=18).contains(&hour) {
                 0.8 // High during day
             } else {
                 0.3 // Low during night

@@ -80,7 +80,9 @@ cargo run --example basic
 ### 3. **archive/aisp-rust/** - Published Library (archived)
 - **Purpose**: Simple, stable API for basic AISP validation
 - **Published**: ✅ [crates.io](https://crates.io/crates/aisp)
-- **Status**: Archived; kept for reference, excluded from workspace tests
+- **Status**: Archived and excluded from the workspace (`exclude` in root
+  `Cargo.toml`); superseded by `aisp-core`. Kept only as a buildable reference
+  snapshot of the published crate — `--workspace` build/test/lint skip it.
 - **Target**: Production applications needing simple AISP validation
 
 ## 🔧 **Workspace Configuration**

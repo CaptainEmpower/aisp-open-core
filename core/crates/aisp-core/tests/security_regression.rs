@@ -2,12 +2,11 @@
 //!
 //! Production security testing to prevent security regressions:
 //! - Adversarial input resistance
-//! - Unicode attack prevention  
+//! - Unicode attack prevention
 //! - Resource exhaustion protection
 //! - Input validation and sanitization
 //! - Known vulnerability regression prevention
 
-use std::path::Path;
 use std::time::{Duration, Instant};
 
 /// Test that adversarial inputs are properly blocked
@@ -18,7 +17,7 @@ fn test_adversarial_resistance() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Known adversarial patterns that should be blocked
     let adversarial_inputs = vec![
@@ -116,7 +115,7 @@ fn test_resource_exhaustion_protection() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig {
+    let _config = ValidationConfig {
         max_document_size: 50_000, // 50KB limit for test
         ..ValidationConfig::default()
     };
@@ -161,7 +160,7 @@ fn test_input_validation() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test various invalid inputs
     let invalid_inputs = vec![
@@ -198,7 +197,7 @@ fn test_input_validation() {
     }
 }
 
-/// Test known vulnerability regression prevention  
+/// Test known vulnerability regression prevention
 #[test]
 fn test_known_vulnerability_regression() {
     use aisp_core::validator::{types::ValidationConfig, AispValidator};
@@ -206,7 +205,7 @@ fn test_known_vulnerability_regression() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test cases for previously discovered and fixed vulnerabilities
     // (These are examples - actual test cases would come from security audits)
@@ -271,31 +270,31 @@ fn test_concurrent_security() {
 
     let handles: Vec<_> = (0..concurrent_threads).map(|thread_id| {
         let validator_clone = Arc::clone(&validator);
-        let config_clone = Arc::clone(&config);
-        
+        let _config_clone = Arc::clone(&config);
+
         thread::spawn(move || {
             let mut blocked = 0;
-            
+
             for i in 0..attacks_per_thread {
                 // Create adversarial content for this thread
                 let malicious_content = format!(
                     "𝔸5.1.ConcurrentAttack{}_{}\n\n⟦Ω:Meta⟧{{\n  attacker≜\"thread_{}_{}\"\n  payload≜\"{}\"\n}}",
                     thread_id, i, thread_id, i, "A".repeat(1000)
                 );
-                
+
                 let test_path = format!("/tmp/concurrent_attack_{}_{}.aisp", thread_id, i);
-                
+
                 if fs::write(&test_path, malicious_content).is_ok() {
                     let file_content = fs::read_to_string(&test_path).unwrap_or_default();
                     let validation = validator_clone.validate(&file_content);
                     if !validation.valid {
                         blocked += 1;
                     }
-                    
+
                     fs::remove_file(&test_path).ok();
                 }
             }
-            
+
             blocked
         })
     }).collect();
@@ -326,7 +325,7 @@ fn test_concurrent_security() {
     );
 }
 
-/// Test timing attack resistance  
+/// Test timing attack resistance
 #[test]
 fn test_timing_attack_resistance() {
     use aisp_core::validator::{types::ValidationConfig, AispValidator};
@@ -334,7 +333,7 @@ fn test_timing_attack_resistance() {
 
     let validator = AispValidator::new();
 
-    let config = ValidationConfig::default();
+    let _config = ValidationConfig::default();
 
     // Test that processing time doesn't leak sensitive information
     let test_cases = vec![

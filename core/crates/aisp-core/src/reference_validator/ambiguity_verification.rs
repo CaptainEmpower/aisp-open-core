@@ -9,7 +9,6 @@ use crate::error::AispResult;
 use crate::mathematical_evaluator::{MathEvaluator, MathValue, UndefinedReason};
 use crate::semantic::DeepVerificationResult;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
-use std::collections::HashMap;
 
 /// Mathematical foundations verification result
 #[derive(Debug, Clone)]
@@ -98,7 +97,7 @@ impl<'a> AmbiguityVerifier<'a> {
 
         // Generate SMT formula that handles edge cases
         let smt_formula = self.generate_robust_smt_formula(unique_parses, total_parses);
-        let smt_result = self.z3_verifier.verify_smt_formula(&smt_formula).unwrap_or(
+        let _smt_result = self.z3_verifier.verify_smt_formula(&smt_formula).unwrap_or(
             Z3PropertyResult::Unknown {
                 reason: "Default fallback".to_string(),
                 partial_progress: 0.0,
@@ -207,7 +206,7 @@ pub fn verify_token_efficiency(semantic_result: &DeepVerificationResult) -> Toke
     // Calculate efficiency based on ambiguity and coherence
     let base_efficiency = semantic_result.overall_confidence; // Use overall_confidence instead of missing coherence_score
     let ambiguity_penalty = semantic_result.ambiguity() * 2.0; // Penalty factor
-    let efficiency_score = (base_efficiency - ambiguity_penalty).max(0.0).min(1.0);
+    let efficiency_score = (base_efficiency - ambiguity_penalty).clamp(0.0, 1.0);
 
     let meets_spec = efficiency_score > 0.80 && semantic_result.ambiguity() < 0.02;
     let compression_ratio =
@@ -237,7 +236,6 @@ pub fn generate_ambiguity_test_cases() -> Vec<(f64, f64, bool)> {
 mod tests {
     use super::*;
     use crate::z3_verification::Z3VerificationFacade;
-    use std::collections::HashMap;
 
     fn create_test_semantic_result(ambiguity: f64, coherence: f64) -> DeepVerificationResult {
         let mut result = DeepVerificationResult::test_default();

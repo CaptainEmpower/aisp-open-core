@@ -3,7 +3,7 @@
 //! Implements the four-state binding system: Δ⊗λ∈{0,1,2,3}
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 
 /// Four-state binding verifier with formal guarantees
@@ -274,6 +274,12 @@ pub struct BindingStatistics {
     pub zero_count: usize,
 }
 
+impl Default for LogicalConsistencyChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LogicalConsistencyChecker {
     /// Create new consistency checker
     pub fn new() -> Self {
@@ -332,6 +338,12 @@ impl LogicalConsistencyChecker {
         constraint.contains("Pure") && constraint.contains("Impure")
             || constraint.contains("Sync") && constraint.contains("Async")
             || constraint.contains("Immutable") && constraint.contains("Mutable")
+    }
+}
+
+impl Default for SocketCompatibilityRegistry {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -398,6 +410,12 @@ impl SocketCompatibilityRegistry {
             .get(&(interface_a.to_string(), interface_b.to_string()))
             .cloned()
             .unwrap_or(CompatibilityLevel::Incompatible)
+    }
+}
+
+impl Default for AdaptationStrategyRepository {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

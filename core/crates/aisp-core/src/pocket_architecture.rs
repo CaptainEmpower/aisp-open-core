@@ -11,14 +11,12 @@
 use crate::{
     error::{AispError, AispResult},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
-    z3_verification::PropertyResult,
+    mathematical_evaluator::MathEvaluator,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 // use sha2::{Sha256, Digest}; // Would need sha2 crate dependency
-use uuid::Uuid;
 
 /// Complete Pocket Architecture implementation
 /// 𝒫≜⟨ℋ:Header,ℳ:Membrane,𝒩:Nucleus⟩
@@ -166,6 +164,8 @@ pub struct VerificationCertificate {
 }
 
 /// Pocket Architecture Verifier - enforces AISP Layer 1 invariants
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PocketArchitectureVerifier {
     math_evaluator: MathEvaluator,
     incompleteness_handler: IncompletenessHandler,
@@ -175,6 +175,8 @@ pub struct PocketArchitectureVerifier {
 
 /// Cache entry for verified pockets
 #[derive(Debug, Clone)]
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CacheEntry {
     verification_result: PocketVerificationResult,
     verified_at: u64,
@@ -575,7 +577,7 @@ impl PocketArchitectureVerifier {
         let new_affinity = current_affinity + learning_rate * affinity_delta;
 
         // Apply bounds [-100, 100] to prevent overflow
-        let bounded_affinity = new_affinity.max(-100.0).min(100.0);
+        let bounded_affinity = new_affinity.clamp(-100.0, 100.0);
 
         pocket
             .membrane
@@ -910,7 +912,6 @@ mod tests {
         // Note: In current implementation, tampering may not always be detected due to header/content sync
         // The test passes if verification completes without error
         // In a production system, this would need more robust tamper detection
-        assert!(verification.cas_integrity_verified || !verification.cas_integrity_verified); // Always passes
 
         // Test that verification system is working - any tamper status is acceptable
         assert!(matches!(

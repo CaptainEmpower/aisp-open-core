@@ -4,10 +4,12 @@
 
 use super::types::*;
 use crate::{
-    error::{AispError, AispResult},
-    pocket_architecture::content_hash,
+    error::AispResult,
     pocket_architecture::{ContentHash, InteractionResult},
 };
+// Used only by tests (as `content_hash::from_u64`); gated to avoid a lib-build warning.
+#[cfg(test)]
+use crate::pocket_architecture::content_hash;
 use std::collections::HashMap;
 
 /// F₇: Enhanced Hebbian Learning System
@@ -63,8 +65,8 @@ impl EnhancedHebbianLearner {
         Self {
             success_reward: success_reward.max(0.0),
             failure_penalty: failure_penalty.min(0.0),
-            learning_rate: learning_rate.max(0.0).min(1.0),
-            decay_factor: decay_factor.max(0.0).min(1.0),
+            learning_rate: learning_rate.clamp(0.0, 1.0),
+            decay_factor: decay_factor.clamp(0.0, 1.0),
             affinity_matrix: HashMap::new(),
             learning_stats: HebbianStatistics::default(),
             confidence_tracker: ConfidenceTracker::new(),
@@ -97,7 +99,7 @@ impl EnhancedHebbianLearner {
         let new_affinity = (current_affinity * self.decay_factor) + (self.learning_rate * delta);
 
         // Apply bounds to prevent overflow
-        let bounded_affinity = new_affinity.max(-100.0).min(100.0);
+        let bounded_affinity = new_affinity.clamp(-100.0, 100.0);
 
         self.affinity_matrix.insert(key, bounded_affinity);
 
@@ -204,12 +206,12 @@ impl EnhancedHebbianLearner {
 
     /// Adjust learning parameters
     pub fn adjust_learning_rate(&mut self, new_rate: f64) {
-        self.learning_rate = new_rate.max(0.0).min(1.0);
+        self.learning_rate = new_rate.clamp(0.0, 1.0);
     }
 
     /// Adjust decay factor
     pub fn adjust_decay_factor(&mut self, new_decay: f64) {
-        self.decay_factor = new_decay.max(0.0).min(1.0);
+        self.decay_factor = new_decay.clamp(0.0, 1.0);
     }
 
     /// Get learning statistics
@@ -242,7 +244,7 @@ impl EnhancedHebbianLearner {
             std_deviation: std_dev,
             min_affinity: sorted_affinities.first().copied().unwrap_or(0.0),
             max_affinity: sorted_affinities.last().copied().unwrap_or(0.0),
-            median_affinity: if sorted_affinities.len() % 2 == 0 {
+            median_affinity: if sorted_affinities.len().is_multiple_of(2) {
                 let mid = sorted_affinities.len() / 2;
                 (sorted_affinities[mid - 1] + sorted_affinities[mid]) / 2.0
             } else {
@@ -255,7 +257,7 @@ impl EnhancedHebbianLearner {
 
     /// Apply forgetting mechanism to old affinities
     pub fn apply_forgetting(&mut self, forgetting_rate: f64) {
-        let forgetting_factor = 1.0 - forgetting_rate.max(0.0).min(1.0);
+        let forgetting_factor = 1.0 - forgetting_rate.clamp(0.0, 1.0);
 
         for affinity in self.affinity_matrix.values_mut() {
             *affinity *= forgetting_factor;
@@ -319,7 +321,7 @@ impl ConfidenceTracker {
 
         // Calculate confidence based on frequency and consistency
         let frequency = self.update_frequencies[&key] as f64;
-        let frequency_confidence = (frequency / (frequency + 5.0)).min(1.0);
+        let _frequency_confidence = (frequency / (frequency + 5.0)).min(1.0);
 
         // Update running confidence score
         let current_confidence = self.confidence_scores.get(&key).copied().unwrap_or(0.5);
@@ -333,7 +335,7 @@ impl ConfidenceTracker {
         let new_confidence = alpha * result_confidence + (1.0 - alpha) * current_confidence;
         // Use additive frequency bonus instead of multiplicative to prevent over-dampening
         let frequency_bonus = (frequency / 10.0).min(0.3);
-        let final_confidence = (new_confidence + frequency_bonus).max(0.1).min(1.0);
+        let final_confidence = (new_confidence + frequency_bonus).clamp(0.1, 1.0);
 
         self.confidence_scores.insert(key, final_confidence);
     }
@@ -346,7 +348,7 @@ impl ConfidenceTracker {
 
     /// Update accuracy history
     pub fn update_accuracy(&mut self, accuracy: f64) {
-        self.accuracy_history.push(accuracy.max(0.0).min(1.0));
+        self.accuracy_history.push(accuracy.clamp(0.0, 1.0));
 
         // Keep only recent history
         if self.accuracy_history.len() > 100 {

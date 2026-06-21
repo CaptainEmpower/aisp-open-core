@@ -3,12 +3,7 @@
 //! Main verification engine for AISP properties using Z3 SMT solver.
 
 use super::types::*;
-use crate::{
-    error::{AispError, AispResult},
-    proof_types::*,
-    property_types::*,
-    tri_vector_validation::*,
-};
+use crate::{error::AispResult, tri_vector_validation::*};
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -16,6 +11,8 @@ use std::time::Instant;
 use z3::*;
 
 /// Property verifier for AISP documents
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PropertyVerifier {
     /// Verification statistics
     stats: EnhancedVerificationStats,
@@ -71,6 +68,8 @@ pub struct CacheStatistics {
 
 /// SMT formula verification engine
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SmtFormulaVerifier {
     /// Solver configuration
     solver_config: SolverConfiguration,
@@ -97,6 +96,8 @@ pub struct SolverConfiguration {
 
 /// Pool of SMT solvers
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SolverPool {
     /// Available solvers
     solvers: Vec<SolverInstance>,
@@ -174,6 +175,8 @@ pub struct PoolConfiguration {
 
 /// Load balancer for solver pool
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct LoadBalancer {
     /// Balancing strategy
     strategy: LoadBalancingStrategy,
@@ -185,6 +188,8 @@ pub struct LoadBalancer {
 
 /// Workload prediction engine
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct WorkloadPredictor {
     /// Historical workload data
     history: Vec<WorkloadDataPoint>,
@@ -229,6 +234,8 @@ pub struct PredictionAccuracy {
 
 /// Formula preprocessing engine
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaPreprocessor {
     /// Preprocessing rules
     rules: Vec<PreprocessingRule>,
@@ -255,6 +262,8 @@ pub struct PreprocessingRule {
 
 /// Formula simplification engine
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaSimplifier {
     /// Simplification strategies
     strategies: Vec<SimplificationStrategy>,
@@ -303,6 +312,8 @@ pub struct SimplificationMetrics {
 
 /// Formula optimization engine
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormulaOptimizer {
     /// Optimization passes
     passes: Vec<OptimizationPass>,
@@ -350,6 +361,8 @@ pub struct OptimizationMetrics {
 
 /// Cost-benefit analysis for optimizations
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct CostBenefitAnalyzer {
     /// Cost models
     cost_models: HashMap<OptimizationPassType, CostModel>,
@@ -618,7 +631,7 @@ impl PropertyVerifier {
     fn verify_smt_formula(
         &mut self,
         formula: &str,
-        property_id: &str,
+        _property_id: &str,
     ) -> AispResult<PropertyResult> {
         // Check cache first
         if let Some(cached_result) = self.formula_cache.get(formula) {
@@ -649,7 +662,7 @@ impl PropertyVerifier {
         let _solver = Solver::new();
 
         // For now, return a placeholder result due to Z3 API compatibility issues
-        // TODO: Implement proper Z3 verification once API is stable
+        // TODO(#12): Implement proper Z3 verification once API is stable
         Ok(PropertyResult::Unknown {
             reason: "Z3 verification not yet implemented".to_string(),
             partial_progress: 0.0,
@@ -831,7 +844,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.timestamp))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
@@ -845,7 +858,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.hits))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
@@ -859,7 +872,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.timestamp))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
@@ -908,6 +921,12 @@ impl FormulaCache {
     }
 }
 
+impl Default for PropertyVerificationContext {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PropertyVerificationContext {
     /// Create new verification context
     pub fn new() -> Self {
@@ -917,6 +936,12 @@ impl PropertyVerificationContext {
             shared_state: SharedVerificationState::new(),
             context_stats: ContextStatistics::default(),
         }
+    }
+}
+
+impl Default for SharedVerificationState {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -931,6 +956,12 @@ impl SharedVerificationState {
     }
 }
 
+impl Default for LemmaDatabase {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LemmaDatabase {
     /// Create new lemma database
     pub fn new() -> Self {
@@ -939,6 +970,12 @@ impl LemmaDatabase {
             usage_stats: HashMap::new(),
             effectiveness_scores: HashMap::new(),
         }
+    }
+}
+
+impl Default for CounterexampleDatabase {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1163,7 +1200,7 @@ mod tests {
         ); // Should evict formula1
 
         // After inserting 3 formulas with max_size=2, cache should respect size limit
-        assert!(cache.formulas.len() <= 2 && cache.formulas.len() >= 1);
+        assert!(cache.formulas.len() <= 2 && !cache.formulas.is_empty());
         // Should contain at least one of the more recently added formulas
         assert!(cache.formulas.contains_key("formula2") || cache.formulas.contains_key("formula3"));
 
@@ -1201,6 +1238,6 @@ mod tests {
 
         // LFU cache should maintain size limits and cache operations should work
         assert!(cache_lfu.formulas.len() <= 2);
-        assert!(cache_lfu.formulas.len() >= 1); // Should have at least one entry
+        assert!(!cache_lfu.formulas.is_empty()); // Should have at least one entry
     }
 }

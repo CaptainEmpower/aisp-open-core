@@ -19,6 +19,8 @@ pub struct ComplianceAuditor {
 
 /// Active audit session tracking
 #[derive(Debug, Clone)]
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct AuditSession {
     session_id: String,
     start_time: std::time::SystemTime,
@@ -124,16 +126,12 @@ impl ComplianceAuditor {
         ];
 
         // Streamline audit checklist
-        auditor.audit_checklist = auditor
-            .audit_checklist
-            .into_iter()
-            .filter(|checkpoint| {
-                matches!(
-                    checkpoint.checkpoint_id.as_str(),
-                    "PARSE_SECURITY" | "TYPE_SAFETY" | "ADVERSARIAL_RESISTANCE"
-                )
-            })
-            .collect();
+        auditor.audit_checklist.retain(|checkpoint| {
+            matches!(
+                checkpoint.checkpoint_id.as_str(),
+                "PARSE_SECURITY" | "TYPE_SAFETY" | "ADVERSARIAL_RESISTANCE"
+            )
+        });
 
         auditor
     }
@@ -198,7 +196,7 @@ impl ComplianceAuditor {
     fn audit_framework(
         &self,
         framework_name: &str,
-        document: &AispDocument,
+        _document: &AispDocument,
         semantic: &crate::semantic::deep_verifier::DeepVerificationResult,
         behavioral: &crate::semantic::behavioral_verifier::BehavioralVerificationResult,
         security: &EnterpriseSecurityAssessment,
@@ -451,7 +449,7 @@ impl ComplianceAuditor {
             "JSON" => self.generate_json_report(),
             "HTML" => self.generate_html_report(),
             "PDF" => Ok("PDF report generation not implemented".to_string()),
-            _ => Err(crate::error::AispError::internal_error(&format!(
+            _ => Err(crate::error::AispError::internal_error(format!(
                 "Unsupported report format: {}",
                 format
             ))),

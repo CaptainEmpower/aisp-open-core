@@ -117,12 +117,12 @@ impl AispCodeBlockExtractor {
         let mut current_line = 0;
 
         while current_line < lines.len() {
-            if self.is_aisp_fence_start(&lines[current_line]) {
+            if self.is_aisp_fence_start(lines[current_line]) {
                 // Skip the fence start
                 current_line += 1;
 
                 // Skip until fence end
-                while current_line < lines.len() && !self.is_aisp_fence_end(&lines[current_line]) {
+                while current_line < lines.len() && !self.is_aisp_fence_end(lines[current_line]) {
                     current_line += 1;
                 }
 
@@ -146,7 +146,7 @@ impl AispCodeBlockExtractor {
         current_line: &mut usize,
     ) -> AispResult<Option<ExtractedAispBlock>> {
         // Find the start of the next AISP block
-        while *current_line < lines.len() && !self.is_aisp_fence_start(&lines[*current_line]) {
+        while *current_line < lines.len() && !self.is_aisp_fence_start(lines[*current_line]) {
             *current_line += 1;
         }
 
@@ -165,7 +165,7 @@ impl AispCodeBlockExtractor {
         let mut content_lines = Vec::new();
         let content_start = *current_line;
 
-        while *current_line < lines.len() && !self.is_aisp_fence_end(&lines[*current_line]) {
+        while *current_line < lines.len() && !self.is_aisp_fence_end(lines[*current_line]) {
             let line = lines[*current_line];
             if self.preserve_whitespace || !line.trim().is_empty() {
                 content_lines.push(line);

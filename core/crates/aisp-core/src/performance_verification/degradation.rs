@@ -5,7 +5,7 @@
 use std::time::Duration;
 
 /// Performance degradation analysis
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PerformanceDegradationAnalysis {
     /// Overall degradation assessment
     pub overall_assessment: DegradationAssessment,
@@ -316,18 +316,6 @@ pub enum ImplementationComplexity {
     Complex,
     /// Very complex to implement
     VeryComplex,
-}
-
-impl Default for PerformanceDegradationAnalysis {
-    fn default() -> Self {
-        Self {
-            overall_assessment: DegradationAssessment::default(),
-            degradation_patterns: Vec::new(),
-            regression_analysis: RegressionAnalysis::default(),
-            alerts: Vec::new(),
-            recovery_recommendations: Vec::new(),
-        }
-    }
 }
 
 impl Default for DegradationAssessment {

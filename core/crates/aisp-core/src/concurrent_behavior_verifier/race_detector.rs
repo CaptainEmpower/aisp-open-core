@@ -4,10 +4,12 @@
 
 use super::types::*;
 use crate::error::AispResult;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 /// Race condition detection engine
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct RaceConditionDetector {
     /// Detection algorithms
     algorithms: Vec<DetectionAlgorithm>,
@@ -443,6 +445,12 @@ pub struct EvidenceQuality {
     pub evidence_count: usize,
 }
 
+impl Default for RaceConditionDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RaceConditionDetector {
     /// Create new race condition detector
     pub fn new() -> Self {
@@ -494,7 +502,7 @@ impl RaceConditionDetector {
     /// Lockset-based race detection
     fn lockset_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Lockset algorithm implementation
         Ok(Vec::new())
@@ -503,7 +511,7 @@ impl RaceConditionDetector {
     /// Happens-before race detection
     fn happens_before_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Happens-before algorithm implementation
         Ok(Vec::new())
@@ -512,7 +520,7 @@ impl RaceConditionDetector {
     /// Vector clock based race detection
     fn vector_clock_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Vector clock algorithm implementation
         Ok(Vec::new())
@@ -521,7 +529,7 @@ impl RaceConditionDetector {
     /// Dynamic race detection
     fn dynamic_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Dynamic analysis implementation
         Ok(Vec::new())
@@ -530,7 +538,7 @@ impl RaceConditionDetector {
     /// Static race detection
     fn static_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Static analysis implementation
         Ok(Vec::new())
@@ -539,7 +547,7 @@ impl RaceConditionDetector {
     /// Hybrid race detection
     fn hybrid_analysis(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<Vec<DetailedRaceCondition>> {
         // Hybrid algorithm implementation
         Ok(Vec::new())

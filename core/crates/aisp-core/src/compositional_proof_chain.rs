@@ -12,17 +12,17 @@ use crate::{
     error::{AispError, AispResult},
     ghost_intent_search::{GhostIntentSearchEngine, GhostSearchResult, SearchStatus},
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    mathematical_evaluator::MathEvaluator,
     pocket_architecture::{PocketArchitectureVerifier, PocketVerificationResult},
     tri_vector_validation::OrthogonalityResult,
     vector_space_verifier::VectorSpaceVerifier,
-    z3_verification::PropertyResult,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Complete compositional proof system for AISP layer integration
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct CompositionalProofChain {
     /// Layer 0 verifier
     l0_verifier: VectorSpaceVerifier,
@@ -39,6 +39,8 @@ pub struct CompositionalProofChain {
 }
 
 /// Mathematical proof engine for formal verification
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofEngine {
     /// Mathematical evaluator for calculations
     math_evaluator: MathEvaluator,
@@ -53,6 +55,8 @@ pub struct ProofEngine {
 }
 
 /// Theorem database for foundational proofs
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TheoremDatabase {
     /// Layer 0 theorems (signal theory)
     l0_theorems: Vec<LayerTheorem>,
@@ -354,6 +358,8 @@ struct ProofKey {
 
 /// Cached proof result
 #[derive(Debug, Clone)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CachedProof {
     verification_result: VerificationResult,
     cached_at: std::time::SystemTime,
@@ -415,7 +421,7 @@ impl CompositionalProofChain {
     /// Proves: 𝕃₀.⊢stable ∧ 𝕃₀.⊢deterministic
     fn verify_layer_0_properties(
         &mut self,
-        input: &VectorSpaceInput,
+        _input: &VectorSpaceInput,
     ) -> AispResult<LayerVerificationResult> {
         let start_time = Instant::now();
         let mut properties = Vec::new();
@@ -946,7 +952,7 @@ impl CompositionalProofChain {
             / properties.len() as f64
     }
 
-    // Placeholder implementations for proof certificate generation
+    // Placeholder implementations for proof certificate generation (tracked in #11)
     fn generate_stability_proof_certificate(
         &self,
         _result: &OrthogonalityResult,
@@ -1095,7 +1101,7 @@ mod tests {
 
     #[test]
     fn test_proof_method_classification() {
-        let methods = vec![
+        let methods = [
             ProofMethod::DirectProof,
             ProofMethod::ProofByContradiction,
             ProofMethod::ProofByInduction,

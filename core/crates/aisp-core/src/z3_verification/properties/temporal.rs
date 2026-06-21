@@ -2,16 +2,13 @@
 //!
 //! Specialized verification engine for temporal logic properties in AISP documents.
 
-use super::types::*;
-use crate::{
-    error::{AispError, AispResult},
-    property_types::*,
-    temporal_new::*,
-};
+use crate::{error::AispResult, property_types::*};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Temporal logic property verification engine
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalPropertyVerifier {
     /// Temporal logic operators
     operators: Vec<TemporalOperator>,
@@ -108,6 +105,8 @@ pub enum TemporalDifficulty {
 
 /// Temporal model checker
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalModelChecker {
     /// Model checking algorithm
     algorithm: ModelCheckingAlgorithm,
@@ -138,6 +137,8 @@ pub enum ModelCheckingAlgorithm {
 
 /// State space representation
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct StateSpace {
     /// State variables
     variables: Vec<StateVariable>,
@@ -211,10 +212,10 @@ pub enum ConstraintType {
 /// Constraint enforcement levels (ordered from weakest to strongest)
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum ConstraintEnforcement {
-    Optional,    // Weakest (index 0)
-    Soft,        // (index 1)  
-    Preference,  // (index 2)
-    Strict,      // Strongest (index 3)
+    Optional,   // Weakest (index 0)
+    Soft,       // (index 1)
+    Preference, // (index 2)
+    Strict,     // Strongest (index 3)
 }
 
 /// Individual state in the state space
@@ -272,6 +273,8 @@ pub struct StateSpaceSize {
 
 /// Transition system definition
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TransitionSystem {
     /// System transitions
     transitions: Vec<Transition>,
@@ -369,6 +372,8 @@ pub struct AlgorithmPerformance {
 
 /// Property synthesizer for automatic generation
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PropertySynthesizer {
     /// Synthesis templates
     templates: Vec<PropertyTemplate>,
@@ -419,6 +424,8 @@ pub enum ParameterType {
 
 /// Database of temporal patterns
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PatternDatabase {
     /// Common patterns
     patterns: HashMap<String, TemporalPattern>,
@@ -509,6 +516,8 @@ pub struct SynthesisStatistics {
 
 /// Temporal verification cache
 #[derive(Debug)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TemporalVerificationCache {
     /// Cached verification results
     results: HashMap<String, CachedTemporalResult>,
@@ -921,7 +930,7 @@ impl TemporalPropertyVerifier {
         property: &PropertyFormula,
         model: &TransitionSystem,
     ) -> AispResult<TemporalVerificationResult> {
-        let start_time = Instant::now();
+        let _start_time = Instant::now();
 
         // Check cache first
         let cache_key = self.generate_cache_key(property, model);
@@ -1099,6 +1108,12 @@ impl TemporalModelChecker {
     }
 }
 
+impl Default for StateSpace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StateSpace {
     /// Create new state space
     pub fn new() -> Self {
@@ -1116,6 +1131,12 @@ impl StateSpace {
     }
 }
 
+impl Default for TransitionSystem {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TransitionSystem {
     /// Create new transition system
     pub fn new() -> Self {
@@ -1124,6 +1145,12 @@ impl TransitionSystem {
             transition_relation: TransitionRelation::Explicit(Vec::new()),
             fairness_constraints: Vec::new(),
         }
+    }
+}
+
+impl Default for PropertySynthesizer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1165,6 +1192,12 @@ impl PropertySynthesizer {
                 success_rate: 0.7,
             },
         ]
+    }
+}
+
+impl Default for PatternDatabase {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -42,6 +42,12 @@ pub struct OptimizationStrategy {
     pub prerequisites: Vec<String>,
 }
 
+impl Default for ResourceOptimizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceOptimizer {
     /// Create new optimizer with default strategies
     pub fn new() -> Self {
@@ -300,7 +306,7 @@ impl ResourceOptimizer {
     /// Analyze cost-benefit of optimization plan
     fn analyze_cost_benefit(&self, plan: &OptimizationPlan) -> AispResult<CostBenefitAnalysis> {
         let mut total_cost = 0.0;
-        let mut total_benefit = plan.estimated_total_improvement;
+        let total_benefit = plan.estimated_total_improvement;
 
         for recommendations in plan.resource_optimizations.values() {
             for recommendation in recommendations {
@@ -570,7 +576,7 @@ mod tests {
         };
 
         // Add some test recommendations
-        let recommendations = vec![
+        let recommendations = [
             OptimizationRecommendation {
                 resource_type: ResourceType::Memory,
                 optimization_type: OptimizationType::Caching,

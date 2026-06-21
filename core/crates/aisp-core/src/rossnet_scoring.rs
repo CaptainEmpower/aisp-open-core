@@ -14,7 +14,7 @@
 //! of AISP implementations across different domains and contexts.
 
 use crate::{
-    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument},
     error::*,
     semantic::DeepVerificationResult,
 };
@@ -444,7 +444,6 @@ impl RossNetValidator {
     fn calculate_resource_utilization(&self, document: &AispDocument) -> AispResult<f64> {
         // Estimate resource usage based on complexity
         let mut complexity_score = 0.0;
-        let mut utilization_components = 0;
 
         for block in &document.blocks {
             let block_complexity = match block {
@@ -458,7 +457,6 @@ impl RossNetValidator {
             };
 
             complexity_score += block_complexity;
-            utilization_components += 1;
         }
 
         // Normalize to 0-1 range
@@ -484,12 +482,10 @@ impl RossNetValidator {
             if let AispBlock::Rules(rules_block) = block {
                 for rule in &rules_block.rules {
                     total_expressions += 1;
-                    // Note: canonical rules are strings, not structured expressions
-                    // Use simple heuristic for temporal operators
-                    if rule.raw_text.contains('□')
-                        || rule.raw_text.contains('◊')
-                        || rule.raw_text.contains('X')
-                    {
+                    // Note: canonical rules are strings, not structured expressions.
+                    // Use the shared temporal-operator heuristic, which also recognizes
+                    // the word forms ("always"/"eventually"/"next").
+                    if self.rule_has_temporal_operators(&rule.raw_text) {
                         temporal_operators += 1;
                     }
                 }
@@ -722,7 +718,7 @@ mod tests {
         let similarity = validator
             .calculate_structural_similarity(&document)
             .unwrap();
-        assert!(similarity >= 0.0 && similarity <= 1.0);
+        assert!((0.0..=1.0).contains(&similarity));
     }
 
     #[test]
@@ -753,7 +749,7 @@ mod tests {
 
     #[test]
     fn test_rossnet_score_computation() {
-        let components = RossNetComponents {
+        let _components = RossNetComponents {
             similarity: 0.8,
             fitness: 0.7,
             affinity: 0.9,
@@ -795,7 +791,7 @@ mod tests {
         let validator = RossNetValidator::new(config);
 
         let warnings_low = validator.generate_warnings(0.6);
-        assert!(warnings_low.len() >= 1);
+        assert!(!warnings_low.is_empty());
         assert!(warnings_low
             .iter()
             .any(|w| w.contains("below minimum threshold")));

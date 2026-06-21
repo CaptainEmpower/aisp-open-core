@@ -16,6 +16,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 /// Main formal verification engine
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct FormalVerifier {
     /// Verification configuration
     config: VerificationConfig,
@@ -31,6 +33,8 @@ pub struct FormalVerifier {
 
 /// Property verification engine
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PropertyVerifier {
     /// Verification strategies
     strategies: Vec<VerificationStrategy>,
@@ -114,6 +118,8 @@ pub enum ConditionPredicate {
 
 /// Strategy selection engine
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct StrategySelector {
     /// Selection criteria
     criteria: Vec<SelectionCriterion>,
@@ -147,6 +153,8 @@ pub enum CriterionEvaluator {
 
 /// Proof generation engine
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofGenerator {
     /// Proof construction strategies
     construction_strategies: Vec<ProofConstructionStrategy>,
@@ -197,6 +205,8 @@ pub struct ComplexityBounds {
 
 /// Proof validation engine
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofValidator {
     /// Validation rules
     validation_rules: Vec<ValidationRule>,
@@ -295,6 +305,8 @@ pub enum CompletenessAlgorithm {
 
 /// Proof optimization engine
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofOptimizer {
     /// Optimization strategies
     optimization_strategies: Vec<OptimizationStrategy>,
@@ -371,6 +383,12 @@ pub enum CriticalityLevel {
     Medium,
     High,
     Critical,
+}
+
+impl Default for FormalVerifier {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FormalVerifier {
@@ -539,7 +557,7 @@ impl FormalVerifier {
     }
 
     /// Extract proof steps from proof tree
-    fn extract_proof_steps(&self, proof_tree: &crate::proof_types::ProofTree) -> Vec<ProofStep> {
+    fn extract_proof_steps(&self, _proof_tree: &crate::proof_types::ProofTree) -> Vec<ProofStep> {
         // Implementation would extract actual steps from proof tree
         vec![ProofStep {
             step_number: 1,
@@ -549,6 +567,12 @@ impl FormalVerifier {
             justification: "Given premise".to_string(),
             dependencies: vec![],
         }]
+    }
+}
+
+impl Default for PropertyVerifier {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -574,8 +598,8 @@ impl PropertyVerifier {
     /// Apply verification strategy to property
     fn apply_strategy(
         &mut self,
-        strategy: &VerificationStrategy,
-        property: &PropertyFormula,
+        _strategy: &VerificationStrategy,
+        _property: &PropertyFormula,
     ) -> AispResult<VerifiedInvariant> {
         // Strategy application would be implemented here
         Err(AispError::validation_error(
@@ -614,6 +638,12 @@ impl PropertyVerifier {
     }
 }
 
+impl Default for StrategySelector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StrategySelector {
     /// Create new strategy selector
     pub fn new() -> Self {
@@ -628,7 +658,7 @@ impl StrategySelector {
     pub fn select_strategy(
         &self,
         strategies: &[VerificationStrategy],
-        property: &PropertyFormula,
+        _property: &PropertyFormula,
     ) -> AispResult<VerificationStrategy> {
         if strategies.is_empty() {
             return Err(AispError::validation_error("No strategies available"));
@@ -660,6 +690,12 @@ impl StrategySelector {
     }
 }
 
+impl Default for ProofGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofGenerator {
     /// Create new proof generator
     pub fn new() -> Self {
@@ -671,7 +707,7 @@ impl ProofGenerator {
     }
 
     /// Generate proof for property
-    pub fn generate_proof(&mut self, property: &PropertyFormula) -> AispResult<FormalProof> {
+    pub fn generate_proof(&mut self, _property: &PropertyFormula) -> AispResult<FormalProof> {
         // Proof generation would be implemented here
         Err(AispError::validation_error(
             "Proof generation not implemented",
@@ -694,6 +730,12 @@ impl ProofGenerator {
     }
 }
 
+impl Default for ProofValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofValidator {
     /// Create new proof validator
     pub fn new() -> Self {
@@ -705,7 +747,7 @@ impl ProofValidator {
     }
 
     /// Validate formal proof
-    pub fn validate_proof(&self, proof: &FormalProof) -> AispResult<ProofValidation> {
+    pub fn validate_proof(&self, _proof: &FormalProof) -> AispResult<ProofValidation> {
         // Proof validation would be implemented here
         Ok(ProofValidation::Valid)
     }
@@ -736,6 +778,12 @@ impl ProofValidator {
             metrics: vec![],
             algorithm: CompletenessAlgorithm::CoverageAnalysis,
         }]
+    }
+}
+
+impl Default for ProofOptimizer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -786,6 +834,12 @@ impl ProofOptimizer {
     }
 }
 
+impl Default for VerificationCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl VerificationCache {
     /// Create new verification cache
     pub fn new() -> Self {
@@ -800,6 +854,12 @@ impl VerificationCache {
             },
             config: CacheConfig::default(),
         }
+    }
+}
+
+impl Default for StatisticsCollector {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

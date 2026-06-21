@@ -67,7 +67,8 @@ impl LogicContentParser {
                 &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..colon_pos]
             } else {
                 &text[1..colon_pos]
-            }.trim();
+            }
+            .trim();
             let expression_part = &text[colon_pos + 1..].trim();
 
             let (variable, domain) = Self::parse_quantifier_binding(quantifier_part);
@@ -94,7 +95,8 @@ impl LogicContentParser {
                 &text[text.char_indices().nth(1).map(|(i, _)| i).unwrap_or(1)..colon_pos]
             } else {
                 &text[1..colon_pos]
-            }.trim();
+            }
+            .trim();
             let expression_part = &text[colon_pos + 1..].trim();
 
             let (variable, domain) = Self::parse_quantifier_binding(quantifier_part);
@@ -485,7 +487,7 @@ impl LogicContentParser {
         }
 
         if !Self::is_valid_identifier(&quantifier.variable) {
-            return Err(AispError::validation_error(&format!(
+            return Err(AispError::validation_error(format!(
                 "Invalid quantifier variable: '{}'",
                 quantifier.variable
             )));

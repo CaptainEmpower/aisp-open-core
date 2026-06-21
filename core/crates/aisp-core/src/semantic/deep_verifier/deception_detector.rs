@@ -4,11 +4,8 @@
 //! Implements SRP by focusing solely on authenticity verification
 
 use super::types::*;
-use crate::ast::canonical::{
-    CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-};
-use crate::error::{AispError, AispResult};
-use std::collections::HashMap;
+use crate::ast::canonical::CanonicalAispDocument as AispDocument;
+use crate::error::AispResult;
 
 /// Deception detection for fake implementations and surface compliance
 pub struct DeceptionDetector {
@@ -62,8 +59,8 @@ impl DeceptionDetector {
     ) -> AispResult<DeceptionAnalysisResult> {
         let mut placeholder_violations = Vec::new();
         let mut behavioral_inconsistencies = Vec::new();
-        let mut deception_score = 0.0;
-        let mut authenticity_score = 1.0;
+        let mut deception_score: f64 = 0.0;
+        let mut authenticity_score: f64 = 1.0;
 
         // Detect placeholder patterns
         let detected_placeholders = self.detect_placeholders(document)?;
@@ -105,8 +102,8 @@ impl DeceptionDetector {
             authenticity_score -= 0.2;
         }
 
-        let deception_score = (deception_score as f64).max(0.0).min(1.0);
-        let authenticity_score = (authenticity_score as f64).max(0.0).min(1.0);
+        let deception_score = deception_score.clamp(0.0, 1.0);
+        let authenticity_score = authenticity_score.clamp(0.0, 1.0);
 
         Ok(DeceptionAnalysisResult {
             deception_score,
@@ -208,9 +205,7 @@ impl DeceptionDetector {
                 if self.matches_pattern(&block_str, &pattern.detection_regex) {
                     violations.push(format!(
                         "Placeholder detected ({}): {} - {}",
-                        pattern.risk_level.to_string(),
-                        pattern.pattern_name,
-                        pattern.description
+                        pattern.risk_level, pattern.pattern_name, pattern.description
                     ));
                 }
             }

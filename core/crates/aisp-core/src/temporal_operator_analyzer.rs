@@ -116,6 +116,12 @@ pub struct OperatorValidationResult {
     pub valid: bool,
 }
 
+impl Default for TemporalOperatorAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalOperatorAnalyzer {
     /// Create a new temporal operator analyzer
     ///
@@ -153,7 +159,6 @@ impl TemporalOperatorAnalyzer {
 
         let mut errors = Vec::new();
         let mut warnings = Vec::new();
-        let mut path_quantifiers = Vec::new();
 
         // Analyze each block for temporal operators
         for block in &document.blocks {
@@ -175,7 +180,7 @@ impl TemporalOperatorAnalyzer {
         }
 
         // Detect path quantifiers for CTL analysis
-        path_quantifiers = self.detect_path_quantifiers();
+        let path_quantifiers = self.detect_path_quantifiers();
 
         // Calculate complexity metrics
         let complexity = self.calculate_complexity();
@@ -200,7 +205,7 @@ impl TemporalOperatorAnalyzer {
         &mut self,
         rules_block: &RulesBlock,
         errors: &mut Vec<AispError>,
-        warnings: &mut Vec<AispWarning>,
+        _warnings: &mut Vec<AispWarning>,
     ) {
         for rule in &rules_block.rules {
             let rule_id = format!("rule_{:?}", rule.span);
@@ -232,7 +237,7 @@ impl TemporalOperatorAnalyzer {
     fn analyze_function_operators(
         &mut self,
         functions_block: &FunctionsBlock,
-        errors: &mut Vec<AispError>,
+        _errors: &mut Vec<AispError>,
         warnings: &mut Vec<AispWarning>,
     ) {
         for function in &functions_block.functions {

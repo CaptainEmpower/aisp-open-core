@@ -16,6 +16,12 @@ pub struct TestDocumentBuilder {
     blocks: HashMap<String, String>,
 }
 
+impl Default for TestDocumentBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TestDocumentBuilder {
     pub fn new() -> Self {
         Self {
@@ -312,11 +318,9 @@ fn test_symbol_statistics_collection() {
 
     if let Some(analysis) = result.semantic_analysis {
         let stats = analysis.symbol_stats();
-        assert!(
-            !stats.category_counts.is_empty() || true,
-            "Expected symbol statistics to be collected"
-        );
-        // Note: symbol_stats() returns MockSymbolStats which has category_counts
+        // symbol_stats() currently returns MockSymbolStats; just confirm the
+        // category-count map is accessible without panicking.
+        let _ = stats.category_counts.len();
     }
 }
 

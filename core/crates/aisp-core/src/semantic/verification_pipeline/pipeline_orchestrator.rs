@@ -128,13 +128,17 @@ impl PipelineOrchestrator {
     /// Optimize resource allocation for performance
     fn optimize_resource_allocation(&mut self) {
         // Initialize and increase thread pool for parallel execution
-        let thread_count = self.resource_manager.resource_pools
+        let thread_count = self
+            .resource_manager
+            .resource_pools
             .entry("threads".to_string())
             .or_insert(4); // Default 4 threads
         *thread_count = (*thread_count * 2).min(16); // Cap at 16 threads
 
         // Initialize and allocate larger memory pools for performance
-        let memory_pool = self.resource_manager.resource_pools
+        let memory_pool = self
+            .resource_manager
+            .resource_pools
             .entry("memory".to_string())
             .or_insert(4 * 1024 * 1024); // Default 4MB
         *memory_pool = (*memory_pool * 4).min(16 * 1024 * 1024); // Cap at 16MB
@@ -179,12 +183,10 @@ impl PipelineOrchestrator {
                     ));
                 }
             }
-            ExecutionStrategy::Adaptive => {
-                if self.resource_manager.resource_pools.is_empty() {
-                    return Err(crate::error::AispError::internal_error(
-                        "Adaptive strategy requires resource pools configuration",
-                    ));
-                }
+            ExecutionStrategy::Adaptive if self.resource_manager.resource_pools.is_empty() => {
+                return Err(crate::error::AispError::internal_error(
+                    "Adaptive strategy requires resource pools configuration",
+                ));
             }
             _ => {} // Other strategies don't require special validation
         }
@@ -194,7 +196,7 @@ impl PipelineOrchestrator {
     /// Check for circular dependencies in stage graph
     fn has_circular_dependencies(&self) -> bool {
         // Simplified cycle detection - in production would use proper graph algorithms
-        for (stage, deps) in &self.stage_dependencies {
+        for stage in self.stage_dependencies.keys() {
             if self.has_transitive_dependency(stage, stage, &mut Vec::new()) {
                 return true;
             }
@@ -256,7 +258,6 @@ impl Default for PipelineOrchestrator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::canonical::{DocumentHeader, DocumentMetadata};
 
     fn create_test_document() -> AispDocument {
         crate::ast::canonical::create_document("test_doc", "5.1", "2026-01-27")

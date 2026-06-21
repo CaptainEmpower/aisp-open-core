@@ -259,9 +259,8 @@ mod tests {
     #[test]
     fn test_verification_methods_creation() {
         let config = ValidationConfig::default();
-        let methods = VerificationMethods::new(config);
+        let _methods = VerificationMethods::new(config);
         // Test that verification methods can be created
-        assert!(true); // Placeholder assertion for successful creation
     }
 
     #[test]
@@ -272,7 +271,6 @@ mod tests {
 
         // Should not panic when applying strict checks
         methods.apply_strict_checks(&mut analysis);
-        assert!(true); // Placeholder assertion
     }
 
     #[test]
@@ -286,7 +284,6 @@ mod tests {
         // Test that tri-vector validation can be attempted
         // Note: This may fail due to missing Z3 setup, but should not panic
         let _result = methods.perform_trivector_validation(&document);
-        assert!(true); // Test completed without panic
     }
 
     #[test]
@@ -297,7 +294,6 @@ mod tests {
 
         // Test that ghost intent validation can be attempted
         let _result = methods.perform_ghost_intent_validation(&document);
-        assert!(true); // Test completed without panic
     }
 
     #[test]
@@ -309,6 +305,5 @@ mod tests {
 
         // Test that RossNet validation can be attempted
         let _result = methods.perform_rossnet_validation(&document, &analysis);
-        assert!(true); // Test completed without panic
     }
 }

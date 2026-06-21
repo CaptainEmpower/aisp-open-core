@@ -5,8 +5,8 @@
 //! V_H ∩ V_S ≡ ∅ when both spaces contain the zero vector.
 
 use crate::{
-    error::{AispError, AispResult},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    error::AispResult,
+    mathematical_evaluator::MathEvaluator,
     tri_vector_validation::{
         OrthogonalityCounterexample, OrthogonalityProof, OrthogonalityProofMethod,
         OrthogonalityResult, OrthogonalityType, Vector as TriVector,
@@ -59,6 +59,8 @@ pub struct VectorSpaceInput {
 }
 
 /// Vector space verifier with proper mathematical handling
+// TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct VectorSpaceVerifier {
     math_evaluator: MathEvaluator,
     tolerance: f64,
@@ -140,7 +142,7 @@ impl VectorSpace {
 
     /// Check if a vector is in this space
     pub fn contains_vector(&self, _vector: &Vector) -> bool {
-        // Simplified: for this demonstration, assume we can check membership
+        // Simplified: for this demonstration, assume we can check membership (tracked in #16)
         // In a full implementation, this would solve the linear system
         true
     }
@@ -162,17 +164,17 @@ impl VectorSpaceVerifier {
         // Create the vector spaces claimed in reference.md
         let v_h = VectorSpace::new("V_H (semantic vectors)".to_string(), 768);
         let v_s = VectorSpace::new("V_S (safety vectors)".to_string(), 256);
-        let v_l = VectorSpace::new("V_L (learning vectors)".to_string(), 512);
+        let _v_l = VectorSpace::new("V_L (learning vectors)".to_string(), 512);
 
         // Check the fundamental mathematical error
-        let zero_vector_locations = vec![
+        let _zero_vector_locations = [
             "V_H contains zero vector (768 dimensions)".to_string(),
             "V_S contains zero vector (256 dimensions)".to_string(),
             "V_L contains zero vector (512 dimensions)".to_string(),
         ];
 
         // The claim V_H ∩ V_S ≡ ∅ is false because both contain zero vectors
-        let intersection_is_empty = false;
+        let _intersection_is_empty = false;
         let spaces_are_orthogonal = false;
 
         error_conditions.push(
@@ -197,7 +199,7 @@ impl VectorSpaceVerifier {
         };
 
         // Provide mathematical proof of the contradiction
-        let mathematical_proof = Some(format!(
+        let mathematical_proof = Some(
             "Proof that V_H ∩ V_S ≠ ∅:\n\
              1. V_H = ℝ^768 contains zero vector 0⃗_768 = (0,0,...,0) ∈ ℝ^768\n\
              2. V_S = ℝ^256 contains zero vector 0⃗_256 = (0,0,...,0) ∈ ℝ^256\n\
@@ -205,9 +207,10 @@ impl VectorSpaceVerifier {
                 - 0⃗_768 ∈ V_H\n\
                 - 0⃗_768 ∈ embedded(V_S) (with padding)\n\
              4. Therefore 0⃗_768 ∈ V_H ∩ embedded(V_S)\n\
-             5. Since {{0⃗_768}} ⊆ V_H ∩ embedded(V_S), we have V_H ∩ V_S ≢ ∅\n\
+             5. Since {0⃗_768} ⊆ V_H ∩ embedded(V_S), we have V_H ∩ V_S ≢ ∅\n\
              QED: The claim V_H ∩ V_S ≡ ∅ is mathematically false."
-        ));
+                .to_string(),
+        );
 
         // Provide counterexample
         let counterexample = Some(
@@ -450,9 +453,9 @@ mod tests {
         let mut verifier = VectorSpaceVerifier::new();
         let properties = verifier.verify_aisp_vector_properties().unwrap();
 
-        assert_eq!(properties["zero_vector_exists_in_all_spaces"], true);
-        assert_eq!(properties["intersection_contains_zero"], true);
-        assert_eq!(properties["claimed_empty_intersection"], false); // This is the error
-        assert_eq!(properties["mathematically_consistent"], false);
+        assert!(properties["zero_vector_exists_in_all_spaces"]);
+        assert!(properties["intersection_contains_zero"]);
+        assert!(!properties["claimed_empty_intersection"]); // This is the error
+        assert!(!properties["mathematically_consistent"]);
     }
 }

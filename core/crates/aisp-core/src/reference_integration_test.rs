@@ -4,7 +4,7 @@
 //! AISP formal verification system against ALL requirements in reference.md,
 //! establishing a formal methods challenge suite.
 
-use crate::ast::canonical::{CanonicalAispDocument as AispDocument, *};
+use crate::ast::canonical::*;
 use crate::error::AispResult;
 use crate::parser::robust_parser::RobustAispParser;
 use crate::reference_validator::{ComplianceLevel, ReferenceValidator};
@@ -471,7 +471,6 @@ mod tests {
         }
 
         // Test should not panic regardless of compliance level
-        assert!(true);
     }
 
     #[test]
@@ -493,13 +492,12 @@ mod tests {
             println!(
                 "Note: Test document parsing failed, which is acceptable for integration testing"
             );
-            assert!(true);
         }
     }
 
     #[test]
     fn test_pipeline_mathematical_verification() {
-        let mut suite = ReferenceChallengeTestSuite::new();
+        let _suite = ReferenceChallengeTestSuite::new();
 
         // Test pipeline success rate calculations from reference.md
         let expected_rates = vec![
@@ -541,12 +539,10 @@ mod tests {
             } else {
                 // If semantic analysis fails, test graceful degradation
                 println!("Note: Semantic analysis failed, testing graceful degradation");
-                assert!(true);
             }
         } else {
             // If parsing fails, test graceful degradation
             println!("Note: Test document parsing failed, testing graceful degradation");
-            assert!(true);
         }
     }
 }

@@ -4,7 +4,7 @@
 //! Implements SRP by focusing solely on compliance auditing
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 
 /// Compliance auditor for regulatory and standard compliance
 pub struct ComplianceAuditor {
@@ -66,7 +66,7 @@ impl ComplianceAuditor {
         &self,
         semantic_results: &crate::semantic::deep_verifier::DeepVerificationResult,
         behavioral_results: &crate::semantic::behavioral_verifier::BehavioralVerificationResult,
-        cross_validation_results: &crate::semantic::cross_validator::CrossValidationResult,
+        _cross_validation_results: &crate::semantic::cross_validator::CrossValidationResult,
     ) -> AispResult<ComplianceAuditResult> {
         let mut passed_checks = 0;
         let total_checks = self.audit_checklist.len();

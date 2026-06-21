@@ -5,10 +5,9 @@
 use super::types::*;
 use crate::{
     error::{AispError, AispResult},
-    proof_types::ProofTree,
-    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    property_types::PropertyFormula,
 };
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Advanced proof generation and management engine
@@ -74,6 +73,8 @@ pub struct GeneratorRequirements {
 
 /// Advanced proof validation system
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedProofValidator {
     /// Validation strategies
     strategies: Vec<ValidationStrategy>,
@@ -347,6 +348,8 @@ pub enum ExpertiseLevel {
 
 /// Advanced proof optimization system
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedProofOptimizer {
     /// Optimization algorithms
     algorithms: Vec<OptimizationAlgorithm>,
@@ -546,6 +549,8 @@ pub enum OptimizationEventType {
 
 /// Proof repository for storage and retrieval
 #[derive(Debug)]
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProofRepository {
     /// Stored proofs
     proofs: HashMap<String, StoredProof>,
@@ -673,6 +678,12 @@ pub struct QualityThresholds {
     pub max_complexity: f64,
 }
 
+impl Default for ProofEngine {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProofEngine {
     /// Create new proof engine
     pub fn new() -> Self {
@@ -691,7 +702,7 @@ impl ProofEngine {
         let generator = self.select_generator(property)?;
 
         // Generate proof using selected generator
-        let proof = self.apply_generator(&generator, property)?;
+        let proof = self.apply_generator(generator, property)?;
 
         // Validate generated proof
         let validation = self.validator.validate(&proof)?;
@@ -715,7 +726,7 @@ impl ProofEngine {
     }
 
     /// Select appropriate proof generator
-    fn select_generator(&self, property: &PropertyFormula) -> AispResult<&ProofGeneratorImpl> {
+    fn select_generator(&self, _property: &PropertyFormula) -> AispResult<&ProofGeneratorImpl> {
         self.generators
             .first()
             .ok_or_else(|| AispError::validation_error("No generators available"))
@@ -724,7 +735,7 @@ impl ProofEngine {
     /// Apply generator to property
     fn apply_generator(
         &self,
-        generator: &ProofGeneratorImpl,
+        _generator: &ProofGeneratorImpl,
         property: &PropertyFormula,
     ) -> AispResult<FormalProof> {
         // Generator application would be implemented here
@@ -765,6 +776,12 @@ impl ProofEngine {
     }
 }
 
+impl Default for AdvancedProofValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AdvancedProofValidator {
     /// Create new advanced proof validator
     pub fn new() -> Self {
@@ -777,7 +794,7 @@ impl AdvancedProofValidator {
     }
 
     /// Validate proof using multiple strategies
-    pub fn validate(&self, proof: &FormalProof) -> AispResult<ProofValidation> {
+    pub fn validate(&self, _proof: &FormalProof) -> AispResult<ProofValidation> {
         // Validation implementation would go here
         Ok(ProofValidation::Valid)
     }
@@ -837,7 +854,7 @@ impl AdvancedProofValidator {
                 review_requirements: ReviewRequirements {
                     reviewer_count: 2,
                     expertise_levels: vec![ExpertiseLevel::Advanced],
-                    timeline: Duration::from_days(7),
+                    timeline: Duration::from_secs(7 * 24 * 60 * 60),
                     consensus_threshold: 0.8,
                 },
                 documentation: DocumentationRequirements {
@@ -847,6 +864,12 @@ impl AdvancedProofValidator {
                 },
             },
         }]
+    }
+}
+
+impl Default for AdvancedProofOptimizer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -916,6 +939,12 @@ impl AdvancedProofOptimizer {
             },
         );
         rules
+    }
+}
+
+impl Default for ProofRepository {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -990,17 +1019,6 @@ impl Default for ProofEngineConfig {
                 max_complexity: 100.0,
             },
         }
-    }
-}
-
-// Extension for Duration to support days
-trait DurationExt {
-    fn from_days(days: u64) -> Duration;
-}
-
-impl DurationExt for Duration {
-    fn from_days(days: u64) -> Duration {
-        Duration::from_secs(days * 24 * 60 * 60)
     }
 }
 

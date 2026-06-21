@@ -109,6 +109,12 @@ pub struct AnalysisTimeBreakdown {
     pub integration_ms: u64,
 }
 
+impl Default for UnifiedTemporalAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UnifiedTemporalAnalyzer {
     /// Create new unified temporal analyzer
     pub fn new() -> Self {
@@ -316,9 +322,9 @@ impl UnifiedTemporalAnalyzer {
 
         // Simple heuristic: patterns should be proportional to operators
         let ratio = pattern_count as f64 / operator_count as f64;
-        if ratio >= 0.3 && ratio <= 3.0 {
+        if (0.3..=3.0).contains(&ratio) {
             0.9 // High consistency
-        } else if ratio >= 0.1 && ratio <= 5.0 {
+        } else if (0.1..=5.0).contains(&ratio) {
             0.7 // Medium consistency
         } else {
             0.5 // Low consistency
@@ -725,7 +731,6 @@ impl EmptyResult for ModelCheckingResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::AispParser;
 
     #[test]
     fn test_unified_analyzer_creation() {

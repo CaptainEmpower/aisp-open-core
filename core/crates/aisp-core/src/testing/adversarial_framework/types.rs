@@ -117,18 +117,18 @@ pub enum InjectionContext {
 #[derive(Debug, Clone, PartialEq)]
 pub enum RecommendationPriority {
     Immediate,
-    Short_term,
-    Medium_term,
-    Long_term,
+    ShortTerm,
+    MediumTerm,
+    LongTerm,
 }
 
 impl std::fmt::Display for RecommendationPriority {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RecommendationPriority::Immediate => write!(f, "Immediate"),
-            RecommendationPriority::Short_term => write!(f, "Short-term"),
-            RecommendationPriority::Medium_term => write!(f, "Medium-term"),
-            RecommendationPriority::Long_term => write!(f, "Long-term"),
+            RecommendationPriority::ShortTerm => write!(f, "Short-term"),
+            RecommendationPriority::MediumTerm => write!(f, "Medium-term"),
+            RecommendationPriority::LongTerm => write!(f, "Long-term"),
         }
     }
 }

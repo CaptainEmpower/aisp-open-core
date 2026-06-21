@@ -3,7 +3,6 @@
 //! Shared types and enums for the verification pipeline system
 //! Follows SRP by containing only type definitions
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -13,18 +12,20 @@ use std::time::Duration;
 /// - Each strategy defines deterministic execution ordering
 /// - Adaptive strategies maintain performance > Sequential baseline
 /// - Priority-based ensures critical verifications execute first
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum ExecutionStrategy {
     Sequential,
     Parallel,
+    #[default]
     AdaptiveParallel,
     PriorityBased,
 }
 
 /// Failure handling strategies for verification pipeline
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum FailureHandlingStrategy {
     FailFast,
+    #[default]
     ContinueOnError,
     RetryWithBackoff,
     GracefulDegradation,
@@ -137,18 +138,6 @@ pub struct ResourceManager {
     pub resource_pools: HashMap<String, usize>,
 }
 
-impl Default for ExecutionStrategy {
-    fn default() -> Self {
-        Self::AdaptiveParallel
-    }
-}
-
-impl Default for FailureHandlingStrategy {
-    fn default() -> Self {
-        Self::ContinueOnError
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -175,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_security_violation_types() {
-        let violations = vec![
+        let violations = [
             SecurityViolationType::UnauthorizedAccess,
             SecurityViolationType::DataLeakage,
             SecurityViolationType::IntegrityBreach,

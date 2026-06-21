@@ -3,12 +3,9 @@
 //! Enhances Z3 integration to move beyond syntactic verification to actual
 //! semantic mathematical consistency checking for AISP formal verification.
 
-use crate::advanced_theorem_prover::{AdvancedTheoremProver, AdvancedTheoremResult};
-use crate::category_theory_verifier::{CategoryTheoryVerifier, CategoryVerificationResult};
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use crate::incompleteness_handler::{IncompletenessHandler, TruthValue};
 use crate::mathematical_evaluator::{MathEvaluator, MathValue, UndefinedReason};
-use crate::mathematical_notation_parser::{EnhancedMathExpression, MathematicalNotationParser};
 use crate::vector_space_verifier::VectorSpaceVerifier;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
 use std::collections::HashMap;
@@ -107,6 +104,8 @@ pub struct VerificationMetrics {
 }
 
 /// Enhanced semantic Z3 verifier
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SemanticZ3Verifier {
     z3_facade: Z3VerificationFacade,
     math_evaluator: MathEvaluator,
@@ -414,8 +413,7 @@ impl SemanticZ3Verifier {
 
     /// Generate Z3 formula for consistency checking
     fn generate_consistency_formula(&self) -> String {
-        format!(
-            ";; Basic logical consistency check\n\
+        ";; Basic logical consistency check\n\
              (declare-const P Bool)\n\
              (declare-const Q Bool)\n\
              \n\
@@ -428,15 +426,14 @@ impl SemanticZ3Verifier {
              ;; Check satisfiability\n\
              (check-sat)\n\
              (get-model)"
-        )
+            .to_string()
     }
 
     /// Generate Z3 formula for semantic verification
     fn generate_semantic_formula(&self, claim: &str) -> String {
         // Simplified: generate basic formula based on claim content
         if claim.contains("orthogonal") {
-            format!(
-                ";; Orthogonality verification\n\
+            ";; Orthogonality verification\n\
                  (declare-const v1_x Real)\n\
                  (declare-const v1_y Real)\n\
                  (declare-const v2_x Real)\n\
@@ -451,14 +448,13 @@ impl SemanticZ3Verifier {
                  \n\
                  (check-sat)\n\
                  (get-model)"
-            )
+                .to_string()
         } else {
-            format!(
-                ";; Generic semantic verification\n\
+            ";; Generic semantic verification\n\
                  (declare-const claim_valid Bool)\n\
                  (assert claim_valid)\n\
                  (check-sat)"
-            )
+                .to_string()
         }
     }
 

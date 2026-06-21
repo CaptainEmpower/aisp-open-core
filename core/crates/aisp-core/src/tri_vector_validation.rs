@@ -9,7 +9,7 @@ use crate::{
     error::*,
     // z3_integration::*, // Temporarily disabled
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 /// Tri-vector signal representation
 #[derive(Debug, Clone, PartialEq)]
@@ -248,6 +248,8 @@ pub enum TriVectorError {
 }
 
 /// Tri-vector validator
+// TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct TriVectorValidator {
     /// Z3 integration for formal verification
     z3_verifier: Option<Z3TriVectorVerifier>,
@@ -341,7 +343,7 @@ impl TriVectorValidator {
 
                 // Check for orthogonality violations
                 let mut has_violations = false;
-                for (_, orthogonality) in &result.orthogonality_results {
+                for orthogonality in result.orthogonality_results.values() {
                     if orthogonality.orthogonality_type == OrthogonalityType::NotOrthogonal {
                         has_violations = true;
                         result.errors.push(TriVectorError::OrthogonalityViolated {
@@ -731,14 +733,14 @@ impl TriVectorValidator {
     fn verify_semantic_safety_isolation(&self, _signal: &TriVectorSignal) -> AispResult<bool> {
         // Mathematical verification that V_H ⊥ V_S implies
         // optimization in semantic space cannot affect safety constraints
-        Ok(true) // Placeholder - would use formal verification
+        Ok(true) // Placeholder - would use formal verification (tracked in #16)
     }
 
     /// Verify structural space doesn't affect safety
     fn verify_structural_safety_isolation(&self, _signal: &TriVectorSignal) -> AispResult<bool> {
         // Mathematical verification that V_L ⊥ V_S implies
         // structural modifications cannot affect safety constraints
-        Ok(true) // Placeholder - would use formal verification
+        Ok(true) // Placeholder - would use formal verification (tracked in #16)
     }
 
     /// Generate proof of safety isolation
@@ -867,6 +869,8 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{AispDocument, DocumentHeader, DocumentMetadata};
 
+    // TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document_with_trivector() -> AispDocument {
         // Create a test document with proper tri-vector definitions
         AispDocument {
@@ -895,7 +899,6 @@ mod tests {
     #[test]
     fn test_validator_creation() {
         let validator = TriVectorValidator::new();
-        assert!(!validator.config.require_formal_proofs || validator.config.require_formal_proofs);
         assert_eq!(validator.config.orthogonality_tolerance, 1e-10);
     }
 

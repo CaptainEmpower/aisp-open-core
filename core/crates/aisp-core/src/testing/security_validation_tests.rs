@@ -9,6 +9,8 @@ use crate::testing::adversarial_framework::{
 };
 
 /// Security validation test suite for parser hardening
+// TODO(#18): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ParserSecurityTestSuite {
     parser: RobustAispParser,
     unicode_registry: UnicodeSymbolRegistry,
@@ -52,9 +54,6 @@ impl ParserSecurityTestSuite {
         let mut total_tests = 0;
         let mut passed_tests = 0;
         let mut failed_tests = 0;
-        let mut critical_failures = 0;
-        let mut bypass_attempts = 0;
-        let mut successful_bypasses = 0;
         let mut recommendations = Vec::new();
 
         // Run basic security tests
@@ -73,9 +72,9 @@ impl ParserSecurityTestSuite {
         let adversarial_report =
             crate::testing::adversarial_framework::run_adversarial_security_assessment();
         total_tests += adversarial_report.total_attacks;
-        bypass_attempts = adversarial_report.total_attacks;
-        successful_bypasses = adversarial_report.bypasses_achieved;
-        critical_failures = adversarial_report.critical_vulnerabilities;
+        let bypass_attempts = adversarial_report.total_attacks;
+        let successful_bypasses = adversarial_report.bypasses_achieved;
+        let critical_failures = adversarial_report.critical_vulnerabilities;
 
         // Calculate security score
         let security_score = self.calculate_security_score(
@@ -368,7 +367,7 @@ impl ParserSecurityTestSuite {
 
     /// Simulate injection attacks
     fn simulate_injection_attacks(&self) -> Vec<bool> {
-        let injection_payloads = vec![
+        let injection_payloads = [
             "Vision≜\"<script>alert('xss')</script>\"",
             "Vision≜\"'; DROP TABLE docs; --\"",
             "Vision≜\"$(rm -rf /)\"",
@@ -473,8 +472,7 @@ impl Default for ParserSecurityTestSuite {
     }
 }
 
-// Add chrono for timestamp (conditional compilation)
-#[cfg(not(feature = "chrono"))]
+// Minimal local stand-in for chrono's timestamp API (no chrono dependency).
 mod chrono {
     pub struct Utc;
     impl Utc {
@@ -491,31 +489,28 @@ mod chrono {
     }
 }
 
-#[cfg(feature = "chrono")]
-use chrono;
-
 impl std::fmt::Display for SecurityTestResults {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Parser Security Test Results\n")?;
-        write!(f, "============================\n")?;
-        write!(f, "Total Tests: {}\n", self.total_tests)?;
-        write!(
+        writeln!(f, "Parser Security Test Results")?;
+        writeln!(f, "============================")?;
+        writeln!(f, "Total Tests: {}", self.total_tests)?;
+        writeln!(
             f,
-            "Passed: {} ({:.1}%)\n",
+            "Passed: {} ({:.1}%)",
             self.passed_tests,
             (self.passed_tests as f64 / self.total_tests as f64) * 100.0
         )?;
-        write!(
+        writeln!(
             f,
-            "Failed: {} ({:.1}%)\n",
+            "Failed: {} ({:.1}%)",
             self.failed_tests,
             (self.failed_tests as f64 / self.total_tests as f64) * 100.0
         )?;
-        write!(f, "Critical Failures: {}\n", self.critical_failures)?;
-        write!(f, "Bypass Attempts: {}\n", self.bypass_attempts)?;
-        write!(
+        writeln!(f, "Critical Failures: {}", self.critical_failures)?;
+        writeln!(f, "Bypass Attempts: {}", self.bypass_attempts)?;
+        writeln!(
             f,
-            "Successful Bypasses: {} ({:.1}%)\n",
+            "Successful Bypasses: {} ({:.1}%)",
             self.successful_bypasses,
             if self.bypass_attempts > 0 {
                 (self.successful_bypasses as f64 / self.bypass_attempts as f64) * 100.0
@@ -523,12 +518,12 @@ impl std::fmt::Display for SecurityTestResults {
                 0.0
             }
         )?;
-        write!(f, "Security Score: {:.1}/100\n", self.security_score)?;
+        writeln!(f, "Security Score: {:.1}/100", self.security_score)?;
 
         if !self.recommendations.is_empty() {
             write!(f, "\nTop Recommendations:\n")?;
             for (i, rec) in self.recommendations.iter().take(5).enumerate() {
-                write!(f, "{}. {}\n", i + 1, rec)?;
+                writeln!(f, "{}. {}", i + 1, rec)?;
             }
         }
 
@@ -538,32 +533,24 @@ impl std::fmt::Display for SecurityTestResults {
 
 impl std::fmt::Display for SecurityComplianceReport {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "AISP Parser Security Compliance Report\n")?;
-        write!(f, "=====================================\n")?;
-        write!(f, "Timestamp: {}\n", self.timestamp)?;
-        write!(f, "Compliance Status: {:?}\n", self.compliance_status)?;
-        write!(
+        writeln!(f, "AISP Parser Security Compliance Report")?;
+        writeln!(f, "=====================================")?;
+        writeln!(f, "Timestamp: {}", self.timestamp)?;
+        writeln!(f, "Compliance Status: {:?}", self.compliance_status)?;
+        writeln!(f, "Overall Score: {:.1}/100", self.overall_compliance_score)?;
+        writeln!(f, "Parser Security: {:.1}/100", self.parser_security_score)?;
+        writeln!(
             f,
-            "Overall Score: {:.1}/100\n",
-            self.overall_compliance_score
-        )?;
-        write!(
-            f,
-            "Parser Security: {:.1}/100\n",
-            self.parser_security_score
-        )?;
-        write!(
-            f,
-            "Adversarial Resistance: {:.1}/100\n",
+            "Adversarial Resistance: {:.1}/100",
             self.adversarial_resistance_score
         )?;
-        write!(f, "Bypass Resistance: {:.1}%\n", self.bypass_resistance)?;
-        write!(f, "Critical Issues: {}\n", self.critical_issues_count)?;
+        writeln!(f, "Bypass Resistance: {:.1}%", self.bypass_resistance)?;
+        writeln!(f, "Critical Issues: {}", self.critical_issues_count)?;
 
         if !self.recommendations.is_empty() {
             write!(f, "\nPriority Recommendations:\n")?;
             for (i, rec) in self.recommendations.iter().take(3).enumerate() {
-                write!(f, "{}. {}\n", i + 1, rec)?;
+                writeln!(f, "{}. {}", i + 1, rec)?;
             }
         }
 

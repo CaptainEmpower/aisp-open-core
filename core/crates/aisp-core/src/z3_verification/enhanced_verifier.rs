@@ -7,13 +7,11 @@ use super::{canonical_types::*, environment::AispZ3Environment, properties::Prop
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument, error::*, tri_vector_validation::*,
 };
-use std::collections::HashMap;
 use std::time::Instant;
 
-#[cfg(feature = "z3-verification")]
-use z3::*;
-
 /// Enhanced Z3 verifier with advanced AISP-specific capabilities
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct EnhancedZ3Verifier {
     /// AISP type environment
     environment: AispZ3Environment,
@@ -61,10 +59,14 @@ impl EnhancedZ3Verifier {
 
         #[cfg(feature = "z3-verification")]
         {
-            // Comprehensive verification would go here
+            // Comprehensive verification would go here. Until property collection is
+            // implemented, derive the status from whatever properties were produced
+            // rather than unconditionally claiming `AllVerified` (which would be a
+            // false positive for an empty property set). See ROADMAP R-06/R-07.
+            let properties: Vec<Z3VerifiedProperty> = vec![];
             Ok(Z3VerificationResult {
-                status: Z3VerificationStatus::AllVerified,
-                properties: vec![],
+                status: self.determine_status(&properties),
+                properties,
                 statistics: self.stats.clone(),
                 timing: Z3TimingBreakdown::default(),
                 resource_usage: Z3ResourceUsage::default(),
@@ -187,10 +189,12 @@ mod tests {
             assert!(result.is_ok());
 
             let verification_result = result.unwrap();
-            assert_eq!(
+            // Property collection is not yet implemented, so an empty property set must
+            // report `Incomplete` rather than a false-positive `AllVerified`.
+            assert!(matches!(
                 verification_result.status,
-                Z3VerificationStatus::AllVerified
-            );
+                Z3VerificationStatus::Incomplete { .. }
+            ));
         }
 
         #[cfg(not(feature = "z3-verification"))]
@@ -238,7 +242,7 @@ mod tests {
                 },
             )];
             match verifier.determine_status(&failed_props) {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected Failed status"),
             }
         }

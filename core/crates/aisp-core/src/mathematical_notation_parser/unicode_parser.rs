@@ -9,6 +9,8 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 /// Unicode mathematical symbol parser
+// TODO(#14): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct UnicodeParser {
     /// Symbol registry
     symbol_registry: HashMap<String, UnicodeSymbolInfo>,
@@ -73,6 +75,12 @@ pub enum MathSymbolCategory {
     Geometry,
     /// Miscellaneous
     Miscellaneous,
+}
+
+impl Default for UnicodeParser {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl UnicodeParser {
@@ -320,12 +328,10 @@ impl UnicodeParser {
                     operator = ">=".to_string();
                 }
             }
-            "-" => {
-                if chars.peek() == Some(&'>') {
-                    chars.next();
-                    context.position += 1;
-                    operator = "->".to_string();
-                }
+            "-" if chars.peek() == Some(&'>') => {
+                chars.next();
+                context.position += 1;
+                operator = "->".to_string();
             }
             _ => {}
         }

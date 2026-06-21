@@ -5,10 +5,8 @@
 
 use crate::ast::canonical::*;
 use crate::error::*;
-use crate::property_extractor::*;
-use crate::temporal_new::*;
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::hash::{Hash, Hasher};
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use std::time::{Duration, Instant};
 
 /// Model checker for temporal logic properties
@@ -582,11 +580,11 @@ impl ModelChecker {
             let mut new_states = current.clone();
 
             for (state_id, transitions) in &self.state_space.transitions {
-                if !current.contains(state_id) {
-                    if transitions.iter().any(|t| current.contains(&t.to)) {
-                        new_states.insert(*state_id);
-                        changed = true;
-                    }
+                if !current.contains(state_id)
+                    && transitions.iter().any(|t| current.contains(&t.to))
+                {
+                    new_states.insert(*state_id);
+                    changed = true;
                 }
             }
 
@@ -609,11 +607,12 @@ impl ModelChecker {
             let mut new_states = current.clone();
 
             for (state_id, transitions) in &self.state_space.transitions {
-                if !current.contains(state_id) && !transitions.is_empty() {
-                    if transitions.iter().all(|t| current.contains(&t.to)) {
-                        new_states.insert(*state_id);
-                        changed = true;
-                    }
+                if !current.contains(state_id)
+                    && !transitions.is_empty()
+                    && transitions.iter().all(|t| current.contains(&t.to))
+                {
+                    new_states.insert(*state_id);
+                    changed = true;
                 }
             }
 
@@ -738,6 +737,12 @@ impl ModelChecker {
     }
 }
 
+impl Default for StateSpace {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StateSpace {
     /// Create new empty state space
     pub fn new() -> Self {
@@ -748,6 +753,12 @@ impl StateSpace {
             atomic_props: HashMap::new(),
             labels: HashMap::new(),
         }
+    }
+}
+
+impl Default for ModelCheckingStats {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

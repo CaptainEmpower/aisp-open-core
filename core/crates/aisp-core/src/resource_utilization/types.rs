@@ -2,7 +2,6 @@
 //!
 //! Core type definitions for resource utilization analysis.
 
-use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -264,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_resource_type_variants() {
-        let resources = vec![
+        let resources = [
             ResourceType::Memory,
             ResourceType::CPU,
             ResourceType::NetworkBandwidth,
@@ -300,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_utilization_trend_variants() {
-        let trends = vec![
+        let trends = [
             UtilizationTrend::Increasing(0.1),
             UtilizationTrend::Decreasing(0.05),
             UtilizationTrend::Stable(0.02),

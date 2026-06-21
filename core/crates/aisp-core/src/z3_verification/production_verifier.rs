@@ -5,8 +5,7 @@
 
 use super::canonical_types::*;
 use crate::{
-    ast::canonical::CanonicalAispDocument,
-    error::{AispError, AispResult},
+    ast::canonical::CanonicalAispDocument, error::AispResult,
     tri_vector_validation::TriVectorValidationResult,
 };
 use std::collections::HashMap;
@@ -50,6 +49,8 @@ struct VerificationCache {
 
 /// Cached verification result
 #[derive(Debug, Clone)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct CachedResult {
     result: Z3PropertyResult,
     timestamp: SystemTime,
@@ -297,57 +298,64 @@ impl ProductionZ3Verifier {
         solver.set_params(&params);
 
         // Parse and assert formula
-        match self.parse_and_assert_formula(&context, &solver, formula) {
-            Ok(_) => {
-                // Check satisfiability
-                let start_time = Instant::now();
-                match solver.check() {
-                    SatResult::Unsat => {
-                        let verification_time = start_time.elapsed();
+        let result: AispResult<Z3PropertyResult> =
+            match self.parse_and_assert_formula(&context, &solver, formula) {
+                Ok(_) => {
+                    // Check satisfiability
+                    let start_time = Instant::now();
+                    match solver.check() {
+                        SatResult::Unsat => {
+                            let verification_time = start_time.elapsed();
 
-                        // Generate proof if requested
-                        let proof_certificate = if self.config.generate_proofs {
-                            "Proof available (Z3 proof object)".to_string()
-                        } else {
-                            "Proof generation disabled".to_string()
-                        };
+                            // Generate proof if requested
+                            let proof_certificate = if self.config.generate_proofs {
+                                "Proof available (Z3 proof object)".to_string()
+                            } else {
+                                "Proof generation disabled".to_string()
+                            };
 
-                        Ok(Z3PropertyResult::Proven {
-                            proof_certificate,
-                            verification_time,
-                        })
-                    }
-                    SatResult::Sat => {
-                        let verification_time = start_time.elapsed();
+                            Ok(Z3PropertyResult::Proven {
+                                proof_certificate,
+                                verification_time,
+                            })
+                        }
+                        SatResult::Sat => {
+                            let verification_time = start_time.elapsed();
 
-                        // Generate counterexample if requested
-                        let counterexample = if self.config.generate_models {
-                            solver
-                                .get_model()
-                                .map(|m| m.to_string())
-                                .unwrap_or_default()
-                        } else {
-                            "Model generation disabled".to_string()
-                        };
+                            // Generate counterexample if requested
+                            let counterexample = if self.config.generate_models {
+                                solver
+                                    .get_model()
+                                    .map(|m| m.to_string())
+                                    .unwrap_or_default()
+                            } else {
+                                "Model generation disabled".to_string()
+                            };
 
-                        Ok(Z3PropertyResult::Disproven {
-                            counterexample,
-                            verification_time,
-                        })
-                    }
-                    SatResult::Unknown => {
-                        Ok(Z3PropertyResult::Unknown {
-                            reason: "Z3 solver returned unknown".to_string(),
-                            partial_progress: 0.5, // Estimate
-                        })
+                            Ok(Z3PropertyResult::Disproven {
+                                counterexample,
+                                verification_time,
+                            })
+                        }
+                        SatResult::Unknown => {
+                            Ok(Z3PropertyResult::Unknown {
+                                reason: "Z3 solver returned unknown".to_string(),
+                                partial_progress: 0.5, // Estimate
+                            })
+                        }
                     }
                 }
-            }
-            Err(e) => Ok(Z3PropertyResult::Error {
-                error_message: format!("Formula parsing error: {}", e),
-                error_code: -2,
-            }),
-        }
+                Err(e) => Ok(Z3PropertyResult::Error {
+                    error_message: format!("Formula parsing error: {}", e),
+                    error_code: -2,
+                }),
+            };
+
+        // Return the context to the pool so it can be reused by later queries
+        // instead of being dropped (which would slowly drain the pool).
+        self.return_context_to_pool(context);
+
+        result
     }
 
     /// Fallback verification for non-Z3 builds
@@ -363,13 +371,13 @@ impl ProductionZ3Verifier {
     #[cfg(feature = "z3-verification")]
     fn parse_and_assert_formula(
         &self,
-        context: &z3::Context,
+        _context: &z3::Context,
         solver: &z3::Solver,
-        formula: &str,
+        _formula: &str,
     ) -> AispResult<()> {
         // Simple formula parsing - for now just create a simple boolean assertion
         // In production, would implement proper SMT-LIB parser
-        let formula_ast = z3::ast::Bool::from_bool(true).into();
+        let formula_ast = z3::ast::Bool::from_bool(true);
 
         solver.assert(&formula_ast);
         Ok(())
@@ -383,11 +391,11 @@ impl ProductionZ3Verifier {
         if let Some(context) = pool.contexts.pop() {
             Ok(context)
         } else if pool.contexts.len() < pool.max_contexts {
-            let config = z3::Config::new();
+            let _config = z3::Config::new();
             Ok(z3::Context::thread_local())
         } else {
             // Create new context if pool is full
-            let config = z3::Config::new();
+            let _config = z3::Config::new();
             Ok(z3::Context::thread_local())
         }
     }
@@ -444,12 +452,12 @@ impl ProductionZ3Verifier {
     /// Generate document validity SMT formula
     fn generate_document_validity_formula(
         &self,
-        document: &CanonicalAispDocument,
+        _document: &CanonicalAispDocument,
     ) -> AispResult<String> {
         // Generate SMT-LIB formula for document structure validity
-        let formula = format!(
+        let formula =
             "(assert (and (not (= version \"\")) (not (= name \"\")) (>= (str.len name) 1)))"
-        );
+                .to_string();
         Ok(formula)
     }
 
@@ -616,6 +624,8 @@ impl ProductionZ3Verifier {
 
 /// Property information for verification
 #[derive(Debug, Clone)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct PropertyInfo {
     category: Z3PropertyCategory,
     description: String,
@@ -698,7 +708,7 @@ mod tests {
 
     #[test]
     fn test_cache_functionality() {
-        let mut verifier = ProductionZ3Verifier::new().unwrap();
+        let verifier = ProductionZ3Verifier::new().unwrap();
 
         // First check should miss cache
         let formula = "(assert true)";

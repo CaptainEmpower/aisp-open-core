@@ -13,7 +13,7 @@
 
 //! that preserve their intended behavior over extended periods.
 
-use crate::ast::canonical::{LogicalExpression, LogicalRule};
+use crate::ast::canonical::LogicalExpression;
 
 use crate::{
     ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument, *},
@@ -508,13 +508,8 @@ impl AntiDriftValidator {
         for block in &document.blocks {
             match block {
                 AispBlock::Functions(functions_block) => {
-                    let mut complexity_sum = 0.0;
-                    let mut function_count = 0;
-
                     for (i, function) in functions_block.functions.iter().enumerate() {
                         let complexity = self.calculate_function_complexity(function);
-                        complexity_sum += complexity;
-                        function_count += 1;
 
                         // Detect overly complex or overly simple functions
                         if complexity > 0.8 {
@@ -732,7 +727,7 @@ impl AntiDriftValidator {
             1.0
         };
 
-        // Baseline deviation (simplified calculation)
+        // Baseline deviation (simplified calculation — tracked in #15)
         let baseline_deviation = drift_patterns.classification.average_severity;
 
         Ok(StabilityMetrics {
@@ -900,7 +895,6 @@ impl AntiDriftValidator {
 mod tests {
     use super::*;
     use crate::ast::canonical::{DocumentHeader, DocumentMetadata, Span};
-    use crate::semantic::QualityTier;
 
     fn create_test_document() -> AispDocument {
         AispDocument {
@@ -1021,7 +1015,7 @@ mod tests {
 
         assert!(!result.valid); // Should fail validation due to drift
         assert!(!result.warnings.is_empty()); // Should have warnings
-        assert!(result.drift_patterns.incidents.len() > 0); // Should detect drift incidents
+        assert!(!result.drift_patterns.incidents.is_empty()); // Should detect drift incidents
     }
 
     #[test]

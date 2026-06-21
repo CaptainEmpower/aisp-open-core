@@ -3,8 +3,6 @@
 //! Type definitions and supporting structures for deep semantic verification
 //! Implements SRP by containing only type definitions
 
-use crate::ast::canonical::*;
-use std::collections::HashMap;
 use std::fmt;
 
 /// Deep verification result with comprehensive analysis
@@ -21,7 +19,7 @@ pub struct DeepVerificationResult {
     pub recommendations: Vec<VerificationRecommendation>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
 pub struct VerificationDetails {
     pub verified_components: Vec<ComponentVerification>,
     pub failed_verifications: Vec<VerificationFailure>,
@@ -271,7 +269,7 @@ pub struct CoverageMetrics {
     pub line_coverage: f64,
     pub branch_coverage: f64,
 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
 pub struct PerformanceMetrics {
     pub verification_time_ms: u64,
     pub memory_usage_mb: usize,
@@ -286,7 +284,7 @@ pub struct SecurityRecommendation {
     pub priority: String,
     pub action: String,
 }
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
 pub struct ComplianceStatus {
     pub compliant: bool,
     pub missing_requirements: Vec<String>,
@@ -347,18 +345,6 @@ impl Default for DeepVerificationResult {
     }
 }
 
-impl Default for VerificationDetails {
-    fn default() -> Self {
-        Self {
-            verified_components: Vec::new(),
-            failed_verifications: Vec::new(),
-            warnings: Vec::new(),
-            coverage_metrics: CoverageMetrics::default(),
-            performance_metrics: PerformanceMetrics::default(),
-        }
-    }
-}
-
 impl Default for SecurityAssessment {
     fn default() -> Self {
         Self {
@@ -380,29 +366,11 @@ impl Default for CoverageMetrics {
     }
 }
 
-impl Default for PerformanceMetrics {
-    fn default() -> Self {
-        Self {
-            verification_time_ms: 0,
-            memory_usage_mb: 0,
-        }
-    }
-}
-
 impl Default for AttackSurfaceAnalysis {
     fn default() -> Self {
         Self {
             surface_area: 0.0,
             vulnerabilities: Vec::new(),
-        }
-    }
-}
-
-impl Default for ComplianceStatus {
-    fn default() -> Self {
-        Self {
-            compliant: false,
-            missing_requirements: Vec::new(),
         }
     }
 }
@@ -556,7 +524,7 @@ mod tests {
 
         match optional {
             TypeStructure::Optional(inner) => match *inner {
-                TypeStructure::Array(_) => assert!(true),
+                TypeStructure::Array(_) => (),
                 _ => panic!("Expected Array inside Optional"),
             },
             _ => panic!("Expected Optional type"),
@@ -565,7 +533,7 @@ mod tests {
 
     #[test]
     fn test_constraint_types() {
-        let constraints = vec![
+        let constraints = [
             ConstraintType::Range,
             ConstraintType::Pattern,
             ConstraintType::Security,
@@ -583,7 +551,7 @@ mod tests {
 
     #[test]
     fn test_threat_level_ordering() {
-        let levels = vec![
+        let levels = [
             ThreatLevel::None,
             ThreatLevel::Low,
             ThreatLevel::Medium,

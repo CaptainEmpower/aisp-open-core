@@ -28,7 +28,6 @@ mod integration_tests {
     use crate::ast::canonical::{
         CanonicalAispDocument as AispDocument, DocumentHeader, DocumentMetadata, Span,
     };
-    use crate::ast::Position;
 
     fn create_test_document() -> AispDocument {
         AispDocument {
@@ -78,12 +77,10 @@ mod integration_tests {
             | VerificationStatus::Incomplete { .. }
             | VerificationStatus::Disabled => {
                 // All acceptable for integration test
-                assert!(true);
             }
             VerificationStatus::Failed(msg) => {
                 // Print error for debugging but don't fail test
                 println!("Verification failed: {}", msg);
-                assert!(true);
             }
         }
     }

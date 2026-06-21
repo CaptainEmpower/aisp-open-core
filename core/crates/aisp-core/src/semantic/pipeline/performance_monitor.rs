@@ -26,6 +26,8 @@ pub struct ProfilingData {
 }
 
 /// Performance monitor for tracking verification pipeline metrics
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PerformanceMonitor {
     stage_timings: HashMap<VerificationStage, Duration>,
     resource_usage: ResourceUsage,
@@ -293,7 +295,7 @@ impl PerformanceMonitor {
     }
 
     /// Trigger performance alert
-    fn trigger_performance_alert(&self, stage: &VerificationStage, duration: Duration) {
+    fn trigger_performance_alert(&self, _stage: &VerificationStage, _duration: Duration) {
         // Mock alert implementation
     }
 

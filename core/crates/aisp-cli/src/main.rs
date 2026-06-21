@@ -338,15 +338,12 @@ async fn validate_single_file(cli: &Cli, file: &Path) -> Result<CliValidationRes
     config.include_symbol_stats = true;
 
     // Set validation level
-    match cli.level {
-        ValidationLevel::Formal => {
-            config.enable_formal_verification = true;
-            #[cfg(feature = "z3-verification")]
-            {
-                config.z3_timeout = Duration::from_secs(cli.z3_timeout);
-            }
+    if let ValidationLevel::Formal = cli.level {
+        config.enable_formal_verification = true;
+        #[cfg(feature = "z3-verification")]
+        {
+            config.z3_timeout = Duration::from_secs(cli.z3_timeout);
         }
-        _ => {}
     }
 
     let validator = AispValidator::with_config(config);

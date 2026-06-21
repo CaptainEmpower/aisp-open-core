@@ -8,6 +8,8 @@ use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 
 /// Security enforcer for enterprise-grade security compliance
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SecurityEnforcer {
     security_policies: Vec<SecurityPolicy>,
     enforcement_rules: Vec<EnforcementRule>,
@@ -133,7 +135,7 @@ impl SecurityEnforcer {
 
     /// Handle security violation
     pub fn handle_violation(&self, violation_type: SecurityViolationType) -> AispResult<()> {
-        if let Some(handler) = self.violation_handlers.get(&violation_type) {
+        if let Some(_handler) = self.violation_handlers.get(&violation_type) {
             match violation_type {
                 SecurityViolationType::UnauthorizedAccess => {
                     self.handle_unauthorized_access()?;

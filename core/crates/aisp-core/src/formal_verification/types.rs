@@ -3,10 +3,10 @@
 //! Core type definitions for formal verification of AISP documents.
 
 use crate::{
-    invariant_types::DiscoveredInvariant, proof_types::ProofTree, property_types::PropertyFormula,
+    invariant_types::DiscoveredInvariant, property_types::PropertyFormula,
     satisfiability_checker::ConstraintModel,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::time::Duration;
 
 /// Complete formal verification result for an AISP document

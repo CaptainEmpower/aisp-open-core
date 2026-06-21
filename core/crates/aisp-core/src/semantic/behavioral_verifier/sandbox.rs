@@ -4,7 +4,7 @@
 //! with isolation, monitoring, and security policy enforcement.
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -191,6 +191,12 @@ impl SafeExecutionSandbox {
     }
 }
 
+impl Default for ExecutionMonitor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ExecutionMonitor {
     pub fn new() -> Self {
         Self {
@@ -262,6 +268,12 @@ impl IsolationEngine {
     pub fn cleanup_isolation_context(&mut self, context_id: String) -> AispResult<()> {
         self.active_contexts.remove(&context_id);
         Ok(())
+    }
+}
+
+impl Default for BehaviorAnalyzer {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -383,19 +395,6 @@ mod utils {
                 .as_nanos() as u64;
             format!("{:x}", seed % 0xFFFFFFFF)
         }
-    }
-
-    pub fn random_u64() -> u64 {
-        // Simple PRNG for demo purposes
-        let seed = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos() as u64;
-        seed % 1000000
-    }
-
-    pub fn random_f64() -> f64 {
-        (random_u64() % 1000) as f64 / 1000.0
     }
 }
 

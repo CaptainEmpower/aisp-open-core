@@ -6,12 +6,11 @@
 //! theorems, and complex mathematical reasoning.
 
 use crate::{
-    error::{AispError, AispResult},
-    incompleteness_handler::{IncompletenessHandler, IncompletenessResult, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    error::AispResult,
+    incompleteness_handler::{IncompletenessHandler, TruthValue},
+    mathematical_evaluator::MathEvaluator,
     z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade},
 };
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use thiserror::Error;
 
@@ -88,6 +87,8 @@ pub enum ProofMethod {
 }
 
 /// Advanced theorem prover with sophisticated mathematical reasoning
+// TODO(#11): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AdvancedTheoremProver {
     /// Z3 verification facade for SMT solving
     z3_verifier: Z3VerificationFacade,
@@ -170,13 +171,14 @@ impl AdvancedTheoremProver {
         };
 
         let proof_certificate = if proof_status == TruthValue::True {
-            Some(format!(
+            Some(
                 "Convergence proven via mathematical analysis:\n\
                  1. Sequence is bounded: |opt_δ(d,n)| ≤ 1 for all n\n\
                  2. Sequence is monotonic: opt_δ(d,n+1) ≥ opt_δ(d,n)\n\
                  3. By monotone convergence theorem, limit exists\n\
                  4. Z3 verification confirms logical consistency"
-            ))
+                    .to_string(),
+            )
         } else {
             None
         };
@@ -214,7 +216,7 @@ impl AdvancedTheoremProver {
         let start_time = Instant::now();
 
         // Mathematical proof that opt_δ converges
-        let proof_steps = vec![
+        let proof_steps = [
             "Define opt_δ: Document × ℕ → Document as iterative optimization",
             "δ: Document → [0,1] is the quality function",
             "Optimization steps: δ(opt_δ(d,n+1)) ≥ δ(opt_δ(d,n))",
@@ -281,8 +283,7 @@ impl AdvancedTheoremProver {
 
     /// Generate Z3 formula for optimization convergence
     fn generate_convergence_formula(&self) -> String {
-        format!(
-            ";; Convergence proof for opt_δ optimization function\n\
+        ";; Convergence proof for opt_δ optimization function\n\
              (declare-sort Document)\n\
              (declare-fun opt_delta (Document Int) Document)\n\
              (declare-fun delta (Document) Real)\n\
@@ -301,7 +302,7 @@ impl AdvancedTheoremProver {
              \n\
              (check-sat)\n\
              (get-model)"
-        )
+            .to_string()
     }
 
     /// Generate general convergence formula for arbitrary theorems
@@ -360,13 +361,14 @@ impl AdvancedTheoremProver {
         };
 
         let proof_certificate = if proof_status == TruthValue::True {
-            Some(format!(
+            Some(
                 "Category theory proof:\n\
                  1. Functor 𝔽 preserves morphism composition\n\
                  2. Identity morphisms are preserved\n\
                  3. Categorical laws are satisfied\n\
                  4. Theorem follows from functorial properties"
-            ))
+                    .to_string(),
+            )
         } else {
             None
         };

@@ -8,18 +8,17 @@
 //! - Resource Complexity: Bounded memory and time guarantees
 
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    compositional_proof_chain::{CompositionalVerificationResult, SystemGuarantees},
+    compositional_proof_chain::CompositionalVerificationResult,
     error::{AispError, AispResult},
-    incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
+    incompleteness_handler::IncompletenessHandler,
+    mathematical_evaluator::MathEvaluator,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
 /// Performance guarantee verification system
 /// Verifies mathematical claims about AISP system performance
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PerformanceGuaranteeVerifier {
     /// Mathematical evaluator for performance calculations
     math_evaluator: MathEvaluator,
@@ -36,6 +35,8 @@ pub struct PerformanceGuaranteeVerifier {
 }
 
 /// Benchmark data repository for empirical validation
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct BenchmarkRepository {
     /// Historical pipeline success rates
     pipeline_benchmarks: Vec<PipelineBenchmark>,
@@ -48,6 +49,8 @@ pub struct BenchmarkRepository {
 }
 
 /// Mathematical performance model
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PerformanceModel {
     /// Pipeline success probability function: P(n) = r^n
     success_probability_model: PipelineSuccessModel,
@@ -60,6 +63,8 @@ pub struct PerformanceModel {
 }
 
 /// Statistical analysis engine for empirical validation
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct StatisticalAnalyzer {
     /// Hypothesis testing framework
     hypothesis_tester: HypothesisTester,
@@ -74,6 +79,8 @@ pub struct StatisticalAnalyzer {
 /// Pipeline success rate model
 /// Models: P_prose(n) = (0.62)^n, P_aisp(n) = (0.98)^n
 #[derive(Debug, Clone)]
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PipelineSuccessModel {
     /// Base success rate for prose instructions
     prose_base_rate: f64,
@@ -106,6 +113,8 @@ pub struct PipelineValidationPoint {
 /// Ambiguity measurement model
 /// Models: Ambig(D) = 1 - |Parse_u(D)|/|Parse_t(D)|
 #[derive(Debug, Clone)]
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AmbiguityModel {
     /// Parsing ambiguity calculator
     parsing_calculator: ParsingAmbiguityCalculator,
@@ -120,6 +129,8 @@ pub struct AmbiguityModel {
 /// Resource complexity model
 /// Models: Time = O(f(n)), Space = O(g(n))
 #[derive(Debug, Clone)]
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ComplexityModel {
     /// Time complexity bounds
     time_bounds: ComplexityBounds,
@@ -644,14 +655,14 @@ impl PerformanceGuaranteeVerifier {
         // Simulate prose pipeline with noise
         let base_rate = 0.62;
         let noise = 0.02 * (rand::random::<f64>() - 0.5); // ±1% noise
-        (base_rate + noise).powi(length as i32).max(0.0).min(1.0)
+        (base_rate + noise).powi(length as i32).clamp(0.0, 1.0)
     }
 
     fn simulate_aisp_pipeline_success(&self, length: usize) -> f64 {
         // Simulate AISP pipeline with noise
         let base_rate = 0.98;
         let noise = 0.01 * (rand::random::<f64>() - 0.5); // ±0.5% noise
-        (base_rate + noise).powi(length as i32).max(0.0).min(1.0)
+        (base_rate + noise).powi(length as i32).clamp(0.0, 1.0)
     }
 
     fn generate_test_documents(&self) -> AispResult<Vec<String>> {
@@ -959,7 +970,7 @@ mod tests {
 
     #[test]
     fn test_complexity_functions() {
-        let functions = vec![
+        let functions = [
             ComplexityFunction::Constant,
             ComplexityFunction::Linear,
             ComplexityFunction::Quadratic,

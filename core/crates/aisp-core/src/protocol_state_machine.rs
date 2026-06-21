@@ -4,17 +4,21 @@
 //! including state transition validation, reachability analysis, and behavioral property verification.
 
 use crate::{
-    ast::canonical::{
-        BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-        DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
-    },
-    error::{AispError, AispResult},
+    ast::canonical::{CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument},
+    error::AispResult,
     formal_verification::verifier::FormalVerifier,
     property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
     temporal_logic_solver::TemporalLogicSolver,
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
+
+// Canonical document-construction types used only by tests (the inline `#[test]`
+// functions and `mod tests`); gated to avoid lib-build unused-import warnings.
+#[cfg(test)]
+use crate::ast::canonical::{
+    BasicType, DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
+};
 
 /// Comprehensive state machine analysis result
 #[derive(Debug, Clone)]
@@ -332,6 +336,8 @@ impl Default for StateMachineConfig {
 }
 
 /// Main protocol state machine analyzer
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProtocolStateMachineAnalyzer {
     config: StateMachineConfig,
     formal_verifier: FormalVerifier,
@@ -619,7 +625,7 @@ impl ProtocolStateMachineAnalyzer {
         &self,
         machines: &[ProtocolStateMachine],
     ) -> Vec<Vec<String>> {
-        // Simplified implementation - would use Tarjan's algorithm
+        // Simplified implementation - would use Tarjan's algorithm (tracked in #10)
         let mut components = Vec::new();
 
         for machine in machines {
@@ -638,8 +644,8 @@ impl ProtocolStateMachineAnalyzer {
         _reachability: &ReachabilityAnalysis,
     ) -> AispResult<LivenessAnalysis> {
         let mut deadlock_states = HashSet::new();
-        let mut livelock_cycles = Vec::new();
-        let mut safety_violations = Vec::new();
+        let livelock_cycles = Vec::new();
+        let safety_violations = Vec::new();
         let mut liveness_properties = Vec::new();
 
         for machine in machines {
@@ -719,7 +725,7 @@ impl ProtocolStateMachineAnalyzer {
     ) -> AispResult<ProtocolCompliance> {
         let mut violations = Vec::new();
         let mut supported_features = Vec::new();
-        let mut missing_features = Vec::new();
+        let missing_features = Vec::new();
 
         // Check basic protocol requirements
         supported_features.push("state_machines".to_string());
@@ -877,6 +883,8 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
 
+    // TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document() -> AispDocument {
         let mut types = HashMap::new();
         types.insert(

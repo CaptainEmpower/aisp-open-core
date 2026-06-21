@@ -83,3 +83,5 @@ required-features = ["security"]
 [[example]]
 name = "trivector_demo"
 path = "examples/trivector_demo.rs"
+[lints]
+workspace = true

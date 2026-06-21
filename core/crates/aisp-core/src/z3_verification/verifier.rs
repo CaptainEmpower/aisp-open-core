@@ -5,7 +5,7 @@
 
 use super::{canonical_types::*, environment::AispZ3Environment, properties::PropertyVerifier};
 use crate::ast::canonical::CanonicalAispDocument;
-use crate::{ast::*, error::*, tri_vector_validation::*};
+use crate::{error::*, tri_vector_validation::*};
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -64,8 +64,8 @@ impl EnhancedZ3Verifier {
         #[cfg(feature = "z3-verification")]
         {
             let mut verified_properties = Vec::new();
-            let mut proofs: HashMap<String, Z3FormalProof> = HashMap::new();
-            let mut counterexamples: HashMap<String, Z3CounterexampleModel> = HashMap::new();
+            let _proofs: HashMap<String, Z3FormalProof> = HashMap::new();
+            let _counterexamples: HashMap<String, Z3CounterexampleModel> = HashMap::new();
 
             // Verify type safety properties
             let type_safety_props = self
@@ -319,7 +319,7 @@ impl EnhancedZ3Verifier {
 
     /// Parse a simple assertion
     #[cfg(feature = "z3-verification")]
-    fn parse_simple_assertion(&self, _line: &str, ctx: &Context) -> Result<ast::Bool, String> {
+    fn parse_simple_assertion(&self, _line: &str, _ctx: &Context) -> Result<ast::Bool, String> {
         // Return true for now - real implementation would parse the assertion
         Ok(ast::Bool::from_bool(true))
     }

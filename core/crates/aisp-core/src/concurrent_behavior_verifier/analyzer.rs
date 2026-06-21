@@ -6,14 +6,13 @@ use super::types::*;
 use crate::{
     ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
-    formal_verification::FormalVerifier,
-    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
-    protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger},
 };
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::{Duration, Instant};
 
 /// Concurrent behavior analysis engine
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ConcurrentBehaviorAnalyzer {
     /// Configuration
     config: AnalysisConfig,
@@ -40,6 +39,8 @@ pub struct AnalysisConfig {
 
 /// Process discovery engine
 #[derive(Debug)]
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ProcessDiscoveryEngine {
     /// Discovered processes
     processes: HashMap<String, ConcurrentProcess>,
@@ -51,6 +52,8 @@ pub struct ProcessDiscoveryEngine {
 
 /// Resource tracking system
 #[derive(Debug)]
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct ResourceTracker {
     /// Tracked resources
     resources: HashMap<String, TrackedResource>,
@@ -62,6 +65,8 @@ pub struct ResourceTracker {
 
 /// Analysis result cache
 #[derive(Debug)]
+// TODO(#10): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AnalysisCache {
     /// Cached analyses
     cached_results: HashMap<String, CachedAnalysisResult>,
@@ -355,6 +360,12 @@ pub struct RecoveryMechanism {
     pub cost: f64,
 }
 
+impl Default for ConcurrentBehaviorAnalyzer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConcurrentBehaviorAnalyzer {
     /// Create new concurrent behavior analyzer
     pub fn new() -> Self {
@@ -427,13 +438,13 @@ impl ConcurrentBehaviorAnalyzer {
     }
 
     /// Check cache for existing analysis
-    fn check_cache(&self, document: &AispDocument) -> Option<ConcurrentBehaviorAnalysis> {
+    fn check_cache(&self, _document: &AispDocument) -> Option<ConcurrentBehaviorAnalysis> {
         // Cache implementation would go here
         None
     }
 
     /// Cache analysis result
-    fn cache_result(&mut self, document: &AispDocument, analysis: &ConcurrentBehaviorAnalysis) {
+    fn cache_result(&mut self, _document: &AispDocument, _analysis: &ConcurrentBehaviorAnalysis) {
         // Cache implementation would go here
     }
 
@@ -481,7 +492,7 @@ impl ConcurrentBehaviorAnalyzer {
             for resource in &process.shared_resources {
                 resource_users
                     .entry(resource.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(&process.id);
             }
         }
@@ -530,7 +541,7 @@ impl ConcurrentBehaviorAnalyzer {
     }
 
     /// Analyze deadlocks
-    fn analyze_deadlocks(&self, processes: &[ConcurrentProcess]) -> AispResult<DeadlockAnalysis> {
+    fn analyze_deadlocks(&self, _processes: &[ConcurrentProcess]) -> AispResult<DeadlockAnalysis> {
         // Deadlock analysis implementation
         Ok(DeadlockAnalysis::default())
     }
@@ -538,7 +549,7 @@ impl ConcurrentBehaviorAnalyzer {
     /// Analyze synchronization mechanisms
     fn analyze_synchronization(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<SynchronizationAnalysis> {
         // Synchronization analysis implementation
         Ok(SynchronizationAnalysis::default())
@@ -547,7 +558,7 @@ impl ConcurrentBehaviorAnalyzer {
     /// Analyze resource contention
     fn analyze_resource_contention(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<ResourceContentionAnalysis> {
         // Resource contention analysis implementation
         Ok(ResourceContentionAnalysis::default())
@@ -556,7 +567,7 @@ impl ConcurrentBehaviorAnalyzer {
     /// Analyze message passing patterns
     fn analyze_message_passing(
         &self,
-        processes: &[ConcurrentProcess],
+        _processes: &[ConcurrentProcess],
     ) -> AispResult<MessagePassingAnalysis> {
         // Message passing analysis implementation
         Ok(MessagePassingAnalysis::default())
@@ -565,10 +576,16 @@ impl ConcurrentBehaviorAnalyzer {
     /// Analyze performance impact
     fn analyze_performance_impact(
         &self,
-        analysis: &ConcurrentBehaviorAnalysis,
+        _analysis: &ConcurrentBehaviorAnalysis,
     ) -> AispResult<ConcurrencyPerformanceImpact> {
         // Performance impact analysis implementation
         Ok(ConcurrencyPerformanceImpact::default())
+    }
+}
+
+impl Default for ProcessDiscoveryEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -585,7 +602,7 @@ impl ProcessDiscoveryEngine {
     /// Discover concurrent processes in document
     pub fn discover_processes(
         &mut self,
-        document: &AispDocument,
+        _document: &AispDocument,
     ) -> AispResult<Vec<ConcurrentProcess>> {
         // Process discovery implementation
         Ok(Vec::new())
@@ -622,6 +639,12 @@ impl ProcessDiscoveryEngine {
     }
 }
 
+impl Default for ResourceTracker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceTracker {
     /// Create new resource tracker
     pub fn new() -> Self {
@@ -633,9 +656,15 @@ impl ResourceTracker {
     }
 
     /// Track resources used by processes
-    pub fn track_resources(&mut self, processes: &[ConcurrentProcess]) -> AispResult<()> {
+    pub fn track_resources(&mut self, _processes: &[ConcurrentProcess]) -> AispResult<()> {
         // Resource tracking implementation
         Ok(())
+    }
+}
+
+impl Default for AnalysisCache {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -669,6 +698,7 @@ impl Default for AnalysisConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::protocol_state_machine::ProtocolStateMachine;
 
     #[test]
     fn test_analyzer_creation() {
@@ -720,7 +750,7 @@ mod tests {
 
     #[test]
     fn test_contention_level_calculation() {
-        let analyzer = ConcurrentBehaviorAnalyzer::new();
+        let _analyzer = ConcurrentBehaviorAnalyzer::new();
 
         // Test different contention levels based on accessor count
         let mut accessing_processes = HashSet::new();
@@ -728,7 +758,7 @@ mod tests {
         accessing_processes.insert("proc2".to_string());
         accessing_processes.insert("proc3".to_string());
 
-        let analysis = SharedResourceAnalysis {
+        let _analysis = SharedResourceAnalysis {
             resource_id: "test_resource".to_string(),
             accessing_processes,
             access_patterns: Vec::new(),

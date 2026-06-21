@@ -66,8 +66,9 @@ The README and reference docs must not state what the repository cannot demonstr
 | R-09 | Consolidate duplicate pipelines: `semantic/pipeline/` vs `semantic/verification_pipeline/` | One pipeline, with the other removed or merged; callers updated | Planned |
 | R-10 | Isolate research modules (`anti_drift`, `ghost_intent_search`, `pocket_architecture`, temporal stubs, etc.) into an `experimental` module or feature flag, clearly marked unsupported | Core build/test does not depend on experimental modules; README distinguishes supported vs experimental surface | Planned |
 | R-11 | Replace `panic!()` in parser/validator paths with `Result`-based errors | No `panic!` reachable from public parse/validate APIs; fuzz/property tests confirm | Planned |
-| R-12 | Consolidate the 15 per-module `types.rs` files into a coherent shared type hierarchy; reduce the 337 build warnings | Warning count ratcheted down in CI; shared error/result types | Planned |
+| R-12 | Consolidate the 15 per-module `types.rs` files into a coherent shared type hierarchy; reduce the 337 build warnings | Warning count ratcheted down in CI; shared error/result types | In progress — `cargo clippy --workspace --all-targets -- -D warnings` now passes. All `dead_code`, `unused_imports`, `unused_assignments`, and rustc semantic lints (`deprecated`, `unexpected_cfgs`, `ambiguous_glob_reexports`, `unstable_name_collisions`, `non_camel_case_types`) were fixed at the source; the remaining pervasive clippy **style/design** lints are explicitly allowed in `[workspace.lints.clippy]` pending source cleanup. Remaining: rewrite the allowed style lints and consolidate the `types.rs` files |
 | R-13 | Deduplicate the five overlapping `formal_verification_*` test files into one suite | Single formal-verification test entry point; no redundant suites | In progress — ten suites gated behind nonexistent `*-deprecated` features removed; `property_testing_formal` restored to current APIs (13 tests passing). Remaining: consolidate the known-failing integration suites |
+| R-21 | Complete (or honestly retire) the stubbed verification subsystems surfaced by the dead-code audit. Every struct/field/method carrying `#[allow(dead_code)] // TODO(R-06/R-07)` marks machinery that is constructed but never exercised (e.g. concurrent-process discovery returns empty, proof/Z3 components stored but never invoked, the behavioral assessment still uses a legacy string model). These markers make the "not yet implemented" status explicit instead of deleting the scaffolding or faking capability | No `TODO(R-06/R-07)` marker remains without either a real implementation that exercises the field/method or its removal; `cargo clippy -- -D warnings` stays green | In progress — dead-code audit complete and all 99 `dead_code` warnings resolved (small genuine gaps wired up: `determine_status` now drives `EnhancedZ3Verifier::verify_document` status instead of a hardcoded `AllVerified`; Z3 contexts are returned to the pool in `production_verifier`; the rossnet temporal heuristic is shared). Remaining: implement the subsystems behind the `TODO(R-06/R-07)` markers |
 
 ## Phase 3 — Formal verification done right
 
@@ -90,6 +91,28 @@ The path from "interesting hypothesis" to "peer-reviewed result".
 | R-18 | Preregistered benchmark: AISP vs natural language vs structured baselines (JSON schema, pseudo-code per Mishra et al. EMNLP 2023) on SWE-Bench Verified, ≥3 model families, fixed decoding params, significance tests | Public harness, logs, and analysis notebook; replaces the unverifiable +22% claim | Planned |
 | R-19 | Pipeline compounding experiment: real 5- and 10-step agent chains with prose vs AISP handoffs, measured end-task success | Published results replace the theoretical (0.62)ⁿ vs (0.98)ⁿ table | Planned |
 | R-20 | Write up and submit: arXiv preprint → workshop/conference (LLM-agents workshop, or RE/ICSE for the spec-language angle) | Preprint linked from README; submission made | Planned |
+
+---
+
+## Stub / TODO audit (2026-06)
+
+A sweep of `simplified` / `placeholder` / `for now` / `TODO` markers, plus the
+dead-code audit, was grouped into GitHub tracking issues by subsystem and mapped
+to the roadmap items above. In-code markers reference these issue numbers
+(`// TODO(#N)` and `(tracked in #N)`), so each stubbed/simplified site links to
+its issue.
+
+| Issue | Subsystem | Roadmap |
+|-------|-----------|---------|
+| [#10](https://github.com/CaptainEmpower/aisp-open-core/issues/10) | Concurrent & protocol behavior analysis is stubbed | R-21 |
+| [#11](https://github.com/CaptainEmpower/aisp-open-core/issues/11) | Formal proof engine & proof search are placeholder | R-21 → R-15 |
+| [#12](https://github.com/CaptainEmpower/aisp-open-core/issues/12) | SMT/Z3 verification incomplete (stubs presented as `Proven`) | R-15, R-16 |
+| [#13](https://github.com/CaptainEmpower/aisp-open-core/issues/13) | Performance & resource verification return placeholders | R-21 |
+| [#14](https://github.com/CaptainEmpower/aisp-open-core/issues/14) | Parser simplifications & placeholder recovery blocks | R-11 |
+| [#15](https://github.com/CaptainEmpower/aisp-open-core/issues/15) | Experimental research modules stubbed / unsupported | R-10 |
+| [#16](https://github.com/CaptainEmpower/aisp-open-core/issues/16) | Reference validator & tri-vector return placeholder results | R-08 |
+| [#17](https://github.com/CaptainEmpower/aisp-open-core/issues/17) | Semantic verification pipeline simplifications | R-21 (R-09) |
+| [#18](https://github.com/CaptainEmpower/aisp-open-core/issues/18) | Known-failing & unwired tests | R-13, R-05 |
 
 ---
 

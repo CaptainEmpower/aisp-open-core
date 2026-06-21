@@ -21,6 +21,8 @@ use std::{
 };
 
 /// Batch verification engine for processing multiple documents efficiently
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct BatchVerificationEngine {
     /// Worker thread pool for parallel processing
     worker_pool: WorkerPool,
@@ -241,6 +243,8 @@ pub struct TimingBreakdown {
 }
 
 /// Worker pool for parallel processing
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct WorkerPool {
     workers: Vec<Worker>,
     task_sender: mpsc::Sender<BatchTask>,
@@ -248,6 +252,8 @@ pub struct WorkerPool {
 }
 
 /// Individual worker for document processing
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct Worker {
     id: usize,
     thread_handle: Option<thread::JoinHandle<()>>,
@@ -270,6 +276,8 @@ pub struct TaskResult {
 }
 
 /// Verification cache for storing results
+// TODO(#13): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct VerificationCache {
     parsed_documents: HashMap<String, (AispDocument, Instant)>,
     verification_results: HashMap<String, (ComprehensiveVerificationResult, Instant)>,
@@ -910,7 +918,6 @@ mod tests {
         let _engine = BatchVerificationEngine::new(config);
 
         // Basic smoke test
-        assert!(true);
     }
 
     #[test]
@@ -933,13 +940,13 @@ mod tests {
 
         // Basic type validation
         match file_input {
-            DocumentInput::FilePath(_) => assert!(true),
-            _ => assert!(false),
+            DocumentInput::FilePath(_) => (),
+            _ => unreachable!(),
         }
 
         match content_input {
-            DocumentInput::Content { .. } => assert!(true),
-            _ => assert!(false),
+            DocumentInput::Content { .. } => (),
+            _ => unreachable!(),
         }
     }
 }

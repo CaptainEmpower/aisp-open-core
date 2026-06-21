@@ -9,14 +9,13 @@
 //! - Optimality: argmax_{b∈search(...)}μ_f(b)
 
 use crate::{
-    error::{AispError, AispResult},
+    error::AispResult,
     incompleteness_handler::{IncompletenessHandler, TruthValue},
-    mathematical_evaluator::{MathEvaluator, MathValue},
-    pocket_architecture::{ContentHash, Pocket, SignalVector},
-    z3_verification::PropertyResult,
+    mathematical_evaluator::MathEvaluator,
+    pocket_architecture::{ContentHash, Pocket},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Ghost Intent representation: what's missing to achieve goal
@@ -70,6 +69,8 @@ pub struct SearchBeam {
 
 /// DPP (Determinantal Point Process) initialization for diverse beams
 /// ‖*init≜argmax_{S⊂ℛ,|S|=K}det(Ker(S))
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct DeterminantalPointProcess {
     /// Kernel matrix for diversity calculation
     kernel_matrix: Vec<Vec<f64>>,
@@ -81,6 +82,8 @@ pub struct DeterminantalPointProcess {
 
 /// Ghost Intent Search Engine
 /// Implements formal search with provable termination and optimality
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct GhostIntentSearchEngine {
     /// Mathematical evaluator for formal verification
     math_evaluator: MathEvaluator,
@@ -99,6 +102,8 @@ pub struct GhostIntentSearchEngine {
 }
 
 /// Pocket repository for content-addressable search
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct PocketRepository {
     /// Indexed pockets by content hash
     pockets: HashMap<ContentHash, Pocket>,
@@ -111,6 +116,8 @@ pub struct PocketRepository {
 }
 
 /// Signal vector index for O(log n) similarity search
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SignalVectorIndex {
     /// Hierarchical spatial index (k-d tree structure)
     spatial_tree: SpatialTree,
@@ -122,6 +129,8 @@ pub struct SignalVectorIndex {
 
 /// Spatial tree for exact nearest neighbor search
 #[derive(Debug, Clone)]
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SpatialTree {
     /// Tree nodes for hierarchical search
     nodes: Vec<SpatialNode>,
@@ -132,6 +141,8 @@ pub struct SpatialTree {
 }
 
 #[derive(Debug, Clone)]
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SpatialNode {
     /// Splitting dimension
     split_dim: usize,
@@ -146,6 +157,8 @@ pub struct SpatialNode {
 }
 
 /// Affinity graph for relationship-based search
+// TODO(#15): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct AffinityGraph {
     /// Adjacency list representation
     adjacency: HashMap<ContentHash, Vec<(ContentHash, f64)>>,
@@ -791,7 +804,7 @@ impl GhostIntentSearchEngine {
         values.windows(2).all(|w| w[1] <= w[0])
     }
 
-    // Placeholder implementations for complex methods
+    // Placeholder implementations for complex methods (tracked in #15)
     fn build_diversity_kernel_matrix(
         &self,
         _candidates: &[ContentHash],
@@ -846,6 +859,12 @@ impl GhostIntentSearchEngine {
 
 // Supporting implementations
 
+impl Default for PocketRepository {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PocketRepository {
     pub fn new() -> Self {
         Self {
@@ -865,6 +884,12 @@ impl PocketRepository {
     }
 }
 
+impl Default for SignalVectorIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SignalVectorIndex {
     pub fn new() -> Self {
         Self {
@@ -875,6 +900,12 @@ impl SignalVectorIndex {
     }
 }
 
+impl Default for SpatialTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SpatialTree {
     pub fn new() -> Self {
         Self {
@@ -882,6 +913,12 @@ impl SpatialTree {
             root: None,
             max_depth: 32,
         }
+    }
+}
+
+impl Default for AffinityGraph {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

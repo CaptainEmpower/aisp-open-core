@@ -285,7 +285,7 @@ mod tests {
         let mut config = StructuralValidationConfig::default();
         config.allow_empty_blocks = true;
         let validator = StructuralValidator::with_config(config);
-        
+
         let blocks = vec![
             CanonicalAispBlock::Meta(MetaBlock {
                 entries: HashMap::new(),
@@ -327,14 +327,14 @@ mod tests {
              Missing blocks: {:?}, Empty blocks: {:?}, Order violations: {:?}",
             result.missing_blocks, result.empty_blocks, result.order_violations
         );
-        
+
         // Verify specific validation aspects
         assert!(
             result.missing_blocks.is_empty(),
             "Complete document should not have missing blocks, found: {:?}",
             result.missing_blocks
         );
-        
+
         assert!(
             result.order_violations.is_empty(),
             "Properly ordered document should not have order violations, found: {:?}",

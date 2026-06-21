@@ -3,10 +3,7 @@
 //! Implements the RossNet scoring algorithm: μ_f≜σ(θ·sim+fit+aff)
 
 use super::types::*;
-use crate::{
-    error::{AispError, AispResult},
-    pocket_architecture::ContentHash,
-};
+use crate::{error::AispResult, pocket_architecture::ContentHash};
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -181,12 +178,12 @@ impl RossNetScorer {
     pub fn update_weights(&mut self, weight_adjustments: &HashMap<String, f64>) {
         for (component, adjustment) in weight_adjustments {
             match component.as_str() {
-                "similarity" => self.weights.similarity_weight = (*adjustment).max(0.0).min(1.0),
-                "fitness" => self.weights.fitness_weight = (*adjustment).max(0.0).min(1.0),
-                "affinity" => self.weights.affinity_weight = (*adjustment).max(0.0).min(1.0),
-                "diversity_bonus" => self.weights.diversity_bonus = (*adjustment).max(0.0).min(1.0),
+                "similarity" => self.weights.similarity_weight = (*adjustment).clamp(0.0, 1.0),
+                "fitness" => self.weights.fitness_weight = (*adjustment).clamp(0.0, 1.0),
+                "affinity" => self.weights.affinity_weight = (*adjustment).clamp(0.0, 1.0),
+                "diversity_bonus" => self.weights.diversity_bonus = (*adjustment).clamp(0.0, 1.0),
                 "consistency_penalty" => {
-                    self.weights.consistency_penalty = (*adjustment).max(0.0).min(1.0)
+                    self.weights.consistency_penalty = (*adjustment).clamp(0.0, 1.0)
                 }
                 _ => {} // Ignore unknown components
             }
@@ -304,8 +301,8 @@ impl RossNetScorer {
     /// Calculate confidence level
     fn calculate_confidence_level(&self, components: &HashMap<String, f64>) -> f64 {
         let variance = self.calculate_component_variance(components);
-        let confidence = (1.0 / (1.0 + variance)).max(0.1).min(1.0);
-        confidence
+
+        (1.0 / (1.0 + variance)).clamp(0.1, 1.0)
     }
 
     /// Calculate variance in score components
@@ -359,10 +356,16 @@ impl RossNetScorer {
             self.weights.fitness_weight /= total;
             self.weights.affinity_weight /= total;
         }
-        
+
         // Ensure diversity bonus and consistency penalty stay within reasonable bounds
-        self.weights.diversity_bonus = self.weights.diversity_bonus.max(0.0).min(1.0);
-        self.weights.consistency_penalty = self.weights.consistency_penalty.max(0.0).min(1.0);
+        self.weights.diversity_bonus = self.weights.diversity_bonus.clamp(0.0, 1.0);
+        self.weights.consistency_penalty = self.weights.consistency_penalty.clamp(0.0, 1.0);
+    }
+}
+
+impl Default for SimilarityEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -388,7 +391,7 @@ impl SimilarityEngine {
 
         // Weighted combination of similarity measures
         let combined_similarity = 0.4 * vector_sim + 0.4 * semantic_sim + 0.2 * structural_sim;
-        Ok(combined_similarity.max(0.0).min(1.0))
+        Ok(combined_similarity.clamp(0.0, 1.0))
     }
 }
 
@@ -426,7 +429,7 @@ impl VectorSimilarityCalculator {
 impl SemanticSimilarityCalculator {
     /// Calculate semantic similarity
     pub fn calculate(&self, content_a: &ContentHash, content_b: &ContentHash) -> AispResult<f64> {
-        // Placeholder semantic similarity - in real implementation would use embeddings
+        // Placeholder semantic similarity - would use embeddings (tracked in #17)
         let hash_a = u64::from_le_bytes([
             content_a[0],
             content_a[1],
@@ -449,7 +452,7 @@ impl SemanticSimilarityCalculator {
         ]);
         let semantic_distance = ((hash_a.wrapping_sub(hash_b)) as f64).abs() / u64::MAX as f64;
         let similarity = 1.0 - semantic_distance;
-        Ok(similarity.max(0.0).min(1.0))
+        Ok(similarity.clamp(0.0, 1.0))
     }
 }
 
@@ -479,6 +482,12 @@ impl StructuralSimilarityCalculator {
         ]);
         let structural_score = if hash_a % 3 == hash_b % 3 { 0.8 } else { 0.2 };
         Ok(structural_score)
+    }
+}
+
+impl Default for FitnessEvaluator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -517,13 +526,19 @@ impl FitnessEvaluator {
             0.5 // Default neutral fitness
         };
 
-        Ok(fitness.max(0.0).min(1.0))
+        Ok(fitness.clamp(0.0, 1.0))
     }
 
     /// Update criterion weight
     pub fn update_criterion_weight(&mut self, criterion: String, weight: f64) {
         self.criteria_weights
-            .insert(criterion, weight.max(0.0).min(1.0));
+            .insert(criterion, weight.clamp(0.0, 1.0));
+    }
+}
+
+impl Default for AffinityTracker {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -559,7 +574,7 @@ impl AffinityTracker {
         new_affinity: f64,
     ) {
         let key = (content_a, content_b);
-        let history = self.affinity_history.entry(key).or_insert_with(Vec::new);
+        let history = self.affinity_history.entry(key).or_default();
 
         // Apply temporal decay to existing values
         let temporal_decay = self.decay_factors.get("temporal").copied().unwrap_or(0.95);
@@ -674,7 +689,7 @@ mod tests {
         let fitness = evaluator
             .evaluate_fitness(&content_a, &content_b, &context)
             .unwrap();
-        assert!(fitness >= 0.0 && fitness <= 1.0);
+        assert!((0.0..=1.0).contains(&fitness));
     }
 
     #[test]

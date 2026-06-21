@@ -7,7 +7,7 @@
 //! ## Soundness Theorem
 //!
 //! **Theorem (Validator Soundness)**: For all AISP documents D,
-//! ```
+//! ```text
 //! validate(D) = Valid ⟹ semantically_valid(D) = true
 //! ```
 //!
@@ -21,13 +21,8 @@
 //!
 //! Each phase includes invariant preservation proofs and compositional reasoning.
 
-use crate::{
-    ast::*,
-    error::{AispError, AispResult},
-    formal_semantics::*,
-};
+use crate::{ast::*, error::AispResult, formal_semantics::*};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 /// Soundness proof state for tracking validation correctness
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -519,7 +514,6 @@ impl SoundnessVerifier for ReferenceSoundnessVerifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast::*;
 
     #[test]
     fn test_soundness_proof_generation() {

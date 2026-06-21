@@ -14,7 +14,7 @@
 //! ## Core Mathematical Structures
 //!
 //! ### 1. Semantic Universe
-//! ```
+//! ```text
 //! 𝒰 = (𝒟, ≤, ⊥, ⊔)
 //! ```
 //! Where:
@@ -24,7 +24,7 @@
 //! - ⊔: Least upper bound operation (supremum)
 //!
 //! ### 2. Type System
-//! ```
+//! ```text
 //! Types := Base | Arrow Types | Universal Types | Existential Types
 //! Base  := ℕ | ℤ | ℝ | 𝔹 | String | ⊥
 //! Arrow := Types → Types
@@ -33,7 +33,7 @@
 //! ```
 //!
 //! ### 3. Logical Structure  
-//! ```
+//! ```text
 //! ℒ := (𝒮, ⊨, ℳ, ⟦⟧)
 //! ```
 //! Where:
@@ -43,7 +43,7 @@
 //! - ⟦⟧: Semantic interpretation function
 
 use crate::{ast::*, error::AispResult};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
 use std::hash::Hash;
 use std::rc::Rc;
@@ -572,13 +572,7 @@ impl LogicalStructure {
 
         self.cartesian_power(&domain_vec, var_vec.len())
             .into_iter()
-            .map(|assignment_vec| {
-                var_vec
-                    .iter()
-                    .cloned()
-                    .zip(assignment_vec.into_iter())
-                    .collect()
-            })
+            .map(|assignment_vec| var_vec.iter().cloned().zip(assignment_vec).collect())
             .collect()
     }
 
@@ -614,6 +608,12 @@ pub struct ComputationalSemantics {
     pub structure: LogicalStructure,
 }
 
+impl Default for ComputationalSemantics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ComputationalSemantics {
     pub fn new() -> Self {
         let domain = vec![
@@ -635,7 +635,7 @@ impl ComputationalSemantics {
     }
 
     /// Semantic interpretation of AISP documents
-    pub fn interpret_document(&mut self, document: &AispDocument) -> AispResult<SemanticValue> {
+    pub fn interpret_document(&mut self, _document: &AispDocument) -> AispResult<SemanticValue> {
         // This will be implemented to provide rigorous compositional semantics
         // For now, return a placeholder
         Ok(SemanticValue::Boolean(true))

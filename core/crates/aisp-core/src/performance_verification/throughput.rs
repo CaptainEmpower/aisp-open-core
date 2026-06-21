@@ -2,10 +2,8 @@
 //!
 //! Focused module for throughput-related performance metrics and analysis.
 
-use std::time::Duration;
-
 /// Throughput analysis results
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ThroughputAnalysis {
     /// Current throughput
     pub current_throughput: ThroughputMetrics,
@@ -143,19 +141,6 @@ pub enum BottleneckType {
     External,
     /// Configuration bottleneck
     Configuration,
-}
-
-impl Default for ThroughputAnalysis {
-    fn default() -> Self {
-        Self {
-            current_throughput: ThroughputMetrics::default(),
-            max_throughput: ThroughputMetrics::default(),
-            average_throughput: ThroughputMetrics::default(),
-            targets: Vec::new(),
-            trend: ThroughputTrend::default(),
-            bottlenecks: Vec::new(),
-        }
-    }
 }
 
 impl Default for ThroughputMetrics {

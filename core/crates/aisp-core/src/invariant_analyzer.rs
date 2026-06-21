@@ -6,7 +6,7 @@
 use crate::{
     ast::canonical::{
         BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-        DocumentHeader, DocumentMetadata, TypeExpression, TypesBlock,
+        TypeExpression,
     },
     error::AispResult,
     invariant_types::{
@@ -257,13 +257,10 @@ impl InvariantAnalyzer {
 mod tests {
     use super::*;
     use crate::{
-        ast::canonical::{
-            BasicType, CanonicalAispBlock as AispBlock, CanonicalAispDocument as AispDocument,
-            DocumentHeader, DocumentMetadata, Span, TypeDefinition, TypeExpression, TypesBlock,
-        },
+        ast::canonical::CanonicalAispDocument as AispDocument,
         invariant_types::InvariantDiscoveryConfig,
     };
-    use std::{collections::HashMap, time::Duration};
+    use std::time::Duration;
 
     fn create_test_document() -> AispDocument {
         let mut doc = crate::ast::canonical::create_document("TestDoc", "5.1", "2026-01-26");

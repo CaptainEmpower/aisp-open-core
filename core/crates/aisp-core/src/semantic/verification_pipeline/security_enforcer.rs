@@ -20,6 +20,8 @@ pub struct SecurityEnforcer {
 
 /// Active security session tracking
 #[derive(Debug, Clone)]
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct SecuritySession {
     session_id: String,
     start_time: std::time::SystemTime,
@@ -30,6 +32,8 @@ struct SecuritySession {
 
 /// Security level enumeration
 #[derive(Debug, Clone, PartialEq)]
+// TODO(#17): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 enum SecurityLevel {
     Low,
     Medium,
@@ -199,14 +203,13 @@ impl SecurityEnforcer {
         }
 
         // Validate compliance level
-        match results.security_assessment.compliance_level {
-            crate::semantic::behavioral_verifier::ComplianceLevel::NonCompliant => {
-                return self.handle_security_violation(
-                    SecurityViolationType::ComplianceViolation,
-                    "Behavioral verification compliance failure",
-                );
-            }
-            _ => {}
+        if results.security_assessment.compliance_level
+            == crate::semantic::behavioral_verifier::ComplianceLevel::NonCompliant
+        {
+            return self.handle_security_violation(
+                SecurityViolationType::ComplianceViolation,
+                "Behavioral verification compliance failure",
+            );
         }
 
         Ok(())
@@ -322,7 +325,7 @@ impl SecurityEnforcer {
         if let Some(handler) = self.violation_handlers.get(&violation_type) {
             match handler.handler_type.as_str() {
                 "ImmediateBlock" => {
-                    return Err(crate::error::AispError::security_violation(&format!(
+                    return Err(crate::error::AispError::security_violation(format!(
                         "{:?}: {}",
                         violation_type, description
                     )));

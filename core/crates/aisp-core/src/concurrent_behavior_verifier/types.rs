@@ -2,12 +2,12 @@
 //!
 //! Core type definitions for concurrent behavior verification.
 
-use crate::protocol_state_machine::{ProtocolStateMachine, StateTransition, TransitionTrigger};
+use crate::protocol_state_machine::ProtocolStateMachine;
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
 /// Comprehensive concurrent behavior analysis result
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ConcurrentBehaviorAnalysis {
     /// Identified concurrent processes
     pub concurrent_processes: Vec<ConcurrentProcess>,
@@ -426,21 +426,6 @@ pub struct ResourceContentionAnalysis {
     pub hotspots: Vec<ContentionHotspot>,
     /// Mitigation recommendations
     pub mitigations: Vec<String>,
-}
-
-impl Default for ConcurrentBehaviorAnalysis {
-    fn default() -> Self {
-        Self {
-            concurrent_processes: Vec::new(),
-            race_condition_analysis: RaceConditionAnalysis::default(),
-            deadlock_analysis: DeadlockAnalysis::default(),
-            synchronization_analysis: SynchronizationAnalysis::default(),
-            resource_contention: ResourceContentionAnalysis::default(),
-            message_passing_analysis: MessagePassingAnalysis::default(),
-            performance_impact: ConcurrencyPerformanceImpact::default(),
-            warnings: Vec::new(),
-        }
-    }
 }
 
 // Continued type definitions for remaining structs...

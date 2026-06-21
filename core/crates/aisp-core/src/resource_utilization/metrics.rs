@@ -56,6 +56,12 @@ pub struct StreamStatistics {
     pub trend: UtilizationTrend,
 }
 
+impl Default for MetricsCollector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MetricsCollector {
     /// Create new metrics collector
     pub fn new() -> Self {
@@ -490,8 +496,15 @@ mod tests {
         let correlation = summary
             .resource_correlations
             .get(&(ResourceType::Memory, ResourceType::CPU))
-            .or_else(|| summary.resource_correlations.get(&(ResourceType::CPU, ResourceType::Memory)));
-        assert!(correlation.is_some(), "No correlation found between Memory and CPU resources");
+            .or_else(|| {
+                summary
+                    .resource_correlations
+                    .get(&(ResourceType::CPU, ResourceType::Memory))
+            });
+        assert!(
+            correlation.is_some(),
+            "No correlation found between Memory and CPU resources"
+        );
         let corr_value = *correlation.unwrap();
         assert!(
             corr_value > 0.8,

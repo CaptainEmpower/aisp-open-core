@@ -82,7 +82,7 @@ impl SmtInterface {
 
     /// Verify SMT formula with comprehensive validation
     pub fn verify_smt_formula(&mut self, formula: &str) -> AispResult<Z3PropertyResult> {
-        let start = Instant::now();
+        let _start = Instant::now();
         self.stats.queries_executed += 1;
 
         if self.config.verbose {
@@ -302,7 +302,7 @@ impl SmtInterface {
     fn parse_assertion(
         &self,
         content: &str,
-        ctx: &Context,
+        _ctx: &Context,
         constants: &HashMap<String, ast::Real>,
     ) -> Result<ast::Bool, String> {
         if content.starts_with("(") && content.ends_with(")") {
@@ -315,7 +315,8 @@ impl SmtInterface {
                         if let (Some(lhs), Ok(rhs_val)) =
                             (constants.get(parts[1]), parts[2].parse::<f64>())
                         {
-                            let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
+                            let rhs =
+                                ast::Real::from_rational((rhs_val * 1000000.0) as i64, 1000000);
                             return Ok(lhs.lt(&rhs));
                         }
                     }
@@ -323,7 +324,8 @@ impl SmtInterface {
                         if let (Some(lhs), Ok(rhs_val)) =
                             (constants.get(parts[1]), parts[2].parse::<f64>())
                         {
-                            let rhs = ast::Real::from_real((rhs_val * 1000000.0) as i32, 1000000);
+                            let rhs =
+                                ast::Real::from_rational((rhs_val * 1000000.0) as i64, 1000000);
                             return Ok(lhs.gt(&rhs));
                         }
                     }
@@ -540,7 +542,7 @@ mod tests {
         assert!(result.is_ok());
 
         match result.unwrap() {
-            Z3PropertyResult::Error { .. } => assert!(true),
+            Z3PropertyResult::Error { .. } => (),
             _ => panic!("Expected syntax error"),
         }
 

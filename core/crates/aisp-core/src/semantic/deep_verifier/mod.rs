@@ -230,8 +230,8 @@ impl DeepSemanticVerifier {
         &self,
         type_analysis: &TypeAnalysisResult,
         logic_analysis: &LogicAnalysisResult,
-        dependency_analysis: &DependencyAnalysisResult,
-        mathematical_analysis: &MathematicalAnalysisResult,
+        _dependency_analysis: &DependencyAnalysisResult,
+        _mathematical_analysis: &MathematicalAnalysisResult,
         deception_analysis: &DeceptionAnalysisResult,
         verification_time: std::time::Duration,
     ) -> VerificationDetails {
@@ -387,7 +387,7 @@ mod tests {
     fn test_enhanced_security_verifier() {
         let verifier = DeepSemanticVerifier::with_enhanced_security();
         // Enhanced verifier should have more security policies
-        assert!(verifier.type_analyzer.security_policies.len() > 0);
+        assert!(!verifier.type_analyzer.security_policies.is_empty());
     }
 
     #[test]

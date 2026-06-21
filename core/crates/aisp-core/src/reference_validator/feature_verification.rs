@@ -113,7 +113,8 @@ impl<'a> FeatureVerifier<'a> {
                         .map(|r| matches!(r, Z3PropertyResult::Proven { .. }))
                         .unwrap_or(false);
 
-                    math_correct = 768 + 512 + 256 == 1536; // Basic dimension check
+                    let trivector_total = 768 + 512 + 256;
+                    math_correct = trivector_total == 1536; // V_H(768)⊕V_L(512)⊕V_S(256) dimension check
                     details = format!(
                         "Tri-vector structure found: V_H(768)⊕V_L(512)⊕V_S(256), SMT verified: {}",
                         smt_verified
@@ -305,8 +306,7 @@ impl<'a> FeatureVerifier<'a> {
 
     // SMT formula generators
     fn generate_trivector_smt_formula(&self) -> String {
-        format!(
-            ";; Tri-vector decomposition verification\n\
+        ";; Tri-vector decomposition verification\n\
              (declare-sort VectorSpace)\n\
              (declare-const V_H VectorSpace)\n\
              (declare-const V_L VectorSpace)\n\
@@ -325,12 +325,11 @@ impl<'a> FeatureVerifier<'a> {
              (assert (= (dim Signal) (+ (+ (dim V_H) (dim V_L)) (dim V_S))))\n\
              \n\
              (check-sat)"
-        )
+            .to_string()
     }
 
     fn generate_ambiguity_smt_formula(&self) -> String {
-        format!(
-            ";; Ambiguity calculation verification\n\
+        ";; Ambiguity calculation verification\n\
              (declare-const ambiguity Real)\n\
              (declare-const parse_unique Real)\n\
              (declare-const parse_total Real)\n\
@@ -348,12 +347,11 @@ impl<'a> FeatureVerifier<'a> {
              (assert (< ambiguity 0.02))\n\
              \n\
              (check-sat)"
-        )
+            .to_string()
     }
 
     fn generate_ghost_intent_smt_formula(&self) -> String {
-        format!(
-            ";; Ghost intent search verification\n\
+        ";; Ghost intent search verification\n\
              (declare-sort Intent)\n\
              (declare-const psi_target Intent)\n\
              (declare-const psi_have Intent)\n\
@@ -373,7 +371,7 @@ impl<'a> FeatureVerifier<'a> {
              (assert (<= (intent_size psi_ghost) (intent_size psi_target)))\n\
              \n\
              (check-sat)"
-        )
+            .to_string()
     }
 
     // Analysis functions
@@ -442,6 +440,8 @@ mod tests {
     };
     use crate::z3_verification::Z3VerificationFacade;
 
+    // TODO(#16): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_document() -> AispDocument {
         AispDocument {
             header: DocumentHeader {

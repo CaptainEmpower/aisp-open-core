@@ -4,7 +4,6 @@
 //! and Computation Tree Logic (CTL) formulas, including satisfiability checking,
 //! formula evaluation, and constraint solving.
 
-use crate::ast::canonical::Span;
 use crate::error::*;
 use crate::temporal_operator_analyzer::{OperatorInstance, TemporalOperator};
 use crate::temporal_pattern_detector::{PatternType, TemporalPattern};
@@ -252,6 +251,12 @@ pub struct PerformanceSummary {
     pub timeouts: usize,
 }
 
+impl Default for TemporalLogicSolver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TemporalLogicSolver {
     /// Create a new temporal logic solver
     pub fn new() -> Self {
@@ -276,12 +281,11 @@ impl TemporalLogicSolver {
         &mut self,
         operators: &[OperatorInstance],
         patterns: &[TemporalPattern],
-        document_size: usize,
+        _document_size: usize,
     ) -> FormulaAnalysisResult {
         let start_time = std::time::Instant::now();
         let mut analyzed_formulas = Vec::new();
         let mut warnings = Vec::new();
-        let mut dependencies = HashMap::new();
         let mut timeouts = 0;
 
         // Extract formulas from operators and patterns
@@ -289,7 +293,7 @@ impl TemporalLogicSolver {
 
         // Analyze each formula
         for formula in formulas {
-            let formula_start = std::time::Instant::now();
+            let _formula_start = std::time::Instant::now();
 
             // Check cache first
             if let Some(cached_result) = self.formula_cache.get(&formula.id) {
@@ -350,7 +354,7 @@ impl TemporalLogicSolver {
         let overall_status = self.determine_overall_status(&analyzed_formulas);
 
         // Extract dependencies
-        dependencies = self.extract_formula_dependencies(&analyzed_formulas);
+        let dependencies = self.extract_formula_dependencies(&analyzed_formulas);
 
         let total_time = start_time.elapsed().as_millis() as u64;
         let performance_summary = PerformanceSummary {
@@ -426,12 +430,10 @@ impl TemporalLogicSolver {
     /// Solve a single temporal logic formula
     fn solve_single_formula(&mut self, formula: &AnalyzedFormula) -> AispResult<SolverResult> {
         let start_time = std::time::Instant::now();
-        let mut states_explored = 0;
-        let mut transitions_evaluated = 0;
 
         // Build state space for the formula
         let state_space = self.build_state_space(&formula.formula)?;
-        states_explored = state_space.states.len();
+        let states_explored = state_space.states.len();
 
         // Perform satisfiability checking based on formula type
         let (satisfiable, witness, counterexample) = match formula.formula_type {
@@ -446,7 +448,7 @@ impl TemporalLogicSolver {
             }
         };
 
-        transitions_evaluated = state_space.transitions.len();
+        let transitions_evaluated = state_space.transitions.len();
         let solving_time = start_time.elapsed().as_millis() as u64;
 
         // Simplify formula if enabled
@@ -741,8 +743,11 @@ impl SolverResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::canonical::Span;
     use crate::temporal_operator_analyzer::OperatorContext;
 
+    // TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+    #[allow(dead_code)]
     fn create_test_operator(op: TemporalOperator) -> OperatorInstance {
         OperatorInstance {
             operator: op,

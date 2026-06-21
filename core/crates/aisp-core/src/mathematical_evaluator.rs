@@ -77,6 +77,12 @@ pub struct MathEvaluator {
     evaluation_stack: Vec<String>,
 }
 
+impl Default for MathEvaluator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MathEvaluator {
     /// Create a new mathematical evaluator
     pub fn new() -> Self {

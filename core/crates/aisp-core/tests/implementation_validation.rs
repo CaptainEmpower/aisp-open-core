@@ -2,7 +2,8 @@
 //!
 //! This test suite verifies that our implementation changes actually work.
 
-use aisp_core::{semantic::SemanticAnalyzer, validator::AispValidator};
+use aisp_core::semantic::QualityTier;
+use aisp_core::validator::AispValidator;
 
 /// Test that our enumeration parser fix works
 #[test]
@@ -21,9 +22,10 @@ fn test_enumeration_parsing_fix() {
     let result1 = validator.validate(doc_spaces);
     // Should not fail with parsing error
     assert!(
-        !result1.error.as_ref().map_or(false, |e| e
-            .to_string()
-            .contains("Expected ',' or '}' in enumeration")),
+        !result1
+            .error
+            .as_ref()
+            .is_some_and(|e| e.to_string().contains("Expected ',' or '}' in enumeration")),
         "Space-separated enumerations should parse without comma errors"
     );
 
@@ -38,9 +40,10 @@ fn test_enumeration_parsing_fix() {
     let result2 = validator.validate(doc_commas);
     // Should not fail with parsing error
     assert!(
-        !result2.error.as_ref().map_or(false, |e| e
-            .to_string()
-            .contains("Expected ',' or '}' in enumeration")),
+        !result2
+            .error
+            .as_ref()
+            .is_some_and(|e| e.to_string().contains("Expected ',' or '}' in enumeration")),
         "Comma-separated enumerations should still parse correctly"
     );
 }
@@ -95,8 +98,8 @@ fn test_formal_verification_system() {
 
     // Should not crash and should provide meaningful output
     assert!(
-        result.tier.value() >= 0,
-        "Quality tier should have valid value"
+        result.tier.value() <= QualityTier::Platinum.value(),
+        "Quality tier should have a valid value (Reject..=Platinum)"
     );
     assert!(
         result.delta >= 0.0 && result.delta <= 1.0,
@@ -129,7 +132,7 @@ fn test_validation_result_structure() {
     // Tier should have meaningful value
     let tier_value = result.tier.value();
     assert!(
-        tier_value >= 0 && tier_value <= 5,
+        (0..=5).contains(&tier_value),
         "Quality tier should be in valid range: {}",
         tier_value
     );

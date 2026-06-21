@@ -6,12 +6,10 @@
 use super::canonical_types::*;
 use super::smt_interface::SmtInterface;
 use crate::{
-    ast::canonical::{CanonicalAispDocument as AispDocument, *},
-    error::*,
-    tri_vector_validation::*,
+    ast::canonical::CanonicalAispDocument as AispDocument, error::*, tri_vector_validation::*,
 };
 use std::collections::HashMap;
-use std::time::{Duration, SystemTime};
+use std::time::SystemTime;
 
 /// Z3 verification facade with genuine verification requirements
 pub struct Z3VerificationFacade {
@@ -87,9 +85,9 @@ impl Z3VerificationFacade {
         self.verification_stats.document_verifications += 1;
 
         let mut properties = Vec::new();
-        let mut proofs: Vec<Z3FormalProof> = Vec::new();
-        let mut counterexamples: Vec<Z3CounterexampleModel> = Vec::new();
-        let mut diagnostics: Vec<Z3Diagnostic> = Vec::new();
+        let _proofs: Vec<Z3FormalProof> = Vec::new();
+        let _counterexamples: Vec<Z3CounterexampleModel> = Vec::new();
+        let diagnostics: Vec<Z3Diagnostic> = Vec::new();
 
         // Verify basic document structure
         properties.extend(self.verify_document_structure(document)?);
@@ -132,7 +130,7 @@ impl Z3VerificationFacade {
             },
             timing: Z3TimingBreakdown::default(),
             resource_usage: Z3ResourceUsage::default(),
-            diagnostics: diagnostics,
+            diagnostics,
         })
     }
 
@@ -302,6 +300,7 @@ mod tests {
     use super::*;
     use crate::ast::canonical::{self, CanonicalAispDocument as AispDocument};
     use std::collections::HashMap;
+    use std::time::Duration;
 
     fn create_test_document() -> AispDocument {
         canonical::create_document("test", "5.1", "2026-01-26")
@@ -479,7 +478,7 @@ mod tests {
             // Test empty properties
             let empty_props = vec![];
             match facade.determine_verification_status(&empty_props) {
-                Z3VerificationStatus::Incomplete { .. } => assert!(true),
+                Z3VerificationStatus::Incomplete { .. } => (),
                 _ => panic!("Expected Incomplete status"),
             }
 
@@ -497,7 +496,7 @@ mod tests {
                 metadata: HashMap::new(),
             }];
             match facade.determine_verification_status(&proven_props) {
-                Z3VerificationStatus::AllVerified => assert!(true),
+                Z3VerificationStatus::AllVerified => (),
                 _ => panic!("Expected AllVerified status"),
             }
 
@@ -515,7 +514,7 @@ mod tests {
                 metadata: HashMap::new(),
             }];
             match facade.determine_verification_status(&failed_props) {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected Failed status"),
             }
         }
@@ -546,7 +545,7 @@ mod tests {
 
             // Status should reflect failure
             match verification.status {
-                Z3VerificationStatus::Failed(_) => assert!(true),
+                Z3VerificationStatus::Failed(_) => (),
                 _ => panic!("Expected failure status for invalid document"),
             }
         }

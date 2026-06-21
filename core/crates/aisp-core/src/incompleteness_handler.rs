@@ -5,7 +5,7 @@
 //! be proven or disproven within the system.
 
 use crate::error::{AispError, AispResult};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fmt;
 use thiserror::Error;
 
@@ -90,6 +90,12 @@ pub struct IncompletenessHandler {
     self_reference_patterns: Vec<String>,
     /// Axiom system available for proofs
     available_axioms: HashSet<String>,
+}
+
+impl Default for IncompletenessHandler {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl IncompletenessHandler {

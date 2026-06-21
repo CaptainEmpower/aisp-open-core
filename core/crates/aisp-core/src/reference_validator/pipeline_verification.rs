@@ -5,7 +5,6 @@
 
 use crate::error::AispResult;
 use crate::z3_verification::{canonical_types::Z3PropertyResult, Z3VerificationFacade};
-use std::time::Duration;
 
 /// Pipeline verification result
 #[derive(Debug, Clone)]
@@ -67,8 +66,8 @@ impl<'a> PipelineVerifier<'a> {
         let mut proofs = Vec::new();
 
         for steps in test_cases {
-            let prose_rate = 0.62_f64.powi(steps as i32);
-            let aisp_rate = 0.98_f64.powi(steps as i32);
+            let prose_rate = 0.62_f64.powi(steps);
+            let aisp_rate = 0.98_f64.powi(steps);
             let improvement_factor = if prose_rate > 0.0 {
                 aisp_rate / prose_rate
             } else {
@@ -153,8 +152,7 @@ impl<'a> PipelineVerifier<'a> {
             .any(|p| p.improvement_factor >= 97.0);
 
         // Verify using SMT that improvement grows exponentially
-        let exponential_growth_formula = format!(
-            ";; Verify exponential growth of improvement factor\n\
+        let exponential_growth_formula = ";; Verify exponential growth of improvement factor\n\
              (declare-const base_improvement Real)\n\
              (declare-const steps Real)\n\
              (declare-const improvement_factor Real)\n\
@@ -171,7 +169,7 @@ impl<'a> PipelineVerifier<'a> {
              (assert (> improvement_factor 97.0))\n\
              \n\
              (check-sat)"
-        );
+            .to_string();
 
         let exponential_verified = self
             .z3_verifier
@@ -205,7 +203,6 @@ impl<'a> PipelineVerifier<'a> {
 
 /// Utility functions for pipeline verification
 pub mod utils {
-    use super::*;
 
     /// Calculate expected success rate for prose pipeline
     pub fn calculate_prose_success_rate(steps: u32) -> f64 {
@@ -246,10 +243,8 @@ pub mod utils {
         let improvement = calculate_improvement_factor(aisp_rate, prose_rate);
 
         // Basic sanity checks
-        prose_rate >= 0.0
-            && prose_rate <= 1.0
-            && aisp_rate >= 0.0
-            && aisp_rate <= 1.0
+        (0.0..=1.0).contains(&prose_rate)
+            && (0.0..=1.0).contains(&aisp_rate)
             && aisp_rate > prose_rate
             && improvement > 1.0
     }

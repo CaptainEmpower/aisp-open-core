@@ -151,7 +151,7 @@ pub enum TrendDirection {
 }
 
 /// Severity distribution of breaches
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SeverityDistribution {
     /// Minor breaches count
     pub minor_breaches: usize,
@@ -308,17 +308,6 @@ impl Default for TimePeriod {
             start: now,
             end: now,
             duration: std::time::Duration::ZERO,
-        }
-    }
-}
-
-impl Default for SeverityDistribution {
-    fn default() -> Self {
-        Self {
-            minor_breaches: 0,
-            major_breaches: 0,
-            critical_breaches: 0,
-            catastrophic_breaches: 0,
         }
     }
 }

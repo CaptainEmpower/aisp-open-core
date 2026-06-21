@@ -2,7 +2,6 @@
 //!
 //! Core type definitions and configuration for mathematical notation parsing.
 
-use crate::error::{AispError, AispResult};
 use std::collections::HashMap;
 use thiserror::Error;
 
@@ -394,6 +393,12 @@ impl MathParsingConfig {
     /// Set precedence for operator
     pub fn set_precedence(&mut self, operator: String, precedence: i32) {
         self.precedence_rules.insert(operator, precedence);
+    }
+}
+
+impl Default for ParsingContext {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

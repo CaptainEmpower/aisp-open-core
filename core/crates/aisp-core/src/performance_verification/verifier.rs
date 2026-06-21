@@ -8,10 +8,7 @@ use super::{
     resources::ResourceBoundAnalysis, sla::SLACompliance, throughput::ThroughputAnalysis,
     timing::TimingConstraintAnalysis, types::*,
 };
-use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
-    error::{AispError, AispResult},
-};
+use crate::{ast::canonical::CanonicalAispDocument as AispDocument, error::AispResult};
 use std::time::Instant;
 
 /// Performance constraint verifier
@@ -212,7 +209,7 @@ impl PerformanceConstraintVerifier {
         })
     }
 
-    /// Create placeholder timing analysis when disabled
+    /// Create placeholder timing analysis when disabled (tracked in #13)
     fn create_placeholder_timing_analysis(&self) -> TimingConstraintAnalysis {
         TimingConstraintAnalysis {
             response_time_analysis: super::timing::ResponseTimeAnalysis {

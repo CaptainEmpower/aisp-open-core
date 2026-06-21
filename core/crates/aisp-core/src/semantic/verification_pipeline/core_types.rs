@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_attack_resistance_rating_levels() {
-        let ratings = vec![
+        let ratings = [
             AttackResistanceRating::Minimal,
             AttackResistanceRating::Basic,
             AttackResistanceRating::Standard,

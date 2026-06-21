@@ -4,10 +4,9 @@
 //! discovered from AISP documents, including SMT-based solving and model generation.
 
 use crate::{
-    ast::canonical::CanonicalAispDocument as AispDocument,
     error::{AispError, AispResult},
     invariant_types::DiscoveredInvariant,
-    property_types::{AtomicFormula, FormulaStructure, PropertyFormula, Term},
+    property_types::{FormulaStructure, PropertyFormula, Term},
     smt_types::{SmtCommand, SmtFormula, SmtSort},
 };
 use std::collections::{HashMap, HashSet};
@@ -100,6 +99,8 @@ impl Default for SatisfiabilityConfig {
 }
 
 /// Main satisfiability checker for constraint systems
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 pub struct SatisfiabilityChecker {
     config: SatisfiabilityConfig,
 }
@@ -486,6 +487,8 @@ enum ConstraintTerm {
 }
 
 #[derive(Debug, Clone)]
+// TODO(#12): reserved for not-yet-implemented logic; see ROADMAP.
+#[allow(dead_code)]
 struct ConstraintSystem {
     constraints: Vec<Constraint>,
     variables: HashSet<String>,
@@ -680,7 +683,7 @@ mod tests {
     fn test_model_value_types() {
         let bool_val = ModelValue::Boolean(true);
         let int_val = ModelValue::Integer(-5);
-        let real_val = ModelValue::Real(3.14);
+        let real_val = ModelValue::Real(3.5);
         let str_val = ModelValue::String("test".to_string());
         let enum_val = ModelValue::Enumeration("Active".to_string());
 

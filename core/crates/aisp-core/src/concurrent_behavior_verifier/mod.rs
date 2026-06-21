@@ -73,9 +73,8 @@ mod tests {
 
     #[test]
     fn test_verifier_creation() {
-        let verifier = ConcurrentBehaviorVerifier::new();
+        let _verifier = ConcurrentBehaviorVerifier::new();
         // Basic smoke test - verifier should be created successfully
-        assert!(true);
     }
 
     #[test]
@@ -87,6 +86,5 @@ mod tests {
         let _verifier = ConcurrentBehaviorVerifier::new();
 
         // Integration smoke test
-        assert!(true);
     }
 }

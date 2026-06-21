@@ -4,7 +4,7 @@
 //! invariant checking for behavioral verification.
 
 use super::types::*;
-use crate::error::{AispError, AispResult};
+use crate::error::AispResult;
 use std::collections::HashMap;
 
 /// Result of invariant violation check
@@ -230,6 +230,12 @@ pub enum InvariantStatus {
     ChecksFailed,
 }
 
+impl Default for PropertyBasedTester {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PropertyBasedTester {
     pub fn new() -> Self {
         Self {
@@ -352,6 +358,12 @@ impl PropertyBasedTester {
     }
 }
 
+impl Default for PlaceholderDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PlaceholderDetector {
     pub fn new() -> Self {
         Self {
@@ -423,6 +435,12 @@ impl PlaceholderDetector {
                 confidence_weight: 0.95,
             },
         ]
+    }
+}
+
+impl Default for RuntimeInvariantChecker {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -504,6 +522,12 @@ impl RuntimeInvariantChecker {
     }
 }
 
+impl Default for ComplianceValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ComplianceValidator {
     pub fn new() -> Self {
         Self {
@@ -515,7 +539,7 @@ impl ComplianceValidator {
     }
 
     pub fn validate_compliance(&self, _function_code: &str) -> AispResult<ComplianceResult> {
-        let mut violations = Vec::new();
+        let violations = Vec::new();
         let mut passed_rules = Vec::new();
 
         for rule in &self.compliance_rules {
