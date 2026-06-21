@@ -422,23 +422,28 @@ impl LogicContentParser {
     }
 
     /// Find main operator position (not inside parentheses)
+    /// Find the byte offset of `operator` at paren-depth 0, or `None`.
+    ///
+    /// Returns a **byte** index (not a char index) so callers can slice `text`
+    /// directly even when it contains multi-byte Unicode (operators like → ∧ ℕ).
     fn find_main_operator(text: &str, operator: &str) -> Option<usize> {
         let mut paren_depth = 0;
-        let chars: Vec<char> = text.chars().collect();
         let op_chars: Vec<char> = operator.chars().collect();
+        let chars: Vec<(usize, char)> = text.char_indices().collect();
 
         for i in 0..chars.len() {
-            match chars[i] {
+            let (byte_idx, ch) = chars[i];
+            match ch {
                 '(' => paren_depth += 1,
                 ')' => paren_depth -= 1,
                 _ => {
-                    if paren_depth == 0 {
-                        // Check if operator starts at position i
-                        if i + op_chars.len() <= chars.len() {
-                            let slice = &chars[i..i + op_chars.len()];
-                            if slice == &op_chars[..] {
-                                return Some(i);
-                            }
+                    if paren_depth == 0 && i + op_chars.len() <= chars.len() {
+                        let matches = chars[i..i + op_chars.len()]
+                            .iter()
+                            .map(|(_, c)| *c)
+                            .eq(op_chars.iter().copied());
+                        if matches {
+                            return Some(byte_idx);
                         }
                     }
                 }

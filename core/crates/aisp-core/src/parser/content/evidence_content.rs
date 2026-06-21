@@ -14,7 +14,12 @@ impl EvidenceContentParser {
     pub fn parse_evidence_entry(entry_text: &str) -> Option<EvidenceEntry> {
         if let Some(pos) = entry_text.find('≜') {
             let key = entry_text[..pos].trim();
-            let value_text = entry_text[pos + '≜'.len_utf8()..].trim();
+            // Strip the optional `;` separator that the grammar includes in the
+            // entry span, otherwise numeric values like "0.85;" fail to parse.
+            let value_text = entry_text[pos + '≜'.len_utf8()..]
+                .trim()
+                .trim_end_matches(';')
+                .trim();
 
             match key {
                 "δ" => {
