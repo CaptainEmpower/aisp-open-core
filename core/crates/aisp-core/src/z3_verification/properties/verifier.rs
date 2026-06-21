@@ -656,17 +656,17 @@ impl PropertyVerifier {
         })
     }
 
-    /// Perform Z3 verification
+    /// Perform Z3 verification by delegating to the real SMT engine.
+    ///
+    /// `PropertyResult` is an alias for `Z3PropertyResult`, so the engine's
+    /// verdict is returned directly: a `Proven` here corresponds to a genuine
+    /// Z3 `unsat`, a `Disproven` carries a real counter-model, and a formula
+    /// outside the supported quantifier-free fragment comes back as `Unknown`
+    /// (or `Error` for malformed SMT-LIB) — never a fabricated proof.
     #[cfg(feature = "z3-verification")]
-    fn z3_verify(&self, _context: &Context, _formula: &str) -> AispResult<PropertyResult> {
-        let _solver = Solver::new();
-
-        // For now, return a placeholder result due to Z3 API compatibility issues
-        // TODO(#12): Implement proper Z3 verification once API is stable
-        Ok(PropertyResult::Unknown {
-            reason: "Z3 verification not yet implemented".to_string(),
-            partial_progress: 0.0,
-        })
+    fn z3_verify(&self, _context: &Context, formula: &str) -> AispResult<PropertyResult> {
+        let mut smt = crate::z3_verification::smt_interface::SmtInterface::new();
+        smt.verify_smt_formula(formula)
     }
 
     /// Generate orthogonality certificate
@@ -732,17 +732,18 @@ impl PropertyVerifier {
         &mut self,
         _document: &crate::ast::canonical::CanonicalAispDocument,
     ) -> AispResult<Vec<VerifiedProperty>> {
-        // Placeholder implementation for type safety verification
+        // Type-safety obligations are not yet lowered to the SMT fragment, so we
+        // report an explicit Unknown instead of fabricating a proof ("verified
+        // by construction"). Returning a real verdict here is tracked in #12.
         let mut properties = Vec::new();
 
-        // Create a basic type safety property
         let type_safety_property = VerifiedProperty::new(
             "type_safety_basic".to_string(),
             PropertyCategory::TypeSafety,
             "Basic type safety verification".to_string(),
-            PropertyResult::Proven {
-                proof_certificate: "Type safety verified by construction".to_string(),
-                verification_time: std::time::Duration::from_millis(50),
+            PropertyResult::Unknown {
+                reason: "type-safety verification is not yet encoded in SMT (#12)".to_string(),
+                partial_progress: 0.0,
             },
         );
 
