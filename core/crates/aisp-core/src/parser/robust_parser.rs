@@ -455,6 +455,7 @@ multiplicative_expr = {
 }
 primary_expr = {
     "(" ~ logical_expr ~ ")" |
+    set_type_expr |
     function_call |
     array_access |
     identifier |
