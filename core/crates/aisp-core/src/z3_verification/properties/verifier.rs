@@ -658,14 +658,39 @@ impl PropertyVerifier {
 
     /// Perform Z3 verification by delegating to the real SMT engine.
     ///
-    /// `PropertyResult` is an alias for `Z3PropertyResult`, so the engine's
-    /// verdict is returned directly: a `Proven` here corresponds to a genuine
-    /// Z3 `unsat`, a `Disproven` carries a real counter-model, and a formula
-    /// outside the supported quantifier-free fragment comes back as `Unknown`
-    /// (or `Error` for malformed SMT-LIB) — never a fabricated proof.
+    /// Only complete SMT-LIB scripts (with a `(check-sat)`) are sent to the
+    /// engine. The current tri-vector property builders emit *fragments* —
+    /// quantified, over uninterpreted custom sorts — which are outside the
+    /// supported quantifier-free fragment and would only fail validation, so we
+    /// report an explicit `Unknown` for them rather than a spurious `Error`.
+    /// Lowering those obligations to complete, in-fragment queries is tracked
+    /// in #12.
+    ///
+    /// For a complete script the engine's verdict flows straight through
+    /// (`PropertyResult` is an alias for `Z3PropertyResult`): `Proven` is a
+    /// genuine Z3 `unsat`, `Disproven` carries a real counter-model, and an
+    /// out-of-fragment construct is `Unknown` — never a fabricated proof. The
+    /// verifier's configured timeout and memory limit are propagated to the
+    /// engine.
     #[cfg(feature = "z3-verification")]
     fn z3_verify(&self, _context: &Context, formula: &str) -> AispResult<PropertyResult> {
-        let mut smt = crate::z3_verification::smt_interface::SmtInterface::new();
+        use crate::z3_verification::smt_interface::{SmtConfig, SmtInterface};
+
+        if !formula.contains("(check-sat)") {
+            return Ok(PropertyResult::Unknown {
+                reason: "obligation is not yet lowered to a complete SMT-LIB query (#12)"
+                    .to_string(),
+                partial_progress: 0.0,
+            });
+        }
+
+        let smt_config = SmtConfig {
+            timeout_ms: self.config.query_timeout_ms,
+            verbose: false,
+            require_z3: true,
+            memory_limit_mb: self.config.max_memory_mb as u64,
+        };
+        let mut smt = SmtInterface::with_config(smt_config);
         smt.verify_smt_formula(formula)
     }
 
@@ -1038,6 +1063,38 @@ mod tests {
         assert_eq!(verifier.stats.proven_properties, 0);
         assert_eq!(verifier.stats.disproven_properties, 0);
         assert_eq!(verifier.stats.smt_queries, 0);
+    }
+
+    /// A bare fragment (no `(check-sat)`, undeclared custom sorts) must be
+    /// reported Unknown — not fed to the engine as malformed input that would
+    /// come back as Error.
+    #[cfg(feature = "z3-verification")]
+    #[test]
+    fn test_fragment_returns_unknown_not_error() {
+        let mut verifier = PropertyVerifier::new(AdvancedVerificationConfig::default());
+        let fragment = "(forall ((v Vector)) (= (dot_product v v) 0))";
+        let result = verifier.verify_smt_formula(fragment, "frag").unwrap();
+        assert!(
+            matches!(result, PropertyResult::Unknown { .. }),
+            "fragment should be Unknown, got {result:?}"
+        );
+    }
+
+    /// A complete, in-fragment script is verified by the real engine using the
+    /// verifier's propagated configuration.
+    #[cfg(feature = "z3-verification")]
+    #[test]
+    fn test_complete_script_uses_engine() {
+        let mut verifier = PropertyVerifier::new(AdvancedVerificationConfig::default());
+        let script = "(declare-const x Int)\n\
+             (assert (> x 0))\n\
+             (assert (< x 0))\n\
+             (check-sat)";
+        let result = verifier.verify_smt_formula(script, "unsat").unwrap();
+        assert!(
+            matches!(result, PropertyResult::Proven { .. }),
+            "x>0 ∧ x<0 should be Proven (unsat), got {result:?}"
+        );
     }
 
     #[test]

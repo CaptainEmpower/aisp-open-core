@@ -11,6 +11,10 @@ use std::time::Instant;
 #[cfg(feature = "z3-verification")]
 use z3::*;
 
+/// Guards the one-time application of Z3's process-wide `memory_max_size`.
+#[cfg(feature = "z3-verification")]
+static Z3_MEMORY_CAP_INIT: std::sync::Once = std::sync::Once::new();
+
 /// SMT formula interface with real Z3 integration
 pub struct SmtInterface {
     /// Z3 availability status
@@ -63,6 +67,14 @@ impl SmtInterface {
                 disproven_properties: 0,
             },
         }
+    }
+
+    /// Create an interface with explicit configuration, e.g. to propagate a
+    /// higher-level verifier's solver timeout / memory limits.
+    pub fn with_config(config: SmtConfig) -> Self {
+        let mut interface = Self::new();
+        interface.config = config;
+        interface
     }
 
     /// Create disabled SMT interface (for testing without Z3)
@@ -202,9 +214,13 @@ impl SmtInterface {
     fn execute_z3_query(&mut self, formula: &str) -> AispResult<Z3PropertyResult> {
         let start = Instant::now();
 
-        // Bound memory globally (soft cap, in MB) per R-16.
+        // `memory_max_size` is a process-wide Z3 setting, not per-solver, so
+        // apply it exactly once rather than mutating global state (which could
+        // affect other solver instances or concurrent queries) on every call.
+        // The per-query timeout below is set per-solver, so it stays local.
         if self.config.memory_limit_mb > 0 {
-            set_global_param("memory_max_size", &self.config.memory_limit_mb.to_string());
+            let mb = self.config.memory_limit_mb;
+            Z3_MEMORY_CAP_INIT.call_once(|| set_global_param("memory_max_size", &mb.to_string()));
         }
 
         let solver = Solver::new();
