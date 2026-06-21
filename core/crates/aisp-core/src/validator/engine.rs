@@ -49,7 +49,15 @@ impl AispValidator {
     pub fn new() -> Self {
         let config = ValidationConfig::default();
         let verification_methods = VerificationMethods::new(config.clone());
-        let structural_config = StructuralValidationConfig::default();
+        // Structural strictness follows the document's strict_mode: in strict
+        // mode all five blocks must be present, non-empty, and in canonical
+        // order; otherwise these are relaxed (block order and a complete block
+        // set are not mandatory for an otherwise-valid document).
+        let structural_config = StructuralValidationConfig {
+            require_all_blocks: config.strict_mode,
+            allow_empty_blocks: !config.strict_mode,
+            validate_block_order: config.strict_mode,
+        };
         let structural_validator = StructuralValidator::with_config(structural_config);
 
         Self {
@@ -71,7 +79,15 @@ impl AispValidator {
     /// - All verification methods configured according to provided settings
     pub fn with_config(config: ValidationConfig) -> Self {
         let verification_methods = VerificationMethods::new(config.clone());
-        let structural_config = StructuralValidationConfig::default();
+        // Structural strictness follows the document's strict_mode: in strict
+        // mode all five blocks must be present, non-empty, and in canonical
+        // order; otherwise these are relaxed (block order and a complete block
+        // set are not mandatory for an otherwise-valid document).
+        let structural_config = StructuralValidationConfig {
+            require_all_blocks: config.strict_mode,
+            allow_empty_blocks: !config.strict_mode,
+            validate_block_order: config.strict_mode,
+        };
         let structural_validator = StructuralValidator::with_config(structural_config);
 
         Self {
@@ -84,7 +100,15 @@ impl AispValidator {
     /// Update validator configuration
     pub fn configure(&mut self, config: ValidationConfig) {
         self.verification_methods = VerificationMethods::new(config.clone());
-        let structural_config = StructuralValidationConfig::default();
+        // Structural strictness follows the document's strict_mode: in strict
+        // mode all five blocks must be present, non-empty, and in canonical
+        // order; otherwise these are relaxed (block order and a complete block
+        // set are not mandatory for an otherwise-valid document).
+        let structural_config = StructuralValidationConfig {
+            require_all_blocks: config.strict_mode,
+            allow_empty_blocks: !config.strict_mode,
+            validate_block_order: config.strict_mode,
+        };
         self.structural_validator = StructuralValidator::with_config(structural_config);
         self.config = config;
     }

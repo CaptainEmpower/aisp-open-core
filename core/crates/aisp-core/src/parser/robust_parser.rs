@@ -471,9 +471,14 @@ argument_list = {
     logical_expr ~ ("," ~ logical_expr)*
 }
 
-evidence_symbol = { "δ" | "φ" | "τ" | "|" ~ "𝔅" ~ "|" | identifier }
-evidence_value = { number | string_literal | quality_tier }
+evidence_symbol = { "δ" | "φ" | "τ" | "|" ~ "𝔅" ~ "|" | greek_letter | identifier }
+// Evidence tags are often Greek letters (ψ, ξ, …) which are not ASCII.
+greek_letter = @{ 'α'..'ω' | 'Α'..'Ω' }
+evidence_value = { number | string_literal | quality_tier | evidence_raw }
 quality_tier = @{ "◊" ~ ("⁺" | "⁻")* }
+// Catch-all for symbolic evidence values (e.g. temporal tags like □◊) so an
+// unusual entry does not abort parsing of the whole Evidence block.
+evidence_raw = @{ (!(";" | "⟩" | "}" | " " | "\t" | "\n" | "\r") ~ ANY)+ }
 
 // Primitives with Unicode support
 number = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
