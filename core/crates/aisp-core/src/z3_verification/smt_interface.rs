@@ -6,7 +6,15 @@
 use super::canonical_types::*;
 use crate::error::*;
 use std::collections::{HashMap, HashSet};
+use std::sync::Once;
 use std::time::Instant;
+
+/// `memory_max_size` is a *process-wide* Z3 parameter (`set_global_param`), not a
+/// per-solver setting. We therefore apply it exactly once for the lifetime of
+/// the process rather than on every query, so a query cannot silently mutate
+/// global solver state out from under concurrent verification on other threads.
+#[cfg(feature = "z3-verification")]
+static MEMORY_CAP_INIT: Once = Once::new();
 
 #[cfg(feature = "z3-verification")]
 use z3::*;
@@ -56,6 +64,28 @@ impl SmtInterface {
                 require_z3: true,
                 memory_limit_mb: 2048,
             },
+            stats: SmtStats {
+                queries_executed: 0,
+                syntax_errors: 0,
+                proven_properties: 0,
+                disproven_properties: 0,
+            },
+        }
+    }
+
+    /// Create an SMT interface with caller-supplied configuration.
+    ///
+    /// Lets upstream verifiers honour their own timeout/memory limits instead of
+    /// silently falling back to the defaults in [`SmtInterface::new`].
+    pub fn with_config(config: SmtConfig) -> Self {
+        #[cfg(feature = "z3-verification")]
+        let z3_available = true;
+        #[cfg(not(feature = "z3-verification"))]
+        let z3_available = false;
+
+        Self {
+            z3_available,
+            config,
             stats: SmtStats {
                 queries_executed: 0,
                 syntax_errors: 0,
@@ -202,9 +232,15 @@ impl SmtInterface {
     fn execute_z3_query(&mut self, formula: &str) -> AispResult<Z3PropertyResult> {
         let start = Instant::now();
 
-        // Bound memory globally (soft cap, in MB) per R-16.
+        // Bound memory (soft cap, in MB) per R-16. `memory_max_size` is global
+        // to the Z3 process, so set it once rather than mutating shared state on
+        // every query; the per-query wall-clock `timeout` below is the
+        // solver-scoped bound.
         if self.config.memory_limit_mb > 0 {
-            set_global_param("memory_max_size", &self.config.memory_limit_mb.to_string());
+            let memory_limit_mb = self.config.memory_limit_mb;
+            MEMORY_CAP_INIT.call_once(|| {
+                set_global_param("memory_max_size", &memory_limit_mb.to_string());
+            });
         }
 
         let solver = Solver::new();
@@ -859,6 +895,18 @@ mod tests {
         let interface = SmtInterface::new_disabled();
         assert!(!interface.is_z3_available());
         assert!(!interface.config.require_z3);
+    }
+
+    #[test]
+    fn test_with_config_honours_caller_limits() {
+        let interface = SmtInterface::with_config(SmtConfig {
+            timeout_ms: 1234,
+            verbose: false,
+            require_z3: false,
+            memory_limit_mb: 512,
+        });
+        assert_eq!(interface.config.timeout_ms, 1234);
+        assert_eq!(interface.config.memory_limit_mb, 512);
     }
 
     #[test]

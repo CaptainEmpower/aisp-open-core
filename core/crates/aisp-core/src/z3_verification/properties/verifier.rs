@@ -663,9 +663,34 @@ impl PropertyVerifier {
     /// Z3 `unsat`, a `Disproven` carries a real counter-model, and a formula
     /// outside the supported quantifier-free fragment comes back as `Unknown`
     /// (or `Error` for malformed SMT-LIB) — never a fabricated proof.
+    ///
+    /// The tri-vector obligations this verifier currently emits
+    /// (`create_orthogonality_formula` et al.) are quantified terms over
+    /// uninterpreted sorts/functions, produced as bare fragments without a
+    /// trailing `(check-sat)`. Feeding such a fragment to the engine would only
+    /// trip `validate_smt_syntax` and surface a misleading `Error`, so until
+    /// these obligations are lowered to a complete, in-fragment SMT-LIB script
+    /// (tracked in #12) we report an explicit `Unknown` — consistent with the
+    /// type-safety path. A complete script is delegated to the engine with this
+    /// verifier's configured timeout/memory limits applied.
     #[cfg(feature = "z3-verification")]
     fn z3_verify(&self, _context: &Context, formula: &str) -> AispResult<PropertyResult> {
-        let mut smt = crate::z3_verification::smt_interface::SmtInterface::new();
+        if !formula.contains("check-sat") {
+            return Ok(PropertyResult::Unknown {
+                reason: "Property not yet lowered to a complete in-fragment SMT-LIB script (#12)"
+                    .to_string(),
+                partial_progress: 0.0,
+            });
+        }
+
+        let mut smt = crate::z3_verification::smt_interface::SmtInterface::with_config(
+            crate::z3_verification::smt_interface::SmtConfig {
+                timeout_ms: self.config.query_timeout_ms,
+                verbose: false,
+                require_z3: true,
+                memory_limit_mb: self.config.max_memory_mb as u64,
+            },
+        );
         smt.verify_smt_formula(formula)
     }
 
@@ -1102,6 +1127,32 @@ mod tests {
         assert!(formula.contains("V_H"));
         assert!(formula.contains("V_S"));
         assert!(formula.contains("dot_product"));
+    }
+
+    /// Regression for the Qodo "invalid SMT passed to engine" finding: the
+    /// tri-vector obligations are bare fragments (no `(check-sat)`) over
+    /// uninterpreted sorts, so `z3_verify` must surface `Unknown` rather than
+    /// forwarding them into the engine and getting a misleading `Error`. A
+    /// complete, in-fragment script is still decided for real.
+    #[cfg(feature = "z3-verification")]
+    #[test]
+    fn test_z3_verify_fragment_is_unknown_not_error() {
+        let verifier = PropertyVerifier::new(AdvancedVerificationConfig::default());
+        let ctx = z3::Context::thread_local();
+
+        // Bare quantified fragment with custom sorts and no `(check-sat)`.
+        let fragment = verifier.create_orthogonality_formula("V_H", "V_S").unwrap();
+        match verifier.z3_verify(&ctx, &fragment).unwrap() {
+            PropertyResult::Unknown { .. } => {}
+            other => panic!("expected Unknown for incomplete fragment, got {:?}", other),
+        }
+
+        // A complete, in-fragment unsatisfiable script must still prove.
+        let script = "(declare-const p Bool)\n(assert (and p (not p)))\n(check-sat)";
+        match verifier.z3_verify(&ctx, script).unwrap() {
+            PropertyResult::Proven { .. } => {}
+            other => panic!("expected Proven for unsat script, got {:?}", other),
+        }
     }
 
     #[test]
