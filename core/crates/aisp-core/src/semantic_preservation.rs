@@ -8,7 +8,7 @@
 //! ## Semantic Preservation Theorem
 //!
 //! **Theorem (Semantic Preservation)**: For all transformations T and documents D,
-//! ```
+//! ```text
 //! semantics(D) ≡ semantics(T(D))
 //! ```
 //!

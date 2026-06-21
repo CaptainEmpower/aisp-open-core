@@ -844,7 +844,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.timestamp))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
@@ -858,7 +858,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.hits))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);
@@ -872,7 +872,7 @@ impl FormulaCache {
             .iter()
             .map(|(k, v)| (k.clone(), v.timestamp))
             .collect();
-        entries.sort_by(|a, b| a.1.cmp(&b.1));
+        entries.sort_by_key(|a| a.1);
 
         for (key, _) in entries.iter().take(count) {
             self.formulas.remove(key);

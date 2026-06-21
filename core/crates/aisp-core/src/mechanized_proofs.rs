@@ -15,7 +15,7 @@
 //! ## Theoretical Foundation
 //!
 //! We implement the Curry-Howard correspondence:
-//! ```
+//! ```text
 //! Programs ≃ Proofs ≃ Lambda Terms
 //! Types    ≃ Propositions
 //! ```

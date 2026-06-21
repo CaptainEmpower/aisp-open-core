@@ -14,7 +14,7 @@
 //! ## Core Mathematical Structures
 //!
 //! ### 1. Semantic Universe
-//! ```
+//! ```text
 //! 𝒰 = (𝒟, ≤, ⊥, ⊔)
 //! ```
 //! Where:
@@ -24,7 +24,7 @@
 //! - ⊔: Least upper bound operation (supremum)
 //!
 //! ### 2. Type System
-//! ```
+//! ```text
 //! Types := Base | Arrow Types | Universal Types | Existential Types
 //! Base  := ℕ | ℤ | ℝ | 𝔹 | String | ⊥
 //! Arrow := Types → Types
@@ -33,7 +33,7 @@
 //! ```
 //!
 //! ### 3. Logical Structure  
-//! ```
+//! ```text
 //! ℒ := (𝒮, ⊨, ℳ, ⟦⟧)
 //! ```
 //! Where:

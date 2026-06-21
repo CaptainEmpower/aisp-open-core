@@ -328,12 +328,10 @@ impl UnicodeParser {
                     operator = ">=".to_string();
                 }
             }
-            "-" => {
-                if chars.peek() == Some(&'>') {
-                    chars.next();
-                    context.position += 1;
-                    operator = "->".to_string();
-                }
+            "-" if chars.peek() == Some(&'>') => {
+                chars.next();
+                context.position += 1;
+                operator = "->".to_string();
             }
             _ => {}
         }

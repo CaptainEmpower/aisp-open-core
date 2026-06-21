@@ -7,7 +7,7 @@
 //! ## Soundness Theorem
 //!
 //! **Theorem (Validator Soundness)**: For all AISP documents D,
-//! ```
+//! ```text
 //! validate(D) = Valid ⟹ semantically_valid(D) = true
 //! ```
 //!

@@ -183,12 +183,10 @@ impl PipelineOrchestrator {
                     ));
                 }
             }
-            ExecutionStrategy::Adaptive => {
-                if self.resource_manager.resource_pools.is_empty() {
-                    return Err(crate::error::AispError::internal_error(
-                        "Adaptive strategy requires resource pools configuration",
-                    ));
-                }
+            ExecutionStrategy::Adaptive if self.resource_manager.resource_pools.is_empty() => {
+                return Err(crate::error::AispError::internal_error(
+                    "Adaptive strategy requires resource pools configuration",
+                ));
             }
             _ => {} // Other strategies don't require special validation
         }
