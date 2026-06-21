@@ -315,9 +315,9 @@ pub use pest::iterators::{Pair, Pairs};
 
 /// Enhanced inline grammar with comprehensive Unicode support
 #[derive(pest_derive::Parser)]
-#[grammar_inline = r#"
+#[grammar_inline = r##"
 WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
-COMMENT = _{ "//" ~ (!"\n" ~ ANY)* | ";;" ~ (!"\n" ~ ANY)* }
+COMMENT = _{ ("//" | ";;" | "#") ~ (!"\n" ~ ANY)* }
 
 // Top-level document structure
 aisp_document = { 
@@ -367,7 +367,11 @@ epsilon_block = { "⟦" ~ "Ε" ~ (":" ~ "Evidence")? ~ "⟧" ~ ("⟨" ~ evidence
 
 // Block content with enhanced expression support
 meta_entries = { meta_entry* }
-meta_entry = { identifier ~ "≜" ~ (string_literal | identifier) ~ ";"? }
+// A `key ≜ value` binding, or a free-form axiom line (e.g. quantified
+// constraints) which is captured raw and ignored by the binding extractor.
+meta_entry = { meta_binding ~ ";"? | axiom_line }
+meta_binding = { identifier ~ "≜" ~ (string_literal | identifier) }
+axiom_line = @{ (!("\n" | "\r" | "}") ~ ANY)+ }
 
 type_definitions = { type_definition* }
 type_definition = { identifier ~ "≜" ~ type_expression ~ ";"? }
@@ -385,33 +389,42 @@ evidence_entries = { evidence_entry* }
 evidence_entry = { evidence_symbol ~ "≜" ~ evidence_value ~ ";"? }
 
 // Enhanced expression types with Unicode mathematical symbols
-type_expression = { 
+type_expression = {
     set_type_expr |
-    basic_type | 
-    identifier 
+    array_type |
+    basic_type |
+    identifier
 }
+// Sized array types such as `Integer[10]`.
+array_type = { (basic_type | identifier) ~ "[" ~ number ~ "]" }
 set_type_expr = { "{" ~ set_element ~ ("," ~ set_element)* ~ "}" }
 set_element = @{ (!("," | "}") ~ ANY)+ }
 basic_type = { "ℕ" | "ℝ" | "ℂ" | "ℚ" | "ℤ" | "𝕊" | "𝔹" | "Unit" | "Natural" | "Boolean" }
 
-lambda_expression = { 
-    "λ" ~ lambda_param ~ "." ~ logical_expr |
+lambda_expression = {
+    "λ" ~ lambda_params ~ "." ~ logical_expr |
     identifier
 }
 
+// Lambda parameters: a single param or a parenthesised tuple, each optionally
+// type-annotated (e.g. `x`, `x:Number`, `(a:Natural,b:Natural)`).
+lambda_params = {
+    "(" ~ typed_param ~ ("," ~ typed_param)* ~ ")" |
+    typed_param
+}
+typed_param = { lambda_param ~ (":" ~ quant_type)? }
 lambda_param = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Enhanced logical expressions with Unicode operators
-logical_expr = { 
+logical_expr = {
     if_expr |
     quantified_expr |
     implication_expr |
-    comparison_expr |
     identifier
 }
 if_expr = { "if" ~ logical_expr ~ "then" ~ logical_expr ~ "else" ~ logical_expr }
 
-quantified_expr = { 
+quantified_expr = {
     quantifier ~ identifier ~ ":" ~ quant_type ~ ("→" | ".") ~ logical_expr
 }
 quant_type = { set_type_expr | basic_type | simple_identifier }
@@ -419,13 +432,18 @@ simple_identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 quantifier = { "∀" | "∃" }
 
 implication_expr = {
-    comparison_expr ~ (("→" | "∧" | "∨") ~ comparison_expr)*
+    unary_expr ~ (implication_op ~ unary_expr)*
 }
+implication_op = { "→" | "⇒" | "↔" | "⇔" | "∧" | "∨" }
+
+// Prefix temporal ( □ ◊ ○ ) and negation ( ¬ ) operators, stackable as e.g. □◊.
+unary_expr = { unary_op* ~ comparison_expr }
+unary_op = { "□" | "◊" | "○" | "◯" | "¬" | "￢" }
 
 comparison_expr = {
     additive_expr ~ (comparison_op ~ additive_expr)*
 }
-comparison_op = { 
+comparison_op = {
     "∈" | "≡" | "⊆" | "⊇" | "=" | "≠" | "<" | ">" | "≤" | "≥"
 }
 
@@ -433,14 +451,18 @@ additive_expr = {
     multiplicative_expr ~ (("+" | "-") ~ multiplicative_expr)*
 }
 multiplicative_expr = {
-    primary_expr ~ (("*" | "/") ~ primary_expr)*
+    primary_expr ~ (("*" | "/" | "%") ~ primary_expr)*
 }
 primary_expr = {
     "(" ~ logical_expr ~ ")" |
     function_call |
+    array_access |
     identifier |
     number
 }
+
+// Array indexing such as `a[i]`.
+array_access = { identifier ~ "[" ~ logical_expr ~ "]" }
 
 function_call = {
     identifier ~ "(" ~ argument_list? ~ ")"
@@ -459,7 +481,7 @@ string_literal = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
 
 // Error recovery
 malformed_block = { "⟦" ~ (!"⟧" ~ ANY)* ~ ("⟧" | &EOI) }
-"#]
+"##]
 pub struct AispParser;
 
 impl AispParser {
