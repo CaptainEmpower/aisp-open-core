@@ -6,6 +6,9 @@
 use super::canonical_types::*;
 use crate::error::*;
 use std::collections::{HashMap, HashSet};
+// Only used by the z3-gated global memory-cap mutex below; gate the import to
+// match so non-z3 builds don't see an unused import under `-D warnings`.
+#[cfg(feature = "z3-verification")]
 use std::sync::Mutex;
 use std::time::Instant;
 
