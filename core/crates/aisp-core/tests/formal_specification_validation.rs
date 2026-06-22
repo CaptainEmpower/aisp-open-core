@@ -219,14 +219,13 @@ impl FormalValidationAssertion {
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder; tier model consolidated on the Platinum ladder"]
 fn test_formal_specification_compliance() {
     let validator = AispValidator::new();
     let result = validator.validate(FORMAL_COMPLIANT_DOCUMENT);
 
     FormalValidationAssertion::new(result)
         .is_formally_valid()
-        .has_tier(QualityTier::Gold) // Should achieve high tier with complete formal compliance
+        .has_tier(QualityTier::Platinum) // ◊⁺⁺: complete formal compliance, δ ≥ 0.75
         .has_delta_above(0.75) // Should meet ◊⁺⁺ threshold
         .validates_core_invariant()
         .has_complete_evidence();
@@ -253,27 +252,26 @@ fn test_incomplete_evidence_rejection() {
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder"]
 fn test_signal_orthogonality_requirements() {
     let validator = AispValidator::new();
     let result = validator.validate(SIGNAL_ORTHOGONALITY_DOCUMENT);
 
     FormalValidationAssertion::new(result)
         .is_formally_valid()
-        .has_tier(QualityTier::Gold)
+        .has_tier(QualityTier::Platinum)
         .validates_core_invariant();
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder; tier is consolidated on the Platinum ladder"]
+#[ignore = "#18: false premise — the validator computes δ from semantic analysis, it does not echo the evidence `δ≜` claim, so writing δ≜0.45 does not yield a Silver result (computed δ is ~1.0 for a minimal valid doc). tier() now follows the spec δ-ladder; exercising the graded ladder needs quality-graded δ computation (blocked on the delta-computation stub)."]
 fn test_quality_tier_thresholds() {
     // Test formal tier thresholds from reference.md
     let test_cases = vec![
-        ("δ≜0.85", QualityTier::Gold),   // ◊⁺⁺: δ ≥ 0.75
-        ("δ≜0.65", QualityTier::Gold),   // ◊⁺: δ ≥ 0.60
-        ("δ≜0.45", QualityTier::Silver), // ◊: δ ≥ 0.40
-        ("δ≜0.25", QualityTier::Bronze), // ◊⁻: δ ≥ 0.20
-        ("δ≜0.15", QualityTier::Reject), // ⊘: δ < 0.20
+        ("δ≜0.85", QualityTier::Platinum), // ◊⁺⁺: δ ≥ 0.75
+        ("δ≜0.65", QualityTier::Gold),     // ◊⁺: δ ≥ 0.60
+        ("δ≜0.45", QualityTier::Silver),   // ◊: δ ≥ 0.40
+        ("δ≜0.25", QualityTier::Bronze),   // ◊⁻: δ ≥ 0.20
+        ("δ≜0.15", QualityTier::Reject),   // ⊘: δ < 0.20
     ];
 
     for (delta_spec, expected_tier) in test_cases {
@@ -401,7 +399,6 @@ fn test_symbol_vocabulary_validation() {
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder"]
 fn test_layer_dependency_proofs() {
     // Test 𝕃₀→𝕃₁→𝕃₂ dependency chain from formal specification
     let document = r#"
@@ -453,7 +450,7 @@ fn test_layer_dependency_proofs() {
 
     FormalValidationAssertion::new(result)
         .is_formally_valid()
-        .has_tier(QualityTier::Gold) // Should achieve ◊⁺⁺ with complete proofs
+        .has_tier(QualityTier::Platinum) // ◊⁺⁺ with complete proofs
         .validates_core_invariant();
 }
 

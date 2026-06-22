@@ -69,17 +69,20 @@ impl SemanticAnalyzer {
 
 // Legacy compatibility adapter for old ValidationResult usage
 impl DeepVerificationResult {
+    /// Overall verification-confidence gate. NOTE: this is a *different* signal
+    /// from [`Self::tier`]. `valid()` reflects verification confidence
+    /// (`overall_confidence`), whereas the quality tier is a function of δ
+    /// (`semantic_score`) per the AISP spec, so they can legitimately diverge
+    /// (a high-confidence result with low δ is `valid() == true` but a low
+    /// tier). The authoritative document gate, `ValidationResult::is_valid`,
+    /// additionally requires `tier != Reject`.
     pub fn valid(&self) -> bool {
         self.overall_confidence > 0.8
     }
 
+    /// Quality tier (◊) per the AISP 5.1 spec — a function of δ (delta).
     pub fn tier(&self) -> QualityTier {
-        match self.overall_confidence {
-            c if c >= 0.95 => QualityTier::Platinum,
-            c if c >= 0.80 => QualityTier::Gold,
-            c if c >= 0.60 => QualityTier::Silver,
-            _ => QualityTier::Bronze,
-        }
+        QualityTier::from_delta(self.delta())
     }
 
     pub fn delta(&self) -> f64 {
@@ -219,6 +222,20 @@ pub struct MockSymbolStats {
 }
 
 impl QualityTier {
+    /// Map a δ (delta) score to its AISP 5.1 spec quality tier (◊), per
+    /// AI_GUIDE.md §Tiers — `⌈⌉≜λd.[≥¾↦◊⁺⁺,≥⅗↦◊⁺,≥⅖↦◊,≥⅕↦◊⁻,_↦⊘]`:
+    /// ◊⁺⁺ Platinum δ≥0.75; ◊⁺ Gold δ≥0.60; ◊ Silver δ≥0.40; ◊⁻ Bronze δ≥0.20;
+    /// ⊘ Reject δ<0.20.
+    pub fn from_delta(delta: f64) -> QualityTier {
+        match delta {
+            d if d >= 0.75 => QualityTier::Platinum,
+            d if d >= 0.60 => QualityTier::Gold,
+            d if d >= 0.40 => QualityTier::Silver,
+            d if d >= 0.20 => QualityTier::Bronze,
+            _ => QualityTier::Reject,
+        }
+    }
+
     pub fn symbol(&self) -> &str {
         match self {
             QualityTier::Reject => "⊘",
@@ -247,5 +264,39 @@ impl QualityTier {
             QualityTier::Gold => 3,
             QualityTier::Platinum => 4,
         }
+    }
+}
+
+#[cfg(test)]
+mod tier_tests {
+    use super::QualityTier;
+
+    /// Lock in the AISP 5.1 spec δ-ladder (◊) directly on the mapping function,
+    /// so the tier semantics stay covered even while end-to-end δ computation is
+    /// still being made quality-graded (#18).
+    #[test]
+    fn from_delta_matches_spec_ladder() {
+        // Band interiors.
+        assert_eq!(QualityTier::from_delta(0.98), QualityTier::Platinum);
+        assert_eq!(QualityTier::from_delta(0.70), QualityTier::Gold);
+        assert_eq!(QualityTier::from_delta(0.50), QualityTier::Silver);
+        assert_eq!(QualityTier::from_delta(0.30), QualityTier::Bronze);
+        assert_eq!(QualityTier::from_delta(0.10), QualityTier::Reject);
+
+        // Inclusive lower boundaries.
+        assert_eq!(QualityTier::from_delta(0.75), QualityTier::Platinum);
+        assert_eq!(QualityTier::from_delta(0.60), QualityTier::Gold);
+        assert_eq!(QualityTier::from_delta(0.40), QualityTier::Silver);
+        assert_eq!(QualityTier::from_delta(0.20), QualityTier::Bronze);
+
+        // Just below each boundary drops one tier.
+        assert_eq!(QualityTier::from_delta(0.7499), QualityTier::Gold);
+        assert_eq!(QualityTier::from_delta(0.5999), QualityTier::Silver);
+        assert_eq!(QualityTier::from_delta(0.3999), QualityTier::Bronze);
+        assert_eq!(QualityTier::from_delta(0.1999), QualityTier::Reject);
+
+        // Edge values.
+        assert_eq!(QualityTier::from_delta(0.0), QualityTier::Reject);
+        assert_eq!(QualityTier::from_delta(1.0), QualityTier::Platinum);
     }
 }
