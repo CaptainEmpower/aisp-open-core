@@ -92,18 +92,18 @@ impl EnhancedZ3Verifier {
             };
         }
 
-        let all_verified = property_results.iter().all(|p| p.is_verified());
+        let verified_count = property_results.iter().filter(|p| p.is_verified()).count();
         let any_failed = property_results
             .iter()
             .any(|p| matches!(p.result, Z3PropertyResult::Disproven { .. }));
 
         if any_failed {
             Z3VerificationStatus::Failed("One or more properties failed verification".to_string())
-        } else if all_verified {
+        } else if verified_count == property_results.len() {
             Z3VerificationStatus::AllVerified
         } else {
             Z3VerificationStatus::PartiallyVerified {
-                verified_count: all_verified as usize,
+                verified_count,
                 total_count: property_results.len(),
             }
         }
