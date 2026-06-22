@@ -125,7 +125,7 @@ echo 'export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"' >> 
 ```
 
 ### **For Developers**
-1. Use `source setup_z3_env.sh` for development sessions
+1. Install Z3 and its dev headers (see the README "Build From Source" section) for development sessions
 2. Fix the 46 Rust compilation errors 
 3. Replace hardcoded verification results with real SMT solving
 4. Implement the comprehensive challenge test suite
