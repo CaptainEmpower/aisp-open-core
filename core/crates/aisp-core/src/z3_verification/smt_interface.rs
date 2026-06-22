@@ -6,14 +6,50 @@
 use super::canonical_types::*;
 use crate::error::*;
 use std::collections::{HashMap, HashSet};
+use std::sync::Mutex;
 use std::time::Instant;
+
+/// Effective process-wide Z3 memory cap (MB), or `None` if none has been set.
+///
+/// `memory_max_size` is a *process-wide* Z3 parameter (`set_global_param`), not a
+/// per-solver setting — it cannot be enforced per `SmtInterface`. To stay
+/// deterministic under concurrency we never let one caller's limit silently win
+/// by timing: the effective cap is the *most conservative* (smallest) value any
+/// caller has requested, applied under this mutex. See [`apply_global_memory_cap`].
+#[cfg(feature = "z3-verification")]
+static GLOBAL_MEMORY_CAP_MB: Mutex<Option<u64>> = Mutex::new(None);
+
+/// Apply a process-wide Z3 memory ceiling deterministically.
+///
+/// Because `memory_max_size` is global, concurrent `with_config` callers could
+/// otherwise race to fix the cap. We resolve this by only ever tightening the
+/// cap to the minimum requested across all callers, under a mutex, and only
+/// touching Z3's global parameter when the effective value actually changes.
+#[cfg(feature = "z3-verification")]
+fn apply_global_memory_cap(requested_mb: u64) {
+    let mut current = GLOBAL_MEMORY_CAP_MB
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    let effective = effective_memory_cap(*current, requested_mb);
+    if *current != Some(effective) {
+        set_global_param("memory_max_size", &effective.to_string());
+        *current = Some(effective);
+    }
+}
+
+/// Pure cap-reconciliation policy: the effective process-wide cap is the
+/// smallest value any caller has requested. Kept separate so it can be tested
+/// without mutating Z3's global state.
+#[cfg(feature = "z3-verification")]
+fn effective_memory_cap(current: Option<u64>, requested_mb: u64) -> u64 {
+    match current {
+        Some(existing) => existing.min(requested_mb),
+        None => requested_mb,
+    }
+}
 
 #[cfg(feature = "z3-verification")]
 use z3::*;
-
-/// Guards the one-time application of Z3's process-wide `memory_max_size`.
-#[cfg(feature = "z3-verification")]
-static Z3_MEMORY_CAP_INIT: std::sync::Once = std::sync::Once::new();
 
 /// SMT formula interface with real Z3 integration
 pub struct SmtInterface {
@@ -31,7 +67,11 @@ pub struct SmtConfig {
     pub timeout_ms: u64,
     pub verbose: bool,
     pub require_z3: bool,
-    /// Soft memory ceiling for the solver, in megabytes (0 = unbounded).
+    /// Soft memory ceiling, in megabytes (0 = unbounded).
+    ///
+    /// NOTE: Z3's `memory_max_size` is **process-wide**, so this is not enforced
+    /// per `SmtInterface`. When several interfaces request different limits the
+    /// effective process cap is the smallest non-zero value requested.
     pub memory_limit_mb: u64,
 }
 
@@ -69,12 +109,29 @@ impl SmtInterface {
         }
     }
 
-    /// Create an interface with explicit configuration, e.g. to propagate a
-    /// higher-level verifier's solver timeout / memory limits.
+    /// Create an SMT interface with caller-supplied configuration.
+    ///
+    /// Lets upstream verifiers honour their own timeout limits instead of
+    /// silently falling back to the defaults in [`SmtInterface::new`]. The
+    /// `timeout_ms` bound is genuinely per-query; `memory_limit_mb` is a
+    /// process-wide cap (see [`SmtConfig::memory_limit_mb`]) reconciled across
+    /// callers to the smallest requested value.
     pub fn with_config(config: SmtConfig) -> Self {
-        let mut interface = Self::new();
-        interface.config = config;
-        interface
+        #[cfg(feature = "z3-verification")]
+        let z3_available = true;
+        #[cfg(not(feature = "z3-verification"))]
+        let z3_available = false;
+
+        Self {
+            z3_available,
+            config,
+            stats: SmtStats {
+                queries_executed: 0,
+                syntax_errors: 0,
+                proven_properties: 0,
+                disproven_properties: 0,
+            },
+        }
     }
 
     /// Create disabled SMT interface (for testing without Z3)
@@ -214,13 +271,13 @@ impl SmtInterface {
     fn execute_z3_query(&mut self, formula: &str) -> AispResult<Z3PropertyResult> {
         let start = Instant::now();
 
-        // `memory_max_size` is a process-wide Z3 setting, not per-solver, so
-        // apply it exactly once rather than mutating global state (which could
-        // affect other solver instances or concurrent queries) on every call.
-        // The per-query timeout below is set per-solver, so it stays local.
+        // Bound memory (soft cap, in MB) per R-16. `memory_max_size` is global
+        // to the Z3 process, not per-solver: we apply the most conservative cap
+        // any caller has requested, deterministically and under a mutex, instead
+        // of letting the first query fix it by timing. The per-query wall-clock
+        // `timeout` set below remains the solver-scoped bound.
         if self.config.memory_limit_mb > 0 {
-            let mb = self.config.memory_limit_mb;
-            Z3_MEMORY_CAP_INIT.call_once(|| set_global_param("memory_max_size", &mb.to_string()));
+            apply_global_memory_cap(self.config.memory_limit_mb);
         }
 
         let solver = Solver::new();
@@ -398,9 +455,19 @@ fn build_and_check(formula: &str, solver: &Solver) -> Result<SatResult, String> 
                 solver.assert(&assertion);
             }
             "check-sat" => checked = Some(solver.check()),
-            // Accept and ignore the usual preamble / no-op commands.
-            "set-logic" | "set-info" | "set-option" | "get-model" | "get-value" | "push"
-            | "pop" | "exit" | "reset" => {}
+            // Accept and ignore commands that do not affect satisfiability of the
+            // asserted set (preamble / output / session commands).
+            "set-logic" | "set-info" | "set-option" | "get-model" | "get-value" | "exit" => {}
+            // Incremental-scope commands change which assertions are active. This
+            // translator evaluates assertions in a single flat scope, so honouring
+            // them as no-ops would silently alter semantics and could yield a wrong
+            // Proven/Disproven. Fail closed (soundness-first): the caller maps this
+            // Err to `Unknown` rather than trusting an incorrect verdict.
+            "push" | "pop" | "reset" => {
+                return Err(format!(
+                    "incremental command '{head}' is unsupported (single-scope translator)"
+                ));
+            }
             other => return Err(format!("unsupported command: {other}")),
         }
     }
@@ -875,6 +942,48 @@ mod tests {
         let interface = SmtInterface::new_disabled();
         assert!(!interface.is_z3_available());
         assert!(!interface.config.require_z3);
+    }
+
+    #[test]
+    fn test_with_config_honours_caller_limits() {
+        let interface = SmtInterface::with_config(SmtConfig {
+            timeout_ms: 1234,
+            verbose: false,
+            require_z3: false,
+            memory_limit_mb: 512,
+        });
+        assert_eq!(interface.config.timeout_ms, 1234);
+        assert_eq!(interface.config.memory_limit_mb, 512);
+    }
+
+    /// The process-wide memory cap is reconciled to the *smallest* requested
+    /// value, regardless of the order callers arrive in — so `with_config`
+    /// cannot misleadingly claim per-instance enforcement and the effective cap
+    /// is deterministic under concurrency.
+    #[cfg(feature = "z3-verification")]
+    #[test]
+    fn test_memory_cap_reconciles_to_minimum() {
+        assert_eq!(effective_memory_cap(None, 4096), 4096);
+        assert_eq!(effective_memory_cap(Some(4096), 1024), 1024); // tighten
+        assert_eq!(effective_memory_cap(Some(1024), 4096), 1024); // never loosen
+        assert_eq!(effective_memory_cap(Some(2048), 2048), 2048); // idempotent
+    }
+
+    /// Incremental-scope commands must never be silently ignored: a script whose
+    /// verdict depends on push/pop is reported `Unknown`, not a wrong
+    /// `Proven`/`Disproven`. Here, ignoring the scopes would assert both `x = 1`
+    /// and `x = 2` (unsat ⇒ spurious Proven); fail-closed yields Unknown.
+    #[cfg(feature = "z3-verification")]
+    #[test]
+    fn test_push_pop_is_unknown_not_misclassified() {
+        let mut interface = SmtInterface::new();
+        let script = "(declare-const x Int)\n\
+             (push)\n(assert (= x 1))\n(pop)\n\
+             (assert (= x 2))\n(check-sat)";
+        match interface.verify_smt_formula(script).unwrap() {
+            Z3PropertyResult::Unknown { .. } => {}
+            other => panic!("expected Unknown for push/pop script, got {other:?}"),
+        }
     }
 
     #[test]
