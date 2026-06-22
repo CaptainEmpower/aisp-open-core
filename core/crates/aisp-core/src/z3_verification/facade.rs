@@ -29,37 +29,36 @@ pub struct FacadeStats {
 impl Z3VerificationFacade {
     /// Create new Z3 facade - REQUIRES Z3 availability (no graceful degradation)
     pub fn new() -> AispResult<Self> {
-        // STRICT REQUIREMENT: Z3 must be available
+        // STRICT REQUIREMENT: Z3 must be available.
         #[cfg(not(feature = "z3-verification"))]
         {
-            return Err(AispError::Z3Error {
+            Err(AispError::Z3Error {
                 message: "Z3 verification is MANDATORY - compile with --features z3-verification"
                     .to_string(),
-            });
+            })
         }
 
         #[cfg(feature = "z3-verification")]
-        let smt_interface = SmtInterface::new();
+        {
+            let smt_interface = SmtInterface::new();
 
-        #[cfg(not(feature = "z3-verification"))]
-        let smt_interface = SmtInterface::new_disabled();
+            if !smt_interface.is_z3_available() {
+                panic!(
+                    "❌ FATAL: Z3 is MANDATORY for AISP formal verification but is not available. \
+                       Install Z3 library and ensure proper environment setup."
+                );
+            }
 
-        if !smt_interface.is_z3_available() {
-            panic!(
-                "❌ FATAL: Z3 is MANDATORY for AISP formal verification but is not available. \
-                   Install Z3 library and ensure proper environment setup."
-            );
+            Ok(Self {
+                smt_interface,
+                verification_stats: FacadeStats {
+                    document_verifications: 0,
+                    total_properties_checked: 0,
+                    successful_verifications: 0,
+                    failed_verifications: 0,
+                },
+            })
         }
-
-        Ok(Self {
-            smt_interface,
-            verification_stats: FacadeStats {
-                document_verifications: 0,
-                total_properties_checked: 0,
-                successful_verifications: 0,
-                failed_verifications: 0,
-            },
-        })
     }
 
     /// Create disabled facade for testing without Z3

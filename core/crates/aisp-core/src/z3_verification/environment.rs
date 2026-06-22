@@ -212,6 +212,7 @@ impl AispZ3Environment {
     }
 
     /// Declare vector space operations
+    #[cfg(feature = "z3-verification")]
     fn declare_vector_functions(&mut self) -> AispResult<()> {
         let vector_functions = [
             (

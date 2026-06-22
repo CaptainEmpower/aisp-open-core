@@ -43,6 +43,7 @@ impl EnhancedZ3Verifier {
 
         #[cfg(not(feature = "z3-verification"))]
         {
+            let _ = &config;
             Err(AispError::validation_error(
                 "Z3 verification requires z3-verification feature".to_string(),
             ))
@@ -81,6 +82,7 @@ impl EnhancedZ3Verifier {
     }
 
     /// Determine overall verification status
+    #[cfg(feature = "z3-verification")]
     fn determine_status(&self, property_results: &[Z3VerifiedProperty]) -> Z3VerificationStatus {
         if property_results.is_empty() {
             return Z3VerificationStatus::Incomplete {
