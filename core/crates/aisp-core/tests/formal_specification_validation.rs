@@ -267,11 +267,11 @@ fn test_signal_orthogonality_requirements() {
 fn test_quality_tier_thresholds() {
     // Test formal tier thresholds from reference.md
     let test_cases = vec![
-        ("δ≜0.85", QualityTier::Gold),   // ◊⁺⁺: δ ≥ 0.75
-        ("δ≜0.65", QualityTier::Gold),   // ◊⁺: δ ≥ 0.60
-        ("δ≜0.45", QualityTier::Silver), // ◊: δ ≥ 0.40
-        ("δ≜0.25", QualityTier::Bronze), // ◊⁻: δ ≥ 0.20
-        ("δ≜0.15", QualityTier::Reject), // ⊘: δ < 0.20
+        ("δ≜0.85", QualityTier::Platinum), // ◊⁺⁺: δ ≥ 0.75
+        ("δ≜0.65", QualityTier::Gold),     // ◊⁺: δ ≥ 0.60
+        ("δ≜0.45", QualityTier::Silver),   // ◊: δ ≥ 0.40
+        ("δ≜0.25", QualityTier::Bronze),   // ◊⁻: δ ≥ 0.20
+        ("δ≜0.15", QualityTier::Reject),   // ⊘: δ < 0.20
     ];
 
     for (delta_spec, expected_tier) in test_cases {
