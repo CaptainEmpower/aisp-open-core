@@ -13,7 +13,7 @@
 
 > *"The assembly language for AI cognition—precise instructions that every AI understands exactly the same way."*
 
-**If you find this useful, please [star the repo](https://github.com/bar181/aisp-open-core)** — it helps others discover AISP.
+**If you find this useful, please [star the repo](https://github.com/CaptainEmpower/aisp-open-core)** — it helps others discover AISP.
 
 **Works natively with:** Claude, GPT-4, Gemini, Claude Code, Cursor, and any modern LLM.
 

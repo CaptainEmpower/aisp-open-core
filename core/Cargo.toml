@@ -18,10 +18,10 @@ opt-level = 2
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["AISP Development Team"]
+authors = ["Sylvan Ravinet (https://github.com/sravinet)"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/bar181/aisp-open-core"
-homepage = "https://github.com/bar181/aisp-open-core"
+repository = "https://github.com/CaptainEmpower/aisp-open-core"
+homepage = "https://github.com/CaptainEmpower/aisp-open-core"
 
 [workspace.dependencies]
 # Core dependencies
