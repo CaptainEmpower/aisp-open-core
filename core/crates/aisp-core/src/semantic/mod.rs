@@ -74,11 +74,16 @@ impl DeepVerificationResult {
     }
 
     pub fn tier(&self) -> QualityTier {
-        match self.overall_confidence {
-            c if c >= 0.95 => QualityTier::Platinum,
-            c if c >= 0.80 => QualityTier::Gold,
-            c if c >= 0.60 => QualityTier::Silver,
-            _ => QualityTier::Bronze,
+        // AISP 5.1 spec quality tiers (◊): the tier is a function of δ (delta),
+        // per AI_GUIDE.md §Tiers — ⌈⌉≜λd.[≥¾↦◊⁺⁺,≥⅗↦◊⁺,≥⅖↦◊,≥⅕↦◊⁻,_↦⊘].
+        //   ◊⁺⁺ Platinum δ≥0.75; ◊⁺ Gold δ≥0.60; ◊ Silver δ≥0.40;
+        //   ◊⁻ Bronze δ≥0.20; ⊘ Reject δ<0.20.
+        match self.delta() {
+            d if d >= 0.75 => QualityTier::Platinum,
+            d if d >= 0.60 => QualityTier::Gold,
+            d if d >= 0.40 => QualityTier::Silver,
+            d if d >= 0.20 => QualityTier::Bronze,
+            _ => QualityTier::Reject,
         }
     }
 

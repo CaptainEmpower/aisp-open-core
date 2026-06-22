@@ -39,7 +39,7 @@ fn assert_invalid_document(result: ValidationResult) {
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder"]
+#[ignore = "#18: blocked by δ computation, not the tier model. tier() now follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this minimal doc resolves to Platinum instead of the expected lower tier. Needs quality-graded δ computation."]
 fn test_minimal_valid_document() {
     let document = r#"𝔸5.1.TestDoc@2026-01-25
 
@@ -117,7 +117,7 @@ fn test_document_with_syntax_errors() {
 }
 
 #[test]
-#[ignore = "#18: asserts the non-canonical Gold-max tier ladder"]
+#[ignore = "#18: blocked by δ computation, not the tier model. tier() now follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this minimal doc resolves to Platinum instead of the expected lower tier. Needs quality-graded δ computation."]
 fn test_document_with_types() {
     let document = r#"𝔸5.1.TypeTest@2026-01-25
 
