@@ -55,7 +55,10 @@ fn test_formal_verification_enabled() {
 
     assert!(result.valid, "Document should be valid: {:?}", result.error);
     assert_eq!(result.tier, QualityTier::Platinum);
-    // Note: formal verification results would be in result.formal_verification
+    assert!(
+        result.formal_verification.is_some(),
+        "formal_verification should be populated when enable_formal_verification = true"
+    );
 }
 
 #[test]
@@ -352,7 +355,10 @@ fn test_formal_verification_integration_with_main_validator() {
         normal_result.formal_verification.is_none(),
         "Normal should not have formal verification"
     );
-    // Note: formal_result.formal_verification might be None if no extractable properties
+    assert!(
+        formal_result.formal_verification.is_some(),
+        "Formal validation should populate formal_verification when enabled"
+    );
 }
 
 #[test]

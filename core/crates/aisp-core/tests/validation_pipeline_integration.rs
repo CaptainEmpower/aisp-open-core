@@ -123,11 +123,10 @@ fn assert_valid_document(result: &ValidationResult, expected_tier: QualityTier) 
         "Expected quality tier {:?} but got {:?}",
         expected_tier, result.tier
     );
-    assert!(
-        result.delta >= 0.5,
-        "Delta should be reasonable: {}",
-        result.delta
-    );
+    // NOTE: intentionally no δ-threshold assertion here. Validity is derived
+    // from `overall_confidence` while the tier is a function of δ (see
+    // `DeepVerificationResult::valid`/`tier`), so a valid document can
+    // legitimately have a low δ; the expected tier already pins δ's band.
 }
 
 // ============================================================================
@@ -135,7 +134,7 @@ fn assert_valid_document(result: &ValidationResult, expected_tier: QualityTier) 
 // ============================================================================
 
 #[test]
-#[ignore = "#18: blocked by δ computation, not the tier model. tier() now follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this minimal doc resolves to Platinum instead of the expected lower tier. Needs quality-graded δ computation."]
+#[ignore = "#18: blocked by δ computation, not the tier model. tier() follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this Meta/Types/Rules/Funcs doc (declares δ≜0.8, expects Gold) resolves to Platinum. Needs quality-graded δ computation."]
 fn test_minimal_valid_document() {
     let document = r#"𝔸5.1.TestDoc@2026-01-25
 
@@ -235,7 +234,7 @@ fn test_document_with_syntax_errors() {
 }
 
 #[test]
-#[ignore = "#18: blocked by δ computation, not the tier model. tier() now follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this minimal doc resolves to Platinum instead of the expected lower tier. Needs quality-graded δ computation."]
+#[ignore = "#18: blocked by δ computation, not the tier model. tier() follows the AISP spec δ-ladder (◊⁺⁺≥0.75…⊘<0.20), but the validator computes δ≈1.0 for any valid document (δ is not yet quality-graded), so this types-only doc (declares δ≜0.8, expects Gold) resolves to Platinum. Needs quality-graded δ computation."]
 fn test_document_with_types() {
     let document = r#"𝔸5.1.TypeTest@2026-01-25
 
