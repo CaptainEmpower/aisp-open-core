@@ -34,15 +34,15 @@
     "formal-methods",
     "type-theory"
   ],
-  "author": "Bradley Ross",
+  "author": "Sylvan Ravinet (https://github.com/sravinet)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bar181/aisp-open-core"
+    "url": "https://github.com/CaptainEmpower/aisp-open-core"
   },
-  "homepage": "https://github.com/bar181/aisp-open-core#readme",
+  "homepage": "https://github.com/CaptainEmpower/aisp-open-core#readme",
   "bugs": {
-    "url": "https://github.com/bar181/aisp-open-core/issues"
+    "url": "https://github.com/CaptainEmpower/aisp-open-core/issues"
   },
   "engines": {
     "node": ">=18.0.0"

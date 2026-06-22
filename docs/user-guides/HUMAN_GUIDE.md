@@ -2,7 +2,7 @@
 
 > **Make AI understand exactly what you mean. Every time.**
 
-**If you find this useful, please [star the repo](https://github.com/bar181/aisp-open-core)** — it helps others discover AISP.
+**If you find this useful, please [star the repo](https://github.com/CaptainEmpower/aisp-open-core)** — it helps others discover AISP.
 
 ---
 
@@ -317,8 +317,8 @@ We're building an **AISP Elite Team** of researchers, engineers, and organizatio
 - **Email:** Research inquiries welcome
 
 **Support the Project:**
-- **Star the repo:** [github.com/bar181/aisp-open-core](https://github.com/bar181/aisp-open-core) — helps others discover AISP
-- **Join the discussion:** [GitHub Issue #1](https://github.com/bar181/aisp-open-core/issues/1) — introduce yourself and share ideas
+- **Star the repo:** [github.com/CaptainEmpower/aisp-open-core](https://github.com/CaptainEmpower/aisp-open-core) — helps others discover AISP
+- **Join the discussion:** [GitHub Issues](https://github.com/CaptainEmpower/aisp-open-core/issues) — introduce yourself and share ideas
 - Try AISP in your projects and share results
 - Report issues and suggest improvements
 - Spread the word
