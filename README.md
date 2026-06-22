@@ -123,7 +123,6 @@ use aisp_core::validator; // run the verification pipeline
 |------|----------|
 | `core/crates/aisp-core` | The parser, type checker, and verifier/proof engine |
 | `core/crates/aisp-cli` | Command-line interface |
-| `archive/aisp-rust` | Archived snapshot of the original `aisp` crate (excluded from the workspace) |
 | `docs/` | Architecture, development, and research notes |
 | `evidence/` | Comparative analyses and test artifacts |
 

@@ -759,7 +759,7 @@ Both implementations return equivalent result structures:
 | [README.md](README.md) | Everyone | Introduction and overview |
 | [evidence/](evidence/) | Researchers | Empirical validation data |
 | [tools/validator/](../../tools/validator/) | Developers | npm package source code |
-| [archive/aisp-rust/](../../archive/aisp-rust/) | Developers | Rust crate source code (archived) |
+| [`aisp` crate](https://crates.io/crates/aisp) | Developers | Original upstream Rust validation crate (superseded here by `aisp-core`) |
 
 ### Published Packages
 

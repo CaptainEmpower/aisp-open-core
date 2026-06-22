@@ -333,7 +333,7 @@ We're building an **AISP Elite Team** of researchers, engineers, and organizatio
 | [reference.md](./reference.md) | Full symbol glossary and reference |
 | [evidence/](./evidence/) | All validation experiments and results |
 | [validator/](./validator/) | npm package for validating AISP documents |
-| [aisp-rust/](./aisp-rust/) | Rust crate for validation |
+| [`aisp` crate](https://crates.io/crates/aisp) | Original upstream Rust validation crate (superseded here by `aisp-core`) |
 
 ### Published Packages
 

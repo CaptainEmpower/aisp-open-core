@@ -3,10 +3,6 @@ members = [
     "core/crates/aisp-core",
     "core/crates/aisp-cli",
 ]
-# The `aisp` crate (the original, published crates.io library) is superseded by
-# `aisp-core` and is kept only as an archived reference snapshot. It is excluded
-# from the active workspace so `--workspace` builds/tests/lints skip it.
-exclude = ["archive/aisp-rust"]
 resolver = "2"
 
 # Workspace package defaults

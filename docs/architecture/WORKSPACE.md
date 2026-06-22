@@ -13,7 +13,6 @@ aisp-open-core/
 │   ├── validator/                         # Node.js/WebAssembly implementation
 │   ├── reference-verifier/                # Standalone Z3 reference checks
 │   └── simple_z3_test/                    # Minimal Z3 integration example
-├── 🗄️ archive/aisp-rust/                  # Published crate (simple API, archived)
 ├── 📚 evidence/                           # Test documents and examples
 ├── 📝 docs/                               # Guides, architecture docs, research notes
 ├── 🔧 Cargo.toml                          # Unified workspace configuration
@@ -51,12 +50,6 @@ npm install
 npx aisp-validator validate ../../evidence/tic-tac-toe/spec.aisp
 ```
 
-**Simple Rust API (archived):**
-```bash
-cd archive/aisp-rust
-cargo run --example basic
-```
-
 ## 🛠️ **Implementation Levels**
 
 ### 1. **core/** - Advanced Engine
@@ -77,13 +70,12 @@ cargo run --example basic
 - **Features**: Universal validation, browser support, WASM kernel
 - **Target**: Web applications, JavaScript/TypeScript projects
 
-### 3. **archive/aisp-rust/** - Published Library (archived)
+### 3. Upstream `aisp` crate (external reference)
 - **Purpose**: Simple, stable API for basic AISP validation
 - **Published**: ✅ [crates.io](https://crates.io/crates/aisp)
-- **Status**: Archived and excluded from the workspace (`exclude` in root
-  `Cargo.toml`); superseded by `aisp-core`. Kept only as a buildable reference
-  snapshot of the published crate — `--workspace` build/test/lint skip it.
-- **Target**: Production applications needing simple AISP validation
+- **Status**: The original upstream crate, superseded here by `aisp-core`. No
+  longer vendored in this repository — consult crates.io / the upstream repo
+  ([bar181/aisp-open-core](https://github.com/bar181/aisp-open-core)) directly.
 
 ## 🔧 **Workspace Configuration**
 
@@ -115,7 +107,6 @@ cargo build --features z3-verification
 **Individual Component Features:**
 - `aisp-core`: `std`, `serde`, `z3-verification`
 - `aisp-cli`: `z3-verification`
-- `archive/aisp-rust`: `streaming`, `serde`, `wasm`, `z3`
 
 ## 🧪 **Testing Strategy**
 
@@ -178,7 +169,7 @@ cargo doc --workspace --document-private-items
 
 ### Published Components (Stable)
 - **tools/validator**: Node.js/WebAssembly package
-- **archive/aisp-rust**: Simple validation library (archived)
+- **upstream `aisp` crate**: Simple validation library on [crates.io](https://crates.io/crates/aisp) (external)
 
 ### Research Components (Advanced)
 - **core/**: Formal verification system
