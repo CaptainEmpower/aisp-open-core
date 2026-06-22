@@ -21,7 +21,6 @@ pub mod production_verifier;
 pub mod properties;
 pub mod smt_interface;
 pub mod types;
-pub mod verifier;
 
 // Re-export main interfaces from canonical types
 pub use canonical_types::{
