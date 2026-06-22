@@ -124,8 +124,8 @@ Every AISP document needs 5 blocks:
 
 ## Links
 
-- [AI Guide](https://github.com/CaptainEmpower/aisp-open-core/blob/main/AI_GUIDE.md) — Full AISP 5.1 spec
-- [Human Guide](https://github.com/CaptainEmpower/aisp-open-core/blob/main/HUMAN_GUIDE.md) — Introduction
+- [AI Guide](https://github.com/CaptainEmpower/aisp-open-core/blob/main/docs/user-guides/AI_GUIDE.md) — Full AISP 5.1 spec
+- [Human Guide](https://github.com/CaptainEmpower/aisp-open-core/blob/main/docs/user-guides/HUMAN_GUIDE.md) — Introduction
 - [GitHub](https://github.com/CaptainEmpower/aisp-open-core)
 
 ## Author
