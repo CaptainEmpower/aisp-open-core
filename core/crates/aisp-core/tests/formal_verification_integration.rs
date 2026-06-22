@@ -1,11 +1,20 @@
-//! Simple formal verification integration tests
+//! Formal-verification integration tests for the AISP validator.
 //!
-//! This module tests Z3-based formal verification with the actual
-//! validator API, focusing on practical verification scenarios.
+//! Single entry point for the **formal-verification** path: exercises the
+//! validator with `enable_formal_verification` toggled on/off across temporal,
+//! mathematical, and concurrent documents (R-13). General validation-pipeline
+//! behaviour (tiers, config, strict mode, performance) lives in
+//! `validation_pipeline_integration.rs`.
 
-use aisp_core::{AispValidator, QualityTier, ValidationConfig, ValidationResult};
+use aisp_core::{
+    semantic::QualityTier,
+    validator::{
+        types::{ValidationConfig, ValidationResult},
+        AispValidator,
+    },
+};
 
-/// Helper for formal verification testing
+/// Validate a document with formal verification toggled on/off (timing on).
 fn test_formal_verification(document: &str, enable_formal: bool) -> ValidationResult {
     let mut config = ValidationConfig::default();
     config.enable_formal_verification = enable_formal;
@@ -13,6 +22,40 @@ fn test_formal_verification(document: &str, enable_formal: bool) -> ValidationRe
 
     let validator = AispValidator::with_config(config);
     validator.validate(document)
+}
+
+#[test]
+fn test_formal_verification_enabled() {
+    let document = r#"𝔸5.1.FormalTest@2026-01-25
+
+⟦Σ:Types⟧{
+  Number≜ℕ
+}
+
+⟦Γ:Rules⟧{
+  ∀x:Number→x≥0
+}
+
+⟦Λ:Funcs⟧{
+  double≜λx.2*x
+}
+
+⟦Ω:Meta⟧{
+  domain≜formal_test
+  version≜"1.0.0"
+}
+
+⟦Ε⟧⟨δ≜0.9⟩"#;
+
+    let mut config = ValidationConfig::default();
+    config.enable_formal_verification = true;
+
+    let validator = AispValidator::with_config(config);
+    let result = validator.validate(document);
+
+    assert!(result.valid, "Document should be valid: {:?}", result.error);
+    assert_eq!(result.tier, QualityTier::Platinum);
+    // Note: formal verification results would be in result.formal_verification
 }
 
 #[test]
@@ -64,7 +107,7 @@ fn test_temporal_formal_verification() {
 
 ⟦Γ:Rules⟧{
   □(S0→◊S1)
-  □(S1→◊S2)  
+  □(S1→◊S2)
   ◊□(S2)
   □◊(S0)
 }
@@ -274,6 +317,45 @@ fn test_formal_verification_with_timing() {
 }
 
 #[test]
+fn test_formal_verification_integration_with_main_validator() {
+    let document = r#"𝔸5.1.Integration@2026-01-25
+
+⟦Σ:Types⟧{
+  ProcessState≜{Ready,Running,Complete}
+}
+
+⟦Γ:Rules⟧{
+  □(Ready→◊Running)
+  □(Running→◊Complete)
+}
+
+⟦Ω:Meta⟧{
+  domain≜integration_test
+  version≜"1.0.0"
+}
+
+⟦Ε⟧⟨δ≜0.9⟩"#;
+
+    // Test both with and without formal verification
+    let normal_result = test_formal_verification(document, false);
+    let formal_result = test_formal_verification(document, true);
+
+    // Both should be valid
+    assert!(normal_result.valid, "Normal validation should succeed");
+    assert!(formal_result.valid, "Formal validation should succeed");
+
+    // Quality should be similar
+    assert_eq!(normal_result.tier, formal_result.tier);
+
+    // Formal result should have formal verification data
+    assert!(
+        normal_result.formal_verification.is_none(),
+        "Normal should not have formal verification"
+    );
+    // Note: formal_result.formal_verification might be None if no extractable properties
+}
+
+#[test]
 fn test_comprehensive_formal_validation() {
     let document = r#"𝔸5.1.ComprehensiveFormal@2026-01-25
 
@@ -300,7 +382,7 @@ fn test_comprehensive_formal_validation() {
   □(Processing→◊Validated)
   □(Validated→◊Complete)
   ◊□(Complete)
-  
+
   # Quality constraints
   ∀m:Metric→(m.precision≥0 ∧ m.precision≤1)
   ∀m:Metric→(m.recall≥0 ∧ m.recall≤1)
@@ -342,43 +424,4 @@ fn test_comprehensive_formal_validation() {
             "Should have analysis results"
         );
     }
-}
-
-#[test]
-fn test_formal_verification_integration_with_main_validator() {
-    let document = r#"𝔸5.1.Integration@2026-01-25
-
-⟦Σ:Types⟧{
-  ProcessState≜{Ready,Running,Complete}
-}
-
-⟦Γ:Rules⟧{
-  □(Ready→◊Running)
-  □(Running→◊Complete)
-}
-
-⟦Ω:Meta⟧{
-  domain≜integration_test
-  version≜"1.0.0"
-}
-
-⟦Ε⟧⟨δ≜0.9⟩"#;
-
-    // Test both with and without formal verification
-    let normal_result = test_formal_verification(document, false);
-    let formal_result = test_formal_verification(document, true);
-
-    // Both should be valid
-    assert!(normal_result.valid, "Normal validation should succeed");
-    assert!(formal_result.valid, "Formal validation should succeed");
-
-    // Quality should be similar
-    assert_eq!(normal_result.tier, formal_result.tier);
-
-    // Formal result should have formal verification data
-    assert!(
-        normal_result.formal_verification.is_none(),
-        "Normal should not have formal verification"
-    );
-    // Note: formal_result.formal_verification might be None if no extractable properties
 }
