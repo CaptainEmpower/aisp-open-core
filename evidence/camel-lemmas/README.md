@@ -25,5 +25,5 @@ tests the AISP verifier, not camel-core.
 **Pass criterion:** every `F*` and `C1`/`C3` lemma is refuted, and every `T*` and `C2`
 lemma is proved. A result of `Unknown` counts as *not refuted*.
 
-Run: `./run.sh` (needs a built `aisp-cli` with Z3; set `AISP_CLI` to its path).
+Run: `./run.sh` for the CLI (needs a Z3-enabled `aisp-cli`; set `AISP_CLI` to its path). For the library verifier: `cargo run --release --manifest-path driver/Cargo.toml -- lemmas/*.aisp`.
 Results: `RESULTS.md`.
