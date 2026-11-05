@@ -1,0 +1,24 @@
+𝔸5.1.camel-F4-bits-monotone@2026-11-05
+γ≔camel.lemma.F4-bits-monotone
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜refuted
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀n,m∈ℕ:(n≤m)⇒(2^n<2^m)
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

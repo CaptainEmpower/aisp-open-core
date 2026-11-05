@@ -1,0 +1,24 @@
+𝔸5.1.camel-T7-deny-beats-confirm@2026-11-05
+γ≔camel.lemma.T7-deny-beats-confirm
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜proved
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀h,deny,confirm∈𝔹:(deny≡h∧confirm≡¬h)⇒(h⇒¬confirm)
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

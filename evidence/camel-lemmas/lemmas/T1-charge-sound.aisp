@@ -1,0 +1,24 @@
+𝔸5.1.camel-T1-charge-sound@2026-11-05
+γ≔camel.lemma.T1-charge-sound
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜proved
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀b,s,d∈ℕ:(s+d≤b)⇒(s+d≤b)
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

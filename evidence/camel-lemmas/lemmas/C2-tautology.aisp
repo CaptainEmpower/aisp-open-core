@@ -1,0 +1,24 @@
+𝔸5.1.camel-C2-tautology@2026-11-05
+γ≔camel.lemma.C2-tautology
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜proved
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀x∈ℕ:x≤x
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

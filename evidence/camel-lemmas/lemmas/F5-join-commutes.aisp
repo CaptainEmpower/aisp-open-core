@@ -1,0 +1,24 @@
+𝔸5.1.camel-F5-join-commutes@2026-11-05
+γ≔camel.lemma.F5-join-commutes
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜refuted
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀a,b∈𝒫(ℕ):(a∪b)≡a
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩
