@@ -11,11 +11,13 @@ Conditions: aisp-open-core `main` @ `e412f3e`, `aisp-cli` release build with
 
 The 2026-11-06 revision follows the review on #32. Its changes:
 
-- The runners now judge each verdict, and count it only if the rule was examined.
+- The runners now judge each verdict, and apply one criterion: a verdict counts only if it differs from that of the lemma's paired mutant.
 - T4/F4 (non-linear, undecidable by Z3) are replaced by a linear pair.
 - C4 is added.
 - Every expected verdict is checked against Z3 directly.
 - The citations are corrected.
+- The driver treats a parse error as no verdict. The finding behind it: no lemma's
+  `⟦Γ⟧` block survives parsing.
 
 The verdict is unchanged.
 
@@ -46,62 +48,70 @@ Every expected verdict is correct and decidable. This is the run that should, an
 
 ## 1. CLI: `aisp-cli -l formal --formal-verification -f json` (`./run.sh`)
 
-| lemma | expected | valid | formal status | proven/checked | rule examined | agrees |
-|---|---|---|---|---|---|---|
-| C1-contradiction | refuted | true | AllVerified | 2/2 | no | **no** |
-| C2-tautology | proved | true | AllVerified | 2/2 | no | **no** |
-| C3-uses-lambda | refuted | true | AllVerified | 2/2 | no | **no** |
-| C4-needs-lambda | proved | true | AllVerified | 2/2 | no | **no** |
-| F1-charge-sound | refuted | true | AllVerified | 2/2 | no | **no** |
-| F2-exhausted-stays | refuted | true | AllVerified | 2/2 | no | **no** |
-| F3-fits-charged | refuted | true | AllVerified | 2/2 | no | **no** |
-| F4-run-stays-in-budget | refuted | true | AllVerified | 2/2 | no | **no** |
-| F5-join-commutes | refuted | true | AllVerified | 2/2 | no | **no** |
-| F6-trust-meet | refuted | true | AllVerified | 2/2 | no | **no** |
-| F7-deny-beats-confirm | refuted | true | AllVerified | 2/2 | no | **no** |
-| T1-charge-sound | proved | true | AllVerified | 2/2 | no | **no** |
-| T2-exhausted-stays | proved | true | AllVerified | 2/2 | no | **no** |
-| T3-fits-charged | proved | true | AllVerified | 2/2 | no | **no** |
-| T4-run-stays-in-budget | proved | true | AllVerified | 2/2 | no | **no** |
-| T5-join-commutes | proved | true | AllVerified | 2/2 | no | **no** |
-| T6-trust-meet | proved | true | AllVerified | 2/2 | no | **no** |
-| T7-deny-beats-confirm | proved | true | AllVerified | 2/2 | no | **no** |
+| lemma | expected | valid | formal status | proven/checked | verdict | partner verdict | agrees |
+|---|---|---|---|---|---|---|---|
+| C1-contradiction | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| C2-tautology | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| C3-uses-lambda | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| C4-needs-lambda | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| F1-charge-sound | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F2-exhausted-stays | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F3-fits-charged | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F4-run-stays-in-budget | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F5-join-commutes | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F6-trust-meet | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| F7-deny-beats-confirm | refuted | true | AllVerified | 2/2 | proved | proved | **no** |
+| T1-charge-sound | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T2-exhausted-stays | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T3-fits-charged | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T4-run-stays-in-budget | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T5-join-commutes | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T6-trust-meet | proved | true | AllVerified | 2/2 | proved | proved | **no** |
+| T7-deny-beats-confirm | proved | true | AllVerified | 2/2 | proved | proved | **no** |
 
-Every document reports `valid: true`, tier Platinum, `AllVerified 2/2`. The "rule
-examined" column compares that with the same document with its `⟦Γ⟧` block removed,
-which gives an identical result for all 18. Nothing the CLI reports depends on the
-lemma.
+Every document reports `valid: true`, tier Platinum, `AllVerified 2/2`. Every lemma and
+its partner therefore get the same verdict, so no row can show that the rule decided
+anything. Nothing the CLI reports depends on the lemma. With the `⟦Γ⟧` block deleted,
+the output is also unchanged.
 
 ## 2. Library: `FormalVerifier::verify` (`driver/`)
 
-| lemma | expected | status | checked/ok/failed | verdict | agrees |
-|---|---|---|---|---|---|
-| C1-contradiction | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| C2-tautology | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| C3-uses-lambda | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| C4-needs-lambda | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F1-charge-sound | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F2-exhausted-stays | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F3-fits-charged | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F4-run-stays-in-budget | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F5-join-commutes | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F6-trust-meet | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| F7-deny-beats-confirm | refuted | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T1-charge-sound | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T2-exhausted-stays | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T3-fits-charged | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T4-run-stays-in-budget | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T5-join-commutes | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T6-trust-meet | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
-| T7-deny-beats-confirm | proved | Verified (nothing checked) | 0/0/0 | none | **no** |
+| lemma | expected | status | checked/ok/failed | verdict | partner verdict | agrees |
+|---|---|---|---|---|---|---|
+| C1-contradiction | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| C2-tautology | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| C3-uses-lambda | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| C4-needs-lambda | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F1-charge-sound | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F2-exhausted-stays | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F3-fits-charged | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F4-run-stays-in-budget | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F5-join-commutes | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F6-trust-meet | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| F7-deny-beats-confirm | refuted | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T1-charge-sound | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T2-exhausted-stays | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T3-fits-charged | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T4-run-stays-in-budget | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T5-join-commutes | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T6-trust-meet | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
+| T7-deny-beats-confirm | proved | PARSE-ERRORS(3): kept Meta,Functions,Evidence | - | none | none | **no** |
 
-The library reports `Verified` with **zero** properties checked. The status means "no
-failures", which holds trivially when nothing was examined.
+None of the lemmas parses cleanly. The parser reports three errors per document and
+keeps only the `⟦Ω⟧`, `⟦Λ⟧` and `⟦Ε⟧` blocks: it drops `⟦Σ⟧` (it rejects `𝒫(ℕ)`) and
+`⟦Γ⟧` (it rejects the quantified rule; see "What would make it pass"). Run on the
+remnant, `FormalVerifier` reports `Verified` with **zero** properties checked. The
+driver therefore treats any parse error as no verdict, rather than judging a document
+that no longer contains the lemma.
 
 ## Why: read from the source, not inferred from the output
 
 All paths are relative to `core/crates/`.
 
+0. **The rule never reaches either verifier.** The pest grammar rejects every
+   quantified rule, so the parser drops the whole `⟦Γ⟧` block and carries on (see the
+   first item under "What would make it pass"). The CLI reports such a document as
+   `valid: true` with `errors: []`.
 1. **CLI `AllVerified` is a confidence threshold.** `aisp-cli/src/main.rs:409-415`
    sets it when the `DeepVerifier`'s `overall_confidence > 0.9`. The two "properties"
    are `TypeSystem` and `LogicConsistency`, each passed when a heuristic score exceeds
@@ -134,8 +144,17 @@ encodings above are what using Z3 directly would look like for these lemmas.
 ## What would make it pass
 
 Routing `⟦Γ⟧` to the solver is necessary, but not sufficient on its own. The rules do
-not reach a solver intact today, for four reasons:
+not reach a solver intact today, for five reasons:
 
+- **Quantified rules do not parse:** the pest grammar rejects every quantified rule
+  tried, with `expected logical_expr`. That includes `∀x∈ℕ:x≤x`, single-variable
+  binders, nested binders and `∀a,b:a∪b≡b∪a`; only an unquantified comparison such as
+  `x≤y` gets through. The parser then drops the whole `⟦Γ⟧` block ("Failed to recover
+  RulesBlock") and returns the rest of the document. This also happens to the
+  repository's own `docs/examples/reference-platinum.aisp` and
+  `evidence/rosetta-stone/spec.aisp`. The CLI shows none of these errors, and
+  `FormalVerifier` verifies whatever blocks are left. The corpus's `⟦Σ⟧` block is
+  dropped the same way, because `𝒫(ℕ)` is not a `type_expression`.
 - **Binders:** `aisp-core/src/parser/content/logic_content.rs::parse_quantifier_binding`
   keeps everything before `∈` as one variable name, so `∀b,s,d∈ℕ:` binds a single
   variable called `"b,s,d"`. A `LogicalRule` holds a single quantifier, so nesting the
@@ -147,26 +166,30 @@ not reach a solver intact today, for four reasons:
 - **Quantifiers and operands are dropped:**
   `aisp-core/src/formula_converter.rs::extract_quantifiers` returns `vec![]`. In
   `formula_converter.rs::convert_logical_expression_structure`, `∧`, `∨` and `⇒` keep
-  their structure, but every other operator becomes an uninterpreted atom named after
-  the operator (`LessEqual`, `LessThan`, `Equivalence`, `Union`, …). Its arguments are
-  the literal variables `left` and `right`, whatever the operands were, and `Raw`
-  becomes the atom `unknown`. A solver given that formula would see shapes, not
-  arithmetic: T1 `LessEqual(left,right)⇒LessEqual(left,right)` would still be proved as
-  a propositional tautology, while T2's `≤`/`>` atoms become unrelated propositions
-  and lose the arithmetic that makes T2 true. So any verdict it returned would follow
-  from the formula's shape, not from the lemma.
+  their structure. `=` becomes `ArithmeticEqual(left, right)`, and every other
+  operator becomes an uninterpreted atom named after the operator (`LessEqual`,
+  `LessThan`, `GreaterThan`, `Equivalence` for `≡`, `Union`, …). In both cases the
+  arguments are the literal variables `left` and `right`, whatever the operands were,
+  and `Raw` becomes the atom `unknown`. Every occurrence of an operator is therefore
+  the same proposition, and a solver would decide shapes rather than arithmetic.
+  F2 `(s+d>b)⇒(t+d>b)` becomes `GreaterThan(left,right)⇒GreaterThan(left,right)`, so
+  it would be **proved** although it is false. T2 becomes `(GreaterThan∧LessEqual)⇒
+  GreaterThan` and would be proved, right for the wrong reason. F1
+  `LessEqual⇒LessThan` would be "refuted" only because the two atom names differ.
 - **A second rule path:** `aisp-core/src/ast/canonical/blocks.rs::parse_logical_rule`
   wraps every rule as `Raw`, with no quantifier.
 
 A fix needs all of the following:
 
-1. The rule parser binds several variables per quantifier and parses arithmetic.
-2. The converter keeps quantifiers, operands and `⟦Λ⟧` definitions. A rule over a
+1. The grammar accepts quantified rules. A block that fails to parse makes the
+   document fail verification, instead of being dropped.
+2. The rule parser binds several variables per quantifier and parses arithmetic.
+3. The converter keeps quantifiers, operands and `⟦Λ⟧` definitions. A rule over a
    defined symbol is checked with the definition unfolded (C4), or is `Unknown`.
-3. `⟦Γ⟧` is routed to the `properties` verifier, which asserts the negation: `unsat`
+4. `⟦Γ⟧` is routed to the `properties` verifier, which asserts the negation: `unsat`
    means proved, `sat` means refuted with a model, and anything out of fragment is
    `Unknown`.
-4. `Verified` is never reported when zero properties were checked.
+5. `Verified` is never reported when zero properties were checked.
 
 Then re-run this corpus as the acceptance test. `run.sh` and the driver should both
 exit 0 and agree with `ground-truth.sh` row for row. Today they exit 1 on every row.

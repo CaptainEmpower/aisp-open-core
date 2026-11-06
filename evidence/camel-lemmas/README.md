@@ -36,8 +36,17 @@ decidable by the solver a fixed verifier would use. This experiment tests the AI
 verifier, not camel-core.
 
 **Pass criterion:** every `F*` and `C1`/`C3` lemma is refuted, and every `T*` and
-`C2`/`C4` lemma is proved. A result of `Unknown` counts as *not refuted*, and a verdict
-counts only if the lemma's own rule was examined (see each runner's header comment).
+`C2`/`C4` lemma is proved. A result of `Unknown` counts as *not refuted*.
+
+A verdict counts only if the lemma's rule decided it. Neither entry point reports a
+per-rule result, so both runners use the same proxy. Each lemma is paired with the one
+that shares its skeleton and differs only in the rule: `T_n` ↔ `F_n`, `C2` ↔ `C1` and
+`C4` ↔ `C3`. A row agrees only if its verdict matches its expectation **and** differs
+from its partner's. Output that does not depend on what the rule says gives both
+members the same verdict and fails both rows. Examples are a heuristic score, a
+hard-coded `Proven`, or properties derived from `⟦Σ⟧`. What counts as *proved* and
+*refuted* for each entry point is defined in the header of `run.sh` and of
+`driver/src/main.rs`, and both apply the pairing.
 
 Run (each exits 1 on any disagreement):
 
