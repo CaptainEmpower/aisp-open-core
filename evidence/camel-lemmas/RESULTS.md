@@ -13,7 +13,8 @@ The 2026-11-06 revision follows the review on #32. Its changes:
 
 - The runners now judge each verdict and share one proxy for "the rule decided it".
   Each lemma has a partner that is byte-identical outside `⟦Γ⟧` and expects the
-  opposite verdict, and a verdict counts only if it differs from the partner's. The
+  opposite verdict. A row agrees only if both partners get their expected
+  verdicts, and both runners judge the corpus in both orders. The
   expected verdicts moved out of the documents into `lemmas/MANIFEST.tsv`, and
   `corpus.sh` and the driver refuse a corpus that breaks these rules. What counts as
   proved and refuted differs per entry point; see the README.

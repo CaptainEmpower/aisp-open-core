@@ -19,12 +19,16 @@
 //!   cannot parse and carries on), matching the README's "Unknown counts
 //!   as not refuted".
 //!
+//! The corpus is judged twice, forward and in reverse; a lemma whose verdict
+//! differs between the two passes gets none.
+//!
 //! This is stricter than `run.sh`'s verdict for the CLI. The CLI's JSON reports
 //! only how many components passed and hides parse errors, so there "refuted"
 //! means some component failed, for whatever reason.
 //!
 //! The pairing rule is shared with `run.sh`: a row agrees only if its verdict
-//! matches the manifest AND differs from its partner's. `FormalVerifier` also
+//! matches the manifest AND its partner's verdict matches the partner's (the
+//! opposite one, so the two differ). `FormalVerifier` also
 //! derives properties from `⟦Σ⟧` types and does not say which rule a property
 //! came from, but partners are identical outside `⟦Γ⟧`. So any result that does
 //! not depend on the rule's content gives both partners the same verdict and
@@ -50,23 +54,44 @@ fn verdict_name(v: &str) -> Option<&'static str> {
     }
 }
 
-/// The document with its `⟦Γ…⟧{ … }` block removed, as `corpus.sh` strips it.
+/// The `⟦Γ⟧` block's fixed form, as `corpus.sh` checks it: exactly one line that
+/// is exactly `⟦Γ:Rules⟧{`, closed by a line that is exactly `}`, with no `⟦`
+/// header in between and no other line starting `⟦Γ`.
+fn rules_well_formed(src: &str) -> bool {
+    let (mut n, mut open) = (0, false);
+    for line in src.split('\n') {
+        if line == "⟦Γ:Rules⟧{" {
+            if open {
+                return false;
+            }
+            n += 1;
+            open = true;
+        } else if line.starts_with("⟦Γ") || (open && line.starts_with('⟦')) {
+            return false;
+        } else if open && line == "}" {
+            open = false;
+        }
+    }
+    n == 1 && !open
+}
+
+/// The document with its `⟦Γ⟧` block removed, exactly as `corpus.sh` strips it.
+/// Only called on documents that passed `rules_well_formed`.
 fn strip_rules(src: &str) -> String {
-    let mut out = String::new();
+    let mut out = Vec::new();
     let mut skip = false;
-    for line in src.lines() {
-        if line.starts_with("⟦Γ") {
+    for line in src.split('\n') {
+        if line == "⟦Γ:Rules⟧{" {
             skip = true;
         }
         if !skip {
-            out.push_str(line);
-            out.push('\n');
+            out.push(line);
         }
-        if skip && line.starts_with('}') {
+        if skip && line == "}" {
             skip = false;
         }
     }
-    out
+    out.join("\n")
 }
 
 struct Entry {
@@ -83,6 +108,9 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
     };
     let manifest = std::fs::read_to_string(dir.join("MANIFEST.tsv"))
         .unwrap_or_else(|e| fail(format!("cannot read MANIFEST.tsv: {e}")));
+    if manifest.contains('\r') {
+        fail("MANIFEST.tsv has CR line endings".into());
+    }
     let mut entries = BTreeMap::new();
     for line in manifest
         .lines()
@@ -137,6 +165,14 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
         let (a, b) = (read(id), read(&e.partner));
         if a.contains("expect≜") {
             fail(format!("{id}.aisp carries its expected verdict"));
+        }
+        if a.contains('\r') {
+            fail(format!("{id}.aisp has CR line endings"));
+        }
+        if !rules_well_formed(&a) {
+            fail(format!(
+                "{id}.aisp must hold exactly one ⟦Γ:Rules⟧{{ line, closed by a line that is exactly }}, with no ⟦ header inside"
+            ));
         }
         if strip_rules(&a) != strip_rules(&b) {
             fail(format!("{id} and {} differ outside ⟦Γ⟧", e.partner));
@@ -216,13 +252,29 @@ fn main() {
     };
     let dir = Path::new(&dir);
     let corpus = load_corpus(dir);
-    let rows: BTreeMap<&str, Row> = corpus
+    // Judge the corpus forward, then in reverse. In sorted order the refuted
+    // member of every pair comes first, so a verifier with state shared across
+    // documents (a cache, a reused solver context) could otherwise pass on
+    // position alone. A lemma whose verdict differs between passes gets none.
+    let judge_id = |id: &str| {
+        let src = std::fs::read_to_string(dir.join(format!("{id}.aisp"))).unwrap_or_default();
+        judge(&src)
+    };
+    let mut rows: BTreeMap<&str, Row> = corpus
         .keys()
-        .map(|id| {
-            let src = std::fs::read_to_string(dir.join(format!("{id}.aisp"))).unwrap_or_default();
-            (id.as_str(), judge(&src))
-        })
+        .map(|id| (id.as_str(), judge_id(id)))
         .collect();
+    let reverse: BTreeMap<&str, &'static str> = corpus
+        .keys()
+        .rev()
+        .map(|id| (id.as_str(), judge_id(id).verdict))
+        .collect();
+    for (id, r) in rows.iter_mut() {
+        if reverse[id] != r.verdict {
+            r.status = format!("unstable ({} then {})", r.verdict, reverse[id]);
+            r.verdict = "none";
+        }
+    }
     let mut disagreements = 0;
     println!(
         "| lemma | expected | status | checked/ok/failed | verdict | partner verdict | agrees |"
@@ -231,7 +283,7 @@ fn main() {
     for (id, r) in &rows {
         let e = &corpus[*id];
         let partner = rows[e.partner.as_str()].verdict;
-        let agrees = r.verdict == e.expected && partner != r.verdict;
+        let agrees = r.verdict == e.expected && partner == corpus[e.partner.as_str()].expected;
         if !agrees {
             disagreements += 1;
         }

@@ -39,23 +39,37 @@ verifier, not camel-core.
 **Pass criterion:** every `F*` and `C1`/`C3` lemma is refuted, and every `T*` and
 `C2`/`C4` lemma is proved. A result of `Unknown` counts as *not refuted*.
 
-A verdict counts only if the lemma's rule decided it. Neither entry point reports a
-per-rule result, so all three runners share one proxy for it, enforced by
-`corpus.sh` and by the driver:
+A verdict counts only if the lemma's rule decided it. Neither verifier entry point
+reports a per-rule result, so `run.sh` and the driver use the same proxy for it. All
+three runners, `ground-truth.sh` included, refuse a corpus that breaks the rules it
+rests on (`corpus.sh`, and the same checks in the driver):
 
 - Each lemma has a partner that expects the opposite verdict: `T_n` ↔ `F_n`,
   `C2` ↔ `C1` and `C4` ↔ `C3`.
 - The two partners are **byte-identical outside their `⟦Γ⟧` block**, with the same
-  header, the same name and no expected verdict in either. `run.sh` also hands every
-  lemma to the CLI under the same path.
-- A row agrees only if its verdict matches the manifest **and** differs from its
-  partner's.
+  header, the same name and no expected verdict in either. The `⟦Γ⟧` block has one
+  fixed form: a line that is exactly `⟦Γ:Rules⟧{`, the rule, and a line that is
+  exactly `}`. That makes it strippable without guessing. No file may contain CR
+  line endings.
+- `run.sh` hands every lemma to the CLI under the same path. Both runners judge
+  the corpus forward and then in reverse, and a verdict that changes between the
+  two passes counts as none.
+- A row agrees only if its verdict matches the manifest **and** its partner's
+  verdict matches the partner's. The two expectations are opposite, so the verdicts
+  must differ.
 
-Anything a verifier could key on other than the rule is therefore identical across a
-pair. Output that does not depend on the rule's content gives both partners the same
-verdict, and both rows fail. That includes a heuristic score, a hard-coded `Proven`,
-properties derived from `⟦Σ⟧`, a dropped `⟦Γ⟧` block, the document's name or its
-path. A corpus that breaks these rules is refused, with exit 2.
+For a verifier without state carried between documents, anything it could key on
+other than the rule is therefore identical across a pair. Output that does not depend
+on the rule's content gives both partners the same verdict, and both rows fail. That
+includes a heuristic score, a hard-coded `Proven`, properties derived from `⟦Σ⟧`, a
+dropped `⟦Γ⟧` block, the document's name and its path. The two-order pass also
+catches the accidental kind of state, a cache or a reused solver context whose answer
+flips with order. It cannot rule out a verifier built to defeat the schedule: one that
+counts visits per pair and answers F, T, T, F passes both orders, and so would some
+history-dependent answer pattern for any fixed schedule. The guarantee is therefore
+for verifiers that do not carry state between documents. `ground-truth.sh` needs no pairing, since it
+asks Z3 about hand-written encodings. A corpus that breaks these rules is refused,
+with exit 2.
 
 This shows only that the output is sensitive to the rule. It does not show the output
 is *correct* beyond matching the expected verdicts. What counts as *proved* and

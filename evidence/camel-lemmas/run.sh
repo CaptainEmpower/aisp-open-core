@@ -12,13 +12,16 @@
 #   proved  = a formal result with properties_checked > 0 and proven == checked
 #   refuted = a formal result with proven < checked
 #   none    = anything else: no formal result, no output.
+#   unstable = the verdict changed between a forward and a reverse pass over
+#             the corpus (counts as no verdict).
 # This is coarser than the driver's: the CLI's JSON reports only how many
 # components passed, so "refuted" here means some component failed, whatever
 # the reason, where the driver requires a counterexample. The CLI also hides
 # parse errors, which the driver turns into "none".
 #
 # A verdict counts only if the rule decided it: a row agrees only if its
-# verdict matches the manifest AND differs from its partner's. Partners are
+# verdict matches the manifest AND its partner's verdict matches the partner's
+# (which is the opposite one, so the two differ). Partners are
 # identical outside ⟦Γ⟧, so output that does not depend on the rule's content
 # (a heuristic score, a hard-coded Proven, ⟦Σ⟧-derived properties, a dropped
 # ⟦Γ⟧ block) gives both the same verdict and fails both rows.
@@ -55,8 +58,17 @@ probe() {
 source ../corpus.sh
 corpus_load
 
-declare -A V
-for f in *.aisp; do V[${f%.aisp}]=$(probe "$f"); done
+# Probe the whole corpus forward, then in reverse. In glob order the refuted
+# member of every pair comes first, so a verifier whose answer depends on what
+# it saw earlier (a cache, persisted state) could otherwise pass on position
+# alone. A lemma whose verdict differs between the two passes gets none.
+declare -A V V2
+files=(*.aisp)
+for f in "${files[@]}"; do V[${f%.aisp}]=$(probe "$f"); done
+for (( i=${#files[@]}-1; i>=0; i-- )); do f=${files[i]}; V2[${f%.aisp}]=$(probe "$f"); done
+for id in "${!V[@]}"; do
+  if [[ ${V[$id]##* } != "${V2[$id]##* }" ]]; then V[$id]="${V[$id]% *} unstable"; fi
+done
 
 fail=0
 printf '| lemma | expected | valid | formal status | proven/checked | verdict | partner verdict | agrees |\n|---|---|---|---|---|---|---|---|\n'
@@ -65,7 +77,7 @@ for f in *.aisp; do
   exp=${EXPECT[$id]}
   read -r v s c p verdict <<<"${V[$id]}"
   read -r _ _ _ _ pv <<<"${V[${PARTNER[$id]}]}"
-  if [[ $verdict == "$exp" && $pv != missing && $pv != "$verdict" ]]; then a=yes; else a=**no**; fail=1; fi
+  if [[ $verdict == "$exp" && $pv == "${EXPECT[${PARTNER[$id]}]}" ]]; then a=yes; else a=**no**; fail=1; fi
   printf '| %s | %s | %s | %s | %s/%s | %s | %s | %s |\n' "$id" "$exp" "$v" "$s" "$p" "$c" "$verdict" "$pv" "$a"
 done
 exit "$fail"
