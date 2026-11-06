@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Checks each lemma's expected verdict against Z3 directly, independently of
+# Checks each lemma's expected verdict (lemmas/MANIFEST.tsv) against Z3 directly, independently of
 # aisp-core. Each lemma is hand-encoded in SMT-LIB below; its negation must be
-# `unsat` when expect≜proved and `sat` when expect≜refuted. A lemma with no
+# `unsat` when the manifest says proved and `sat` when it says refuted. A lemma with no
 # encoding, or an `unknown`, fails: an expected verdict the solver cannot
 # decide is not a known answer.
 #
@@ -41,11 +41,13 @@ declare -A L=(
   [F7-deny-beats-confirm]="|(=> (and (= deny h) (= confirm (not h))) (=> h confirm))"
 )
 
+cd lemmas; source ../corpus.sh; corpus_load; cd ..
+
 fail=0
 printf '| lemma | expected | z3 on the negation | agrees |\n|---|---|---|---|\n'
 for f in lemmas/*.aisp; do
   id=$(basename "$f" .aisp)
-  exp=$(sed -n 's/^ *expect≜//p' "$f")
+  exp=${EXPECT[$id]}
   if [[ -z ${L[$id]+x} ]]; then r="no encoding"
   else
     r=$("$Z3" -T:20 -in <<<"$nat $bool ${L[$id]%%|*} (assert (not ${L[$id]#*|})) (check-sat)" 2>&1 | head -1)

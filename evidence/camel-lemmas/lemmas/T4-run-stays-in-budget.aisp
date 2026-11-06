@@ -1,9 +1,8 @@
-𝔸5.1.camel-T4-run-stays-in-budget@2026-11-06
-γ≔camel.lemma.T4-run-stays-in-budget
+𝔸5.1.camel-pair-4@2026-11-06
+γ≔camel.lemma.pair-4
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜proved
 }
 
 ⟦Σ:Types⟧{

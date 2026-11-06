@@ -1,9 +1,8 @@
-𝔸5.1.camel-T2-exhausted-stays@2026-11-05
-γ≔camel.lemma.T2-exhausted-stays
+𝔸5.1.camel-pair-2@2026-11-06
+γ≔camel.lemma.pair-2
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜proved
 }
 
 ⟦Σ:Types⟧{

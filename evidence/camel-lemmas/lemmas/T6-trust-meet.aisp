@@ -1,9 +1,8 @@
-𝔸5.1.camel-T6-trust-meet@2026-11-05
-γ≔camel.lemma.T6-trust-meet
+𝔸5.1.camel-pair-6@2026-11-06
+γ≔camel.lemma.pair-6
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜proved
 }
 
 ⟦Σ:Types⟧{

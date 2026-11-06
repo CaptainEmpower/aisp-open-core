@@ -1,9 +1,8 @@
-𝔸5.1.camel-C4-needs-lambda@2026-11-06
-γ≔camel.lemma.C4-needs-lambda
+𝔸5.1.camel-control-b@2026-11-06
+γ≔camel.lemma.control-b
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜proved
 }
 
 ⟦Σ:Types⟧{

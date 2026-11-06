@@ -1,9 +1,8 @@
-𝔸5.1.camel-F1-charge-sound@2026-11-05
-γ≔camel.lemma.F1-charge-sound
+𝔸5.1.camel-pair-1@2026-11-06
+γ≔camel.lemma.pair-1
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜refuted
 }
 
 ⟦Σ:Types⟧{

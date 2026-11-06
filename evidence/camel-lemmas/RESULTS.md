@@ -11,7 +11,12 @@ Conditions: aisp-open-core `main` @ `e412f3e`, `aisp-cli` release build with
 
 The 2026-11-06 revision follows the review on #32. Its changes:
 
-- The runners now judge each verdict, and apply one criterion: a verdict counts only if it differs from that of the lemma's paired mutant.
+- The runners now judge each verdict and share one proxy for "the rule decided it".
+  Each lemma has a partner that is byte-identical outside `⟦Γ⟧` and expects the
+  opposite verdict, and a verdict counts only if it differs from the partner's. The
+  expected verdicts moved out of the documents into `lemmas/MANIFEST.tsv`, and
+  `corpus.sh` and the driver refuse a corpus that breaks these rules. What counts as
+  proved and refuted differs per entry point; see the README.
 - T4/F4 (non-linear, undecidable by Z3) are replaced by a linear pair.
 - C4 is added.
 - Every expected verdict is checked against Z3 directly.
@@ -147,14 +152,18 @@ Routing `⟦Γ⟧` to the solver is necessary, but not sufficient on its own. Th
 not reach a solver intact today, for five reasons:
 
 - **Quantified rules do not parse:** the pest grammar rejects every quantified rule
-  tried, with `expected logical_expr`. That includes `∀x∈ℕ:x≤x`, single-variable
-  binders, nested binders and `∀a,b:a∪b≡b∪a`; only an unquantified comparison such as
-  `x≤y` gets through. The parser then drops the whole `⟦Γ⟧` block ("Failed to recover
-  RulesBlock") and returns the rest of the document. This also happens to the
-  repository's own `docs/examples/reference-platinum.aisp` and
-  `evidence/rosetta-stone/spec.aisp`. The CLI shows none of these errors, and
-  `FormalVerifier` verifies whatever blocks are left. The corpus's `⟦Σ⟧` block is
-  dropped the same way, because `𝒫(ℕ)` is not a `type_expression`.
+  tried. `∀x∈ℕ:x≤x`, multi- and nested-variable binders and `∀a,b:a∪b≡b∪a` fail
+  with `expected logical_expr`. `∀x:x≤x` fails with `expected set_type_expr`, and
+  `∀p:ℋ.id(p)≡SHA256(𝒩(p))` from `evidence/rosetta-stone/spec.aisp` fails with
+  `expected quant_type`. Only an unquantified comparison such as `x≤y` gets through.
+  The parser then drops the whole `⟦Γ⟧` block ("Failed to recover RulesBlock") and
+  returns the rest of the document. The CLI shows none of these errors, and
+  `FormalVerifier` verifies whatever blocks are left. The repository's own examples
+  lose `⟦Γ⟧` too, for this reason or another. `spec.aisp` loses it on its quantified
+  rules. `docs/examples/reference-platinum.aisp` has no quantifier in `⟦Γ⟧`, and
+  loses it because the rule grammar also rejects its `name≜"string"` lines. The
+  corpus's `⟦Σ⟧` block is dropped the same way, because `𝒫(ℕ)` is not a
+  `type_expression`.
 - **Binders:** `aisp-core/src/parser/content/logic_content.rs::parse_quantifier_binding`
   keeps everything before `∈` as one variable name, so `∀b,s,d∈ℕ:` binds a single
   variable called `"b,s,d"`. A `LogicalRule` holds a single quantifier, so nesting the

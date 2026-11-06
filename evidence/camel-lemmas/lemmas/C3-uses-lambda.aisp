@@ -1,9 +1,8 @@
-𝔸5.1.camel-C3-uses-lambda@2026-11-05
-γ≔camel.lemma.C3-uses-lambda
+𝔸5.1.camel-control-b@2026-11-06
+γ≔camel.lemma.control-b
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜refuted
 }
 
 ⟦Σ:Types⟧{

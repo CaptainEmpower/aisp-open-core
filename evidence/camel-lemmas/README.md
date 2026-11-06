@@ -4,7 +4,8 @@
 does it return that value? In particular, does it *refute* a false lemma, rather than
 returning `Unknown` or "verified"?
 
-**Corpus** (`lemmas/`, one lemma per document, expected verdict in `⟦Ω⟧ expect≜`).
+**Corpus** (`lemmas/`, one lemma per document). Each lemma's expected verdict and its
+partner are in `lemmas/MANIFEST.tsv`, **not** in the document a verifier reads.
 Each true form is a small arithmetic, set or propositional **abstraction** of a
 property that a Kani harness in gents-camel (`core/rust/src`) proves over the real
 Rust. The lemma is not that harness's statement, and Kani discharged none of these
@@ -39,19 +40,34 @@ verifier, not camel-core.
 `C2`/`C4` lemma is proved. A result of `Unknown` counts as *not refuted*.
 
 A verdict counts only if the lemma's rule decided it. Neither entry point reports a
-per-rule result, so both runners use the same proxy. Each lemma is paired with the one
-that shares its skeleton and differs only in the rule: `T_n` ↔ `F_n`, `C2` ↔ `C1` and
-`C4` ↔ `C3`. A row agrees only if its verdict matches its expectation **and** differs
-from its partner's. Output that does not depend on what the rule says gives both
-members the same verdict and fails both rows. Examples are a heuristic score, a
-hard-coded `Proven`, or properties derived from `⟦Σ⟧`. What counts as *proved* and
-*refuted* for each entry point is defined in the header of `run.sh` and of
-`driver/src/main.rs`, and both apply the pairing.
+per-rule result, so all three runners share one proxy for it, enforced by
+`corpus.sh` and by the driver:
 
-Run (each exits 1 on any disagreement):
+- Each lemma has a partner that expects the opposite verdict: `T_n` ↔ `F_n`,
+  `C2` ↔ `C1` and `C4` ↔ `C3`.
+- The two partners are **byte-identical outside their `⟦Γ⟧` block**, with the same
+  header, the same name and no expected verdict in either. `run.sh` also hands every
+  lemma to the CLI under the same path.
+- A row agrees only if its verdict matches the manifest **and** differs from its
+  partner's.
+
+Anything a verifier could key on other than the rule is therefore identical across a
+pair. Output that does not depend on the rule's content gives both partners the same
+verdict, and both rows fail. That includes a heuristic score, a hard-coded `Proven`,
+properties derived from `⟦Σ⟧`, a dropped `⟦Γ⟧` block, the document's name or its
+path. A corpus that breaks these rules is refused, with exit 2.
+
+This shows only that the output is sensitive to the rule. It does not show the output
+is *correct* beyond matching the expected verdicts. What counts as *proved* and
+*refuted* differs by entry point, because each exposes different information; see
+the headers of `run.sh` and `driver/src/main.rs`. The driver's definition is the
+strict one. The CLI reports only component counts and hides parse errors, so its
+"refuted" means some component failed.
+
+Run (each exits 1 on any disagreement and 2 on a malformed corpus):
 
 - `./ground-truth.sh`: the expected verdicts against Z3 (needs `z3`; set `Z3` to its path). This one should pass.
 - `./run.sh`: the CLI path (needs a Z3-enabled `aisp-cli`; set `AISP_CLI` to its path).
-- `cargo run --release --manifest-path driver/Cargo.toml -- lemmas/*.aisp`: the library path (`FormalVerifier`).
+- `cargo run --release --manifest-path driver/Cargo.toml -- lemmas`: the library path (`FormalVerifier`).
 
 Results: `RESULTS.md`.

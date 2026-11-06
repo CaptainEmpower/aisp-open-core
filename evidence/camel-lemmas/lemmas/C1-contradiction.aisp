@@ -1,9 +1,8 @@
-𝔸5.1.camel-C1-contradiction@2026-11-05
-γ≔camel.lemma.C1-contradiction
+𝔸5.1.camel-control-a@2026-11-06
+γ≔camel.lemma.control-a
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜refuted
 }
 
 ⟦Σ:Types⟧{

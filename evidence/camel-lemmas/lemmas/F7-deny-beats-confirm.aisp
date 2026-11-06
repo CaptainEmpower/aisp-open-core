@@ -1,9 +1,8 @@
-𝔸5.1.camel-F7-deny-beats-confirm@2026-11-05
-γ≔camel.lemma.F7-deny-beats-confirm
+𝔸5.1.camel-pair-7@2026-11-06
+γ≔camel.lemma.pair-7
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜refuted
 }
 
 ⟦Σ:Types⟧{

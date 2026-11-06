@@ -1,9 +1,8 @@
-𝔸5.1.camel-F3-fits-charged@2026-11-05
-γ≔camel.lemma.F3-fits-charged
+𝔸5.1.camel-pair-3@2026-11-06
+γ≔camel.lemma.pair-3
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
-  expect≜refuted
 }
 
 ⟦Σ:Types⟧{
