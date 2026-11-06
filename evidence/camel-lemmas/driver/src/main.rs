@@ -111,6 +111,9 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
     if manifest.contains('\r') {
         fail("MANIFEST.tsv has CR line endings".into());
     }
+    if !manifest.ends_with('\n') {
+        fail("MANIFEST.tsv does not end with a newline".into());
+    }
     let mut entries = BTreeMap::new();
     for line in manifest
         .lines()
@@ -120,6 +123,9 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
         let [id, exp, partner] = cols[..] else {
             fail(format!("bad manifest line: {line}"))
         };
+        if id.is_empty() || partner.is_empty() {
+            fail(format!("bad manifest line (empty field): {line}"));
+        }
         let expected =
             verdict_name(exp).unwrap_or_else(|| fail(format!("{id}: bad verdict {exp}")));
         entries.insert(
@@ -129,6 +135,9 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
                 partner: partner.to_string(),
             },
         );
+    }
+    if entries.is_empty() {
+        fail("MANIFEST.tsv lists no lemmas".into());
     }
     let read = |id: &str| {
         std::fs::read_to_string(dir.join(format!("{id}.aisp")))
@@ -168,6 +177,9 @@ fn load_corpus(dir: &Path) -> BTreeMap<String, Entry> {
         }
         if a.contains('\r') {
             fail(format!("{id}.aisp has CR line endings"));
+        }
+        if !a.ends_with('\n') {
+            fail(format!("{id}.aisp does not end with a newline"));
         }
         if !rules_well_formed(&a) {
             fail(format!(

@@ -49,8 +49,10 @@ rests on (`corpus.sh`, and the same checks in the driver):
 - The two partners are **byte-identical outside their `⟦Γ⟧` block**, with the same
   header, the same name and no expected verdict in either. The `⟦Γ⟧` block has one
   fixed form: a line that is exactly `⟦Γ:Rules⟧{`, the rule, and a line that is
-  exactly `}`. That makes it strippable without guessing. No file may contain CR
-  line endings.
+  exactly `}`. That makes it strippable without guessing. Every file must be
+  valid UTF-8, end with a newline and contain no CR. The manifest must list at least
+  one lemma, and every `.aisp` file in the directory, hidden ones included, must be
+  listed in it.
 - `run.sh` hands every lemma to the CLI under the same path. Both runners judge
   the corpus forward and then in reverse, and a verdict that changes between the
   two passes counts as none.
