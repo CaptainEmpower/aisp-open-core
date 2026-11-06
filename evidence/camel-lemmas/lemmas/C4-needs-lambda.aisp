@@ -1,0 +1,24 @@
+𝔸5.1.camel-C4-needs-lambda@2026-11-06
+γ≔camel.lemma.C4-needs-lambda
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+  expect≜proved
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀b,s,d∈ℕ:Charge(b,s,d)⇒(s+d≤b)
+}
+
+⟦Λ:Funcs⟧{
+  Charge≜λ(b,s,d).s+d≤b
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

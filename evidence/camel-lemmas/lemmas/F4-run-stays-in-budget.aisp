@@ -1,5 +1,5 @@
-𝔸5.1.camel-F4-bits-monotone@2026-11-05
-γ≔camel.lemma.F4-bits-monotone
+𝔸5.1.camel-F4-run-stays-in-budget@2026-11-06
+γ≔camel.lemma.F4-run-stays-in-budget
 
 ⟦Ω:Meta⟧{
   domain≜camel-core
@@ -14,7 +14,7 @@
 }
 
 ⟦Γ:Rules⟧{
-  ∀n,m∈ℕ:(n≤m)⇒(2^n<2^m)
+  ∀b,s,d,n∈ℕ:(((s+d≤b)∧(n≡s+d))∨((s+d>b)∧(n≡s)))⇒(n≤b)
 }
 
 ⟦Λ:Funcs⟧{
