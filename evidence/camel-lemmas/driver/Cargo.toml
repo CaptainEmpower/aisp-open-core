@@ -1,0 +1,10 @@
+[package]
+name = "camel-lemma-driver"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+aisp-core = { path = "../../../core/crates/aisp-core" }

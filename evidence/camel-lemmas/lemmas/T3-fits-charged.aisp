@@ -1,0 +1,23 @@
+𝔸5.1.camel-pair-3@2026-11-06
+γ≔camel.lemma.pair-3
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀b,s,d∈ℕ:(s≤b∧d≤b-s)⇒(s+d≤b)
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

@@ -1,0 +1,23 @@
+𝔸5.1.camel-control-b@2026-11-06
+γ≔camel.lemma.control-b
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀b,s,d∈ℕ:Charge(b,s,d)⇒(s+d≤b)
+}
+
+⟦Λ:Funcs⟧{
+  Charge≜λ(b,s,d).s+d≤b
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

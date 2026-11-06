@@ -1,0 +1,23 @@
+𝔸5.1.camel-pair-7@2026-11-06
+γ≔camel.lemma.pair-7
+
+⟦Ω:Meta⟧{
+  domain≜camel-core
+}
+
+⟦Σ:Types⟧{
+  Budget≜ℕ
+  Spent≜ℕ
+  Debit≜ℕ
+  Sources≜𝒫(ℕ)
+}
+
+⟦Γ:Rules⟧{
+  ∀h,deny,confirm∈𝔹:(deny≡h∧confirm≡¬h)⇒(h⇒¬confirm)
+}
+
+⟦Λ:Funcs⟧{
+  id≜λx.x
+}
+
+⟦Ε⟧⟨δ≜0.8⟩

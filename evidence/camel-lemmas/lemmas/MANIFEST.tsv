@@ -1,0 +1,19 @@
+# lemma	expected	partner
+C1-contradiction	refuted	C2-tautology
+C2-tautology	proved	C1-contradiction
+C3-uses-lambda	refuted	C4-needs-lambda
+C4-needs-lambda	proved	C3-uses-lambda
+F1-charge-sound	refuted	T1-charge-sound
+F2-exhausted-stays	refuted	T2-exhausted-stays
+F3-fits-charged	refuted	T3-fits-charged
+F4-run-stays-in-budget	refuted	T4-run-stays-in-budget
+F5-join-commutes	refuted	T5-join-commutes
+F6-trust-meet	refuted	T6-trust-meet
+F7-deny-beats-confirm	refuted	T7-deny-beats-confirm
+T1-charge-sound	proved	F1-charge-sound
+T2-exhausted-stays	proved	F2-exhausted-stays
+T3-fits-charged	proved	F3-fits-charged
+T4-run-stays-in-budget	proved	F4-run-stays-in-budget
+T5-join-commutes	proved	F5-join-commutes
+T6-trust-meet	proved	F6-trust-meet
+T7-deny-beats-confirm	proved	F7-deny-beats-confirm
